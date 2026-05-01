@@ -1,0 +1,396 @@
+
+
+
+     LLLLSSSS((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                LLLLSSSS((((UUUU1111))))
+
+
+
+     NNNNaaaammmmeeee
+          LS - Displays directory contents
+
+     SSSSyyyynnnnttttaaaaxxxx
+          llllssss [ ----1111aaaabbbbddddllllmmmmppppttttuuuuxxxxzzzz////....!!!!????hhhh ] [ _w_i_l_d_s_p_e_c ][ :_d_r_i_v_e_s_p_e_c ]...
+          [>[>] _f_i_l_e | _d_e_v_i_c_e ] [ ; _n_e_x_t _c_o_m_m_a_n_d ]
+
+     DDDDeeeessssccccrrrriiiippppttttiiiioooonnnn
+          _L_s lists the files on the specified drives.  If a _w_i_l_d_s_p_e_c
+          is specified, all files that match the _w_i_l_d_s_p_e_c will be
+          displayed.  If a _d_r_i_v_e_s_p_e_c is specified, only files on that
+          particular drive or drives will be displayed.  If the
+          _d_r_i_v_e_s_p_e_c is omitted, all directories on all active drives
+          are displayed.
+
+          By default, the files are displayed in columns and are
+          sorted alphabetically.  Specifying options can cause
+          additional information to be displayed, alter the sorting
+          order, or change the format of the display.
+
+          _L_s accepts several options.  Options are specified by single
+          characters, and they may be entered in upper or lowercase.
+          Options are always preceded by a hyphen (a "-").  If you are
+          specifying multiple options, you can specify the options in
+          any of these formats:
+                -a -b -c   or   -abc   or   -a -bc   or  -ab -c
+
+          The options are:
+
+          ----1111   Only one file is listed on each line.  This is useful
+               for building lists of files that will be used by other
+               programs.
+
+          ----aaaa   "All Files".  Files that are marked "invisible" will be
+               displayed along with the rest of the files.
+
+          ----bbbb   Sorts the files in reverse (Backwards) order.  By
+               default the file named "AAAA" (or the file with the most
+               recent date) would be displayed first.
+
+          ----dddd   The logical drive number is appended to each filename
+               displayed.
+
+          ----llll   Each file is displayed in a long format, showing the
+               size, date and permissions.  This option provides
+               information similar to that found in the system DIR (A)
+               command.
+
+
+
+
+
+
+
+
+     Page 1                                             May 15th, 1993
+
+
+
+
+
+
+     LLLLSSSS((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                LLLLSSSS((((UUUU1111))))
+
+
+
+               In the long format, a list of attributes are displayed
+               for each file.  These are represented by the characters
+               ddddssssiiiiffffooooccccuuuunnnn.   If the file has a particular attribute, the
+               letter is displayed.  If the file doesn't have that
+               attribute, a "----" is displayed instead.
+
+               d     The file is a PDS (Partition Data Set) or a
+                     DiskDisk subdirectory.
+               s     The file is a system file, usually part of the
+                     operating system.
+               i     The file is marked invisible and is displayed
+                     only if the ----aaaa option is specified.
+               f     The file has a fixed size.
+               o     The file is marked "open".  If the OS is running
+                     in networked mode, files are marked this way so
+                     that only one application can have write access
+                     at a time.
+               c     The file is copy-protected.
+               u     The file has a user-password (only on pre-LS-DOS
+                     6.3 and pre-LDOS 5.3 versions).
+               n     The file has been modified since the last time
+                     _b_a_c_k_u_p(L) made a copy of this file.
+
+               The protection attribute for each file is also listed.
+               Normally it is FFFFuuuullllllll, but if the file has an Owner
+               Password, it can be any of the following:
+
+               Full      The file has no restrictions on access.
+               Remove    The file attributes cannot be changed but all
+                         other access is allowed.
+               Rename    The file cannot removed, but all other access
+                         is allowed.
+               Write     The file can be read or written but not
+                         removed or renamed.
+               Update    The file can be read and updated, but cannot
+                         be removed, renamed or change size.
+               Read      The file can be read or executed, but no
+                         other access is allowed.
+               Execute   The file can be executed, but cannot be read
+                         or modified.
+               None      Without the Owner Password, the file cannot
+                         be accessed.
+
+               If a file is accessed with the Owner Password, full
+               access is always allowed.  On older TRSDOS and LDOS
+               versions, if the file has a User Password and an Owner
+               Password, no access is allowed at all unless one of the
+               two passwords are known.
+
+
+          ----mmmm   Files are displayed in the stream format, separated by
+               commas.  (Ignored if ----llll or ----xxxx is specified.)
+
+
+
+     Page 2                                             May 15th, 1993
+
+
+
+
+
+
+     LLLLSSSS((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                LLLLSSSS((((UUUU1111))))
+
+
+
+          ----pppp   Output of _l_s is routed through the _m_o_r_e(U1) utility.
+               The screen will pause once 23 lines of text have been
+               displayed.  The _m_o_r_e(U1) prompt ("--More--") allows you
+               to advance or search through the remainder of the
+               output.  See the _m_o_r_e(U1) command for additional
+               information on the options that _m_o_r_e(U1) provides.  The
+               ----pppp option is ignored if the output is redirected.
+
+          ----tttt   Files are sorted by time and date instead of by name.
+
+          ----uuuu   Filenames are displayed in uppercase.  By default they
+               are displayed in lowercase.
+
+          ----xxxx   Files are displayed in columns and are sorted
+               horizontally instead of vertically (the default).
+               (This option is ignored if ----llll is specified.)
+
+          ----zzzz   In the ----llll format, the file times are displayed in
+               military hours instead of the AM/PM format.
+
+          ----//// oooorrrr ----....
+               Forces the filenames to be displayed with "/" or "." as
+               the extension character.
+
+          ----!!!!   Causes _l_s to ignore any default settings that are
+               specified in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file.  _L_s will also
+               ignore any options that are specified to the left of
+               the ----!!!! option.  Note that the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file is
+               accessed even if the ----!!!! option is specified.
+
+          ----???? oooorrrr ----hhhh
+               Displays the help message.
+
+          _w_i_l_d_s_p_e_c
+               A _w_i_l_d_s_p_e_c specifies none or more files that are to be
+               displayed in alphabetical order.  A _w_i_l_d_s_p_e_c may
+               contain none or more of the following wildcard
+               characters:
+
+               *     The * matches zero or more characters in the
+                     specified position.  For example, the _w_i_l_d_s_p_e_c
+                     A*Z will match any of the following filenames:
+                                      AZ          ABZ
+                                    ABCDEFGZ    ABC/XYZ
+                     Note that unlike a LS-DOS/TRSDOS 6 _p_a_r_t_s_p_e_c(L),
+                     the filename and extension are treated as a
+                     single unit.  A single * will match files with
+                     and without extensions.
+
+
+
+
+
+
+
+     Page 3                                             May 15th, 1993
+
+
+
+
+
+
+     LLLLSSSS((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                LLLLSSSS((((UUUU1111))))
+
+
+
+               %     The % matches exactly one character.  So A%C
+                     matches:
+                                      ABC         AXC
+                     The file AC will not match the A%C pattern.
+
+               [ ]   Ranges specify multiple characters that may
+                     appear in a given position in the filenames being
+                     tested.  There are two formats that can be
+                     combined:
+                     [abc]     These specific characters are
+                               acceptable in this position in the
+                               filename.  So A[BC5]D would match:
+                               ABD            ACD                 A5D
+                     [b-e]     The characters in this ASCII range are
+                               acceptable in this position in the
+                               filename.  A[E-J]X matches:
+                               AEX            AFX                 AGX
+                               AHX            AIX                 AJX
+                               Numbers can also be included in ranges,
+                               but the first value of the range must
+                               always have a lower ASCII value than
+                               the second value.
+                     [!...]    The ! excludes all files that match
+                               characters in this position.  So
+                               A[!DKP]D will match all filenames that
+                               start with an "A", end with a "D", and
+                               the second character is any character
+                               except "D", "K", or "P".
+
+                     Combinations of ranges are also allowed.
+                     A[1-3ABD]X would allow these filenames:
+                                A1X         A2X         A3X
+                                AAX         ABX         ADX
+
+               Any lowercase characters in the _w_i_l_d_s_p_e_c are converted
+               to uppercase before the comparison is performed.
+
+
+          :_d_r_i_v_e_s_p_e_c
+               The _d_r_i_v_e_s_p_e_c specifies one or more logical drives that
+               should be scanned for files that match the file
+               _w_i_l_d_s_p_e_c.  The % and * will examine all enabled drives.
+               A range can also be used.  For example, :[2-47] will
+               search for files on drives 2, 3, 4 and 7.
+
+               If the _d_r_i_v_e_s_p_e_c is not specified and a _w_i_l_d_s_p_e_c is,
+               all drives are searched for files that match the file
+               _w_i_l_d_s_p_e_c and all files that match will be displayed.
+               So if the command llllssss ssssaaaammmmpppplllleeee////ttttxxxxtttt is used and the file
+               SAMPLE/TXT exists on four different logical drives, all
+               four files will be displayed.
+
+
+
+
+     Page 4                                             May 15th, 1993
+
+
+
+
+
+
+     LLLLSSSS((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                LLLLSSSS((((UUUU1111))))
+
+
+
+          >[>] _f_i_l_e | _d_e_v_i_c_e
+               By specifying a file or device, the output is sent to
+               the specified file or device instead of the display.
+               This is known as _r_e_d_i_r_e_c_t_e_d _o_u_t_p_u_t.  For example, the
+               command llllssss aaaa****::::5555 >>>> aaaaddddiiiirrrr::::0000 places a list of files from
+               logical drive 5 with names that start with the letter
+               'a' in the file AAAADDDDIIIIRRRR::::0000.  If >>>>>>>> is used, _l_s will append
+               the output of _l_s to the existing contents of the
+               specified file or device.  _F_i_l_e_s_p_e_c_s for redirection
+               may not specify a password.
+
+
+          ; _n_e_x_t _c_o_m_m_a_n_d
+               After _l_s completes, the remainder of the command line
+               is executed as a second command.  The command llllssss;;;;ddddaaaatttteeee
+               will display directory information, and then the date
+               will be displayed.
+
+
+          <SHIFT>@
+               When pressed during output to the display, the output
+               will pause.  Pressing any other key resumes output.
+               Pressing this key is ignored when output is redirected.
+
+
+     FFFFiiiilllleeeessss
+          _L_s reads the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file and uses any default options
+          that are specified there.  For example, if you wanted _l_s to
+          always display filenames in uppercase and the times in
+          military hours, the following entry in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file
+          would do this:
+                      LS -U -Z
+          Options in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file are ignored if the ----!!!!
+          option is specified on the command line.
+
+          You may make copies of _l_s with different names.  When
+          examining the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file, the name used to invoke the
+          program will be used to locate the default entries.  For
+          example, if you made copies of LLLLSSSS////CCCCMMMMDDDD and named them
+          NNNNDDDDIIIIRRRR////CCCCMMMMDDDD and NNNNCCCCAAAATTTT////CCCCMMMMDDDD, you could add the following lines to
+          the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file:
+                      LS -1
+                      NDIR -LP/U
+                      NCAT -X/U
+          When _n_d_i_r is run, the output will be similar to what is
+          produced by the system _d_i_r(L) command, _n_c_a_t would display
+          files in the same order as the system _c_a_t(L) command, and
+          _l_s(U1) will display files one per line.
+
+
+
+
+
+
+
+     Page 5                                             May 15th, 1993
+
+
+
+
+
+
+     LLLLSSSS((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                LLLLSSSS((((UUUU1111))))
+
+
+
+          If you need more information on _l_s(U1) or if you want to
+          obtain the LDOS 5.3 version, please write to M.A.D.
+          Software, P.O. Box 331323, Ft. Worth Texas, 76163.  Please
+          include a Self-Addressed-Stamped-Envelope when requesting
+          information.
+          ------
+          305154
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 6                                             May 15th, 1993
+
+
+

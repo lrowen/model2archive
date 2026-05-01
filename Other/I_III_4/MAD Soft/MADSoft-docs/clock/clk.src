@@ -1,0 +1,753 @@
+	HEADER	'EXTERNAL EQUATES'
+	PSECT	5200H
+	
+BEGIN:
+	LD	(DOSSTK),SP		;Save their stack
+	LD	SP,DOSSTK		;Assign our own
+
+	LD	(PARMS),HL		;Save command line parms
+
+	LD	A,(002AH)		;Pick up page containing RST28 service
+	SUB	40H			;If the page is in the 4000s,
+	LD	(DOSMODE),A		;LDOS/MIII mode is assumed
+
+	LD	B,4			;Look in four places
+
+LOCATE:	PUSH	BC
+	CALL	RDTIME			;Read the clock
+	POP	BC
+	JR	NZ,HDWFND		;Chip found
+	
+;	Here the clock was not found
+
+	LD	HL,(BASE)		;Get old base address
+	LD	DE,1000H		;Increment address by 4 K
+	ADD	HL,DE
+	LD	(BASE),HL		;Store that
+	DJNZ	LOCATE
+
+;	After four tries, still could not find the hardware
+	
+	LD	HL,MISSING
+	JR	ERROUT
+
+	
+;	Here the hardware was found
+
+HDWFND:	LD	C,A			;Save result from offset 4 (inverted)
+	LD	HL,(PARMS)
+	LD	A,(HL)			;Read first parameter
+	AND	5FH			;Convert to uppercase
+	LD	(HL),A			;Put it back for later
+	INC	HL			;Advance pointer
+
+	CP 	'S'			;53H  Set clock hardware
+	JP	Z,SETCLK
+	
+	LD	B,A			;Save command
+	LD	A,C			;Get offset 4 inverted info
+	LD	HL,NOTSET		;Preload error message
+	CP 	0DFH			;Was Bit Oscillator turned off?
+	JP	Z,ERROUT		;Can't read it or turn it off
+	
+;	Here we can either turn it off or read it
+
+	LD	A,B			;Get command back
+	CP 	'T'			;54H Set system time from clock
+	JP	Z,LDTIME
+	
+	CP 	'O'			;4FH Turn clock off
+	JP	Z,CLKOFF
+
+	
+;	No option was legal, so barf
+
+SYNERR:	LD	HL,HLPTXT
+	JR	MSGCOM
+	
+
+ERROUT:	PUSH	HL			;Save their part of the message
+	LD	HL,MSGHDR		;Get header
+	CALL	PSOUT
+	POP	HL
+
+
+MSGCOM:	CALL	PSOUT			;Now display remaining message
+	LD	SP,(DOSSTK)		;Put back their stack
+	LD	HL,(PARMS)		;Put back their parms
+	LD	A,(HL)
+	CP 	'T' 			;54H
+	JR	NZ,EXIT			;Normal exit
+
+;	Here we allow a subsequent parmeter on the command to be passed to DOS
+	
+SKIPBL:	INC	HL			;Advance
+	LD	A,(HL)
+	CP 	' '			;20H
+	JR	C,EXIT			;Hit a CR
+	
+	JR	Z,SKIPBL		;Skip blanks
+
+	
+	PUSH	HL
+	LD	HL,CRLF			;Print newline
+	CALL	PSOUT
+	POP	HL
+
+	CALL	IIIOR4
+	JR	NZ,IS41
+	
+	LD	A,(4427H)		;Look at Page of @CLOSE call on MIII
+	CP 	82H			;Looks like O/S specific check
+	JP	Z,4405H			;MIII @CMNDI call
+	
+	JP	4299H			;Middle of System SBUFF
+	
+IS41:	LD	A,18H			;@CMNDI
+	RST	28H
+
+
+;	This is the normal exit
+
+EXIT:	LD	HL,0
+	RET
+	
+;	This routine accepts the time from the hardware and stuffs it into the
+;	operating system.
+
+LDTIME:	CALL	RDTIME
+	CALL	CHGDOS
+	CALL	PRTINF
+
+	LD	HL,HITHER		;Cirius Cybernetics Corp Message
+	CALL	IIIOR4
+	JR	NZ,MSGCOM
+	
+	INC	HL			;Adjusting for 6.x extra LF no doubt
+	JR	MSGCOM
+	
+
+;	Turn the clock off - like parking the heads
+
+CLKOFF:	LD	A,(REG4)		;Read day and control info
+	OR 	30H			;Turn off clock
+	LD	(REG4),A		;Store control info
+
+	CALL	WRTCLK
+
+	LD	HL,NOWOFF		;Say we have turned off
+	JR	ERROUT
+
+
+;	This function parses the new date and time and sets up the registers
+;	then that info will be written out to the clock chip.
+	
+SETCLK:	INC	HL			;Advance to next parameter
+
+	CALL	RDBCD			;Read two BCD digits
+	OR 	A
+	JP	Z,SYNERR
+	
+	CP 	13H			;Is month in range
+	JP	NC,SYNERR
+	
+	LD	(REG6),A		;Offset +6 Month
+
+	CALL	RDBCD
+	CP 	32H			;Is day in range?
+	JP	NC,SYNERR
+	
+	LD	(REG5),A		;Offset +5 Day
+
+	CALL	RDBCD
+	CP 	9AH			;Is year in range?
+	JP	NC,SYNERR
+	
+	LD	(REG7),A		;Offset +7 Year
+
+	CALL	RDBCD
+	CP 	24H			;Is hours in range
+	JP	NC,SYNERR
+	
+	LD	(REG3),A		;Offset +3 hours
+
+	CALL	RDBCD
+	CP 	5AH			;Is minutes in range
+	JP	NC,SYNERR
+	
+	LD	(REG2),A		;Offset +2 minutes
+
+	CALL	RDBCD
+	CP 	5AH			;How about seconds
+	JP	NC,SYNERR
+	
+	LD	(REG1),A		;Offset +1  seconds
+
+	CALL	CHGDOS
+
+	CALL	L5497
+	OR 	10H			;Turn off RST
+	LD	(REG4),A		;Offset +4 
+
+	CALL	WRTCLK
+
+	JP	LDTIME
+
+	
+PRTINF:	LD	DE,L56CD
+
+	LD	A,(REG4)		;Day & Control
+	AND	7			;Lose all but day of week
+
+	LD	HL,DAYOFWK		;Point at list of days
+	CALL	STRFND
+	EX	DE,HL
+	LD	(HL),','		;2CH
+	INC	HL
+	LD	C,' '			;20H
+	LD	(HL),C
+	INC	HL
+	PUSH	HL
+
+	LD	A,(REG6)		;Month
+	CALL	BCD2BIN
+
+	POP	DE
+	LD	HL,L5686
+	CALL	STRFND
+	EX	DE,HL
+	LD	(HL),C			;Space
+	INC	HL
+
+	LD	A,(REG5)		;Day
+	CALL	BCD2ASC
+
+	LD	(HL),','		;2CH
+	INC	HL
+
+	LD	(HL),C			;Space
+	INC	HL
+
+	LD	(HL),'1'		;31H
+	INC	HL
+	LD	(HL),'9'		;39H
+	INC	HL
+
+	LD	A,(REG7)		;Year
+	CALL	BCD2ASC
+
+	LD	(HL),C			;Space
+	INC	HL
+
+	LD	A,(REG3)		;Hour
+	AND	3FH
+	CALL	BCD2ASC
+
+	LD	(HL),':'		;3AH
+	INC	HL
+
+	LD	A,(REG2)		;Minute
+	CALL	BCD2ASC
+
+	LD	(HL),':'		;3AH
+	INC	HL
+
+	LD	A,(REG1)		;Seconds
+	CALL	BCD2ASC
+
+	LD	(HL),C			;Space
+	INC	HL
+
+	LD	A,(REG3)		;Hour (must be needed by caller)
+	LD	(HL),3			;Terminator
+	LD	HL,L56CD
+	RET
+
+
+;	This looks in a table of strings for the Nth entry specified by A.
+	
+STRFND:	DEC	A
+	JR	Z,STRCPY		;We have desired string pointer
+	
+	PUSH	AF
+STRLP:	LD	A,(HL)			;Get next character
+	INC	HL
+	BIT	7,A			;Is high bit on?
+	JR	Z,STRLP			;No, skip to next char
+	
+	POP	AF
+	JR	STRFND			;See if we are to correct char
+
+
+;	This copies the string at HL to DE, stopping when Bit 7 is set.
+	
+STRCPY:	LD	A,(HL)			;Read character
+	BIT	7,A			;Test bit 7
+	RES	7,A			;Clear bit 7
+	LD	(DE),A			;Store character
+	INC	HL			;Increment all pointers
+	INC	DE
+	JR	Z,STRCPY		;If bit 7 not set, keep going
+	
+	RET				;String copied.
+
+
+;	This routine reads the current chip information
+	
+RDTIME:	CALL	SELECT
+	LD	DE,REG0
+	LD	B,8
+
+RDNEXT:	PUSH	BC
+	CALL	READIT
+	LD	(DE),A
+	INC	DE
+	POP	BC
+	DJNZ	RDNEXT
+	
+	CALL	NORMAL
+	LD	A,(REG4)		;Look at offset +4, day & ctrl
+	LD	HL,REG0
+	CP 	0FFH			;Check to see if we got anything
+	RET	Z			;Can't be all ones in BCD
+	
+	OR 	A			;Can't be all zeros since day field
+	RET	Z			;is 01 to 07.
+	
+	AND	20H			;Lose all but oscillator control
+	CPL 				;Invert it
+	OR 	A
+	RET				;If it is zero, chip is inactive
+					;A NZ return indicates working chip.
+
+
+;	This routine sets up the updating operations in the chip
+	
+WRTCLK:	CALL	SELECT
+	LD	DE,REG0			;Area to write from
+	LD	B,8
+WRTLP:	PUSH	BC
+	LD	A,(DE)			;Byte to xfer
+	CALL	WRITE
+	INC	DE
+	POP	BC
+	DJNZ	WRTLP
+	
+	CALL	NORMAL
+	RET
+
+
+;	This piece of code apparently resets the pattern matcher in the time
+;	chip by repeatedly reading the A0=0 location.  There are 64 bits
+;	that must match or else the sequencer resets, but this implies that
+;	this may not always happen.
+	
+SELECT:	CALL	SHADOW
+	LD	HL,(BASE)		;Get base address
+	LD	BC,4			;Make this a READ operation
+	ADD	HL,BC			;Adjust address
+	LD	B,41H			;Access READ address 65 times
+RESLP	LD	A,(HL)			;Access
+	DJNZ	RESLP
+	
+;	This code enables the chip by accessing the correct sequence of
+;	addresses
+
+	LD	B,2			;This sequence is repeated twice
+SELLP:	PUSH	BC
+	LD	A,0C5H			;C5
+	CALL	WRITE
+	LD	A,3AH			;3A
+	CALL	WRITE
+	LD	A,0A3H			;A3
+	CALL	WRITE
+	LD	A,5CH			;5C
+	CALL	WRITE
+	POP	BC
+	DJNZ	SELLP
+	RET
+
+
+;	This routine does the actual bit-streaming communication with the
+;	chip.  This routine is used for output only  
+	
+WRITE:	EXX				;Save callers regs except A
+	LD	HL,(BASE)		;Get base address to work at
+	LD	D,H			;Make a copy and increment it
+	LD	E,L
+	INC	DE			;DE points to NOT A0 of HL
+
+	LD	B,8
+	LD	C,A			;Byte to ripple through
+WRITLP:	RRC	C			;Shift next bit into carry
+	JR	C,WRITON		;If on, use "ON" address
+	
+	LD	A,(HL)			;"OFF" access
+	JR	WRITCOM
+	
+WRITON:	LD	A,(DE)			;"ON" access
+WRITCOM:DJNZ	WRITLP			;Do next bit
+	
+	EXX				;Restore regs
+	RET
+
+
+;	This reads data from the chip (after selection), one byte at a time.
+	
+READIT:	EXX				;Save callers stuff
+	LD	HL,(BASE)
+	LD	BC,4
+	ADD	HL,BC			;Convert to READ address
+	XOR	A
+	LD	B,8
+RDLP:	LD	C,(HL)			;Read from device
+	BIT	0,C			;Test D0
+	JR	Z,RDOFF
+	
+	SET	0,A			;Set bit in final value
+RDOFF:	RRCA				;Shift it
+	DJNZ	RDLP			;Repeat 8 times
+	
+	EXX				;Restore callers regs
+	RET				;Return
+
+	
+CHGDOS:	LD	HL,L56CD
+	CALL	TIMPTR
+
+	LD	A,(REG1)		;Seconds
+	CALL	BCD2BIN
+	LD	(IY+0),A
+
+	LD	A,(REG2)		;Minutes
+	CALL	BCD2BIN
+	LD	(IY+1),A
+
+	LD	A,(REG3)		;Hours
+	CALL	BCD2BIN
+	LD	(IY+2),A
+
+	CALL	DATPTR
+
+	LD	A,(REG7)		;Year
+	CALL	BCD2BIN
+	LD	(IY+0),A
+
+	LD	A,(REG5)		;Date
+	CALL	BCD2BIN
+	LD	(IY+1),A
+
+	LD	A,(REG6)		;Month
+	CALL	BCD2BIN
+	LD	(IY+2),A
+	RET
+
+
+;	This routine accepts two bytes from command line and converts them
+;	to BCD.  It handles CR's arriving early
+	
+RDBCD:	XOR	A
+	CALL	BCDMSD
+	RLCA
+	RLCA
+	RLCA
+	RLCA
+	AND	0F0H
+BCDMSD:	LD	C,A
+SKIPDL:	LD	A,(HL)
+	INC	HL
+	CP 	0DH
+	JP	Z,SYNERR
+	
+	SUB	30H
+	CP 	0AH
+	JP	NC,SKIPDL
+	
+	OR 	C
+	RET
+
+	
+BCD2BIN:LD	E,A
+	AND	0FH
+	LD	D,A
+	LD	A,E
+	AND	0F0H
+	RRCA
+	LD	E,A
+	RRCA
+	RRCA
+	ADD	A,E
+	ADD	A,D
+	RET
+
+
+;	Convert BCD to two byte ASCII
+	
+BCD2ASC:PUSH	AF		
+	RLCA
+	RLCA
+	RLCA
+	RLCA
+	AND	0FH
+	OR 	30H
+	LD	(HL),A
+	INC	HL
+	POP	AF
+	AND	0FH
+	OR 	30H
+	LD	(HL),A
+	INC	HL
+	RET
+
+	
+L5497:	LD	A,(IY+0)
+	AND	3
+	LD	HL,FEB			;Handle Leap
+	LD	(HL),28			;28 day month
+	JR	NZ,L54A4
+	
+	INC	(HL)
+L54A4:	LD	A,(IY+2)
+	LD	B,A
+	CP 	0DH
+	JP	NC,SYNERR
+	
+	LD	A,(IY+1)
+	LD	L,A
+	LD	H,0
+	LD	DE,DAYPER		;Point at table of days per month
+DAYLP:	LD	A,(DE)
+	ADD	A,L
+	LD	L,A
+	ADC	A,H
+	SUB	L
+	LD	H,A
+	INC	DE
+	DJNZ	DAYLP
+	
+	EX	DE,HL
+	LD	A,(IY+1)
+	DEC	A
+	CP 	(HL)
+	JP	NC,SYNERR
+	
+	EX	DE,HL
+	LD	IX,0
+	LD	B,(IY+0)
+	LD	C,0
+L54D2:	LD	A,C
+	CP 	B
+	JR	Z,L54E3
+	
+	LD	DE,16DH
+	AND	3
+	JR	NZ,L54DE
+	
+	INC	DE
+L54DE:	ADD	IX,DE
+	INC	C
+	JR	L54D2
+	
+L54E3:	EX	DE,HL
+	ADD	IX,DE
+	PUSH	IX
+	POP	HL
+	LD	BC,6
+	ADD	HL,BC
+	LD	C,7
+	OR 	A
+L54F0:	SBC	HL,BC
+	JR	NC,L54F0
+	
+	LD	A,L
+	ADD	A,8
+	RET
+
+	
+DAYPER:	defb	0			;No when
+	defb	31			;Jan
+
+FEB:	defb	28			;Feb
+	defb	31			;Mar
+	defb	30			;Apr
+	defb	31			;May
+	defb	30			;Jun
+	defb	31			;Jul
+	defb	31			;Aug
+	defb	30			;Sep
+	defb	31			;Oct
+	defb	30			;Nov
+	defb	31			;Dec
+
+
+;	This routine returns pointer to DOS storage area of time.
+
+TIMPTR:	LD	IY,4217H		;MIII in SBUFF
+	CALL	IIIOR4
+	RET	Z
+	
+	LD	A,13H			;@TIME
+	RST	28H
+	PUSH	DE
+	POP	IY			;Put address in IY
+	RET
+
+
+;	This routine returns pointer to DOS storage area of date
+
+DATPTR:	LD	IY,421AH		;In MIII SBUFF
+	CALL	IIIOR4
+	RET	Z
+	
+	LD	A,12H			;@DATE
+	RST	28H
+	PUSH	DE
+	POP	IY			;Put address in IY
+	RET
+
+
+;	Displays the string at HL
+	
+PSOUT:	CALL	IIIOR4
+	JP	Z,4467H			;MIII @DSPLY call
+	
+	LD	A,0AH
+	RST	28H
+	RET
+	
+
+;	This routine turns off interrupts and puts the machine in Model III
+;	mode, except on the 4P where the machine is put in the boot state
+;	so the ROM socket will be selected.
+
+SHADOW:	CALL	IIIOR4
+	DI
+	JR	Z,NOT4			;Not a 4, so skip this
+	
+	LD	A,65H			;Read FLAGS
+	RST	28H
+	LD	A,(IY+0EH)		;OPREG$
+	LD	(OPREG),A		;Last command written to 84H by O/S
+	DI
+	LD	A,84H			;This command Enables MIII mode on M4
+	OUT	(84H),A			;But leaves video 80x24.
+					;I think Bit 7 being on is an error.
+
+NOT4:	LD	A,1			;Turn on shadow ROM on the 4P
+	OUT	(9CH),A
+	RET
+
+
+;	This routine turns off shadow ROM on the Model 4P
+	
+NORMAL:	XOR	A
+	OUT	(9CH),A			;Turn off shadow ROM on the 4P
+	CALL	IIIOR4
+	JR	NZ,IN2M4
+	
+	EI
+	RET
+
+	
+IN2M4:	LD	A,(OPREG)		;This puts the machine back in M4 mode
+	OUT	(84H),A
+	EI				;Interrupts back on
+	RET
+
+	
+IIIOR4:	LD	A,(DOSMODE)		;Determine which mode we are in
+	OR 	A
+	RET
+	
+
+MSGHDR:	DEFB	0AH
+	DEFM	'*** SmartWatch is '
+	INC	BC
+NOWOFF:	DEFM	'now turned off. ***'
+	DEFB	0DH
+MISSING:DEFM	'not present. ***'
+	DEFB	0DH
+NOTSET:	DEFM	'not set. ***'
+	DEFB	0AH
+HLPTXT:	DEFB	0AH
+	DEFM	'DS 1216E "SmartWatch" in a TRS-80 Model'
+	DEFM	' III, 4 or 4P.'
+	DEFB	0AH
+	DEFB	0AH
+	DEFM	'CLK T                     Set the Syste'
+	DEFM	'm time.'
+	DEFB	0AH
+	DEFM	'CLK O                     Turn the Smar'
+	DEFM	'tWatch off.'
+	DEFB	0AH
+	DEFM	'CLK S MM/DD/YY hh:mm:ss   Set the Smart'
+	DEFM	'Watch.'
+CRLF:	DEFB	0DH
+DAYOFWK:	DEFM	'Sun'
+	defb	0aeh
+	defm	'Mon'
+	defb	0aeh
+	defm	'Tue'
+	defb	0aeh
+	defm	'Wed'
+	defb	0aeh
+	defm	'Thu'
+	defb	0aeh
+	defm	'Fri'
+	defb	0aeh
+	defm	'Sat'
+	defb	0aeh
+L5686:
+	defm	'Jan'
+	defb	0aeh
+	defm	'Feb'
+	defb	0aeh
+	defm	'Mar'
+	defb	0aeh
+	defm	'Apr'
+	defb	0aeh
+	defm	'May'
+	defb	0aeh
+	defm	'Jun'
+	defb	0aeh
+	defm	'Jul'
+	defb	0aeh
+	defm	'Aug'
+	defb	0aeh
+	defm	'Sep'
+	defb	0aeh
+	defm	'Oct'
+	defb	0aeh
+	defm	'Nov'
+	defb	0aeh
+	defm	'Dec'
+	defb	0aeh
+BASE:	NOP
+	NOP
+
+HITHER:	defb	1bh
+	defb	1bh
+	DEFM	'Have a Nice Day!!  '
+
+L56CD:
+	org	574dh
+
+DOSSTK:	defs	2		;EQU	574DH
+
+DOSMODE:defs	1		;EQU	574FH
+
+OPREG:	defs	1		;EQU	5750H
+
+PARMS:	defs	2		;EQU	5751H
+
+REG0:	defs	1		;EQU	5753H
+REG1:	defs	1		;EQU	5754H
+REG2:	defs	1		;EQU	5755H
+REG3:	defs	1		;EQU	5756H
+REG4:	defs	1		;EQU	5757H
+REG5:	defs	1		;EQU	5758H
+REG6:	defs	1		;EQU	5759H
+REG7:	defs	1		;EQU	575AH
+
+	end	BEGIN
+

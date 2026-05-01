@@ -1,0 +1,19 @@
+.nf
+.br
+\s+2\fBUtility Disk #1 Source Code\fR\s-2				Specify 4G6US01	$50.00
+(Available March 1996)
+.fi
+
+The complete assembly language source code for all of the utilities on the
+Utility Disk #1.   Well commented and modularized, many other programs
+can be written that take advantage of these routines.  The code has been
+written for use with the Tandy ALDS assembler.  The code purposely avoids
+macros and other assembler-specific operations, so converting it for use
+with your favorite assembler should be easy.
+
+(This software is copyrighted, and any software you develop that is based
+ on it or uses any of the functions may not be sold without obtaining a
+ license from M. A. D. Software.)
+
+Purchasers of the Utility Disk #1 get a $15 discount on the purchase of
+the source code.

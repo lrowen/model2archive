@@ -1,0 +1,355 @@
+.if t  .po 1.0i
+.ds ]W May 15th, 1993\"
+.TH LS U1 "" "LS-DOS 6 - Utilities 1"
+.ig
+LS troff documentation \- Version 1(1) 7\-Apr\-93
+Copyright 1993 M. A. D. Software, All Rights Reserved.
+  	 Copyright 1992,1993 M. A. D. Software, All Rights Reserved.
+..
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+.de IN
+.if t  .in +0.5i
+.if n  .in +0.6i
+..
+.de OU
+.if t  .in -0.5i
+.if n  .in -0.6i
+..
+.de TI
+.if t  .ti -0.5i
+.if n  .ti -0.6i
+..
+.de IX
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 1.0i 2.0i 3.0i 4.0i 5.0i
+.if t  .in +0.5i
+.if n  .in +1.0i
+..
+.de OX
+.if t  .in -0.5i
+.if n  .in -1.0i
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+..
+.de TX
+.if t  .ti -0.5i
+.if n  .ti -1.0i
+..
+.SH \fBName\fR
+.br
+LS \- Displays directory contents
+.SH \fBSyntax\fR
+.br
+.B ls
+[
+.BI \-1abdlmptuxz/.!?h
+] [
+.I wildspec
+][
+.I :drivespec
+]...
+[>[>]
+.I file\ |\ device
+] [
+.I ;\ next\ command
+]
+.SH Description
+.br
+
+.I Ls
+lists the files on the specified drives.  If a \fIwildspec\fR is specified, all
+files that match the \fIwildspec\fR will be displayed.  If a \fIdrivespec\fR
+is specified, only files on that particular drive or drives will be displayed.
+If the \fIdrivespec\fR is omitted, all directories on all active drives are displayed.
+
+By default, the files are displayed in columns and are sorted alphabetically.
+Specifying options can cause additional information to be displayed, alter
+the sorting order, or change the format of the display.
+
+\fILs\fR accepts several options.  Options are specified by single characters,
+and they may be entered in upper or lowercase.  Options are always preceded by
+a hyphen (a "\-").  If you are specifying multiple options, you can specify
+the options in any of these formats:
+.br
+	\-a \-b \-c   or   \-abc   or   \-a \-bc   or  \-ab \-c
+
+The options are:
+.IP \fB\-\1\fR 5
+Only one file is listed on each line.  This is useful for building
+lists of files that will be used by other programs.
+.IP \fB\-a\fR 5
+"All Files".  Files that are marked "invisible" will be displayed
+along with the rest of the files.
+.IP \fB\-b\fR 5
+Sorts the files in reverse (Backwards) order.  By default the file
+named "\fBA\fR" (or the file with the most recent date) would be displayed
+first.
+.IP \fB\-d\fR
+The logical drive number is appended to each filename displayed.
+.IP \fB\-l\fR
+Each file is displayed in a long format, showing the size, date and
+permissions.  This option provides information similar to that found
+in the system DIR (A) command.
+
+.if n  .bp
+In the long format, a list of attributes are displayed for each file.  These
+are represented by the characters  \fBdsifocun\fR.   If the file has a
+particular attribute, the letter is displayed.  If the file doesn't have that
+attribute, a "\fB\-\fR" is displayed instead.
+.br
+.sp
+.IN
+.TI
+d	The file is a PDS (Partition Data Set) or a DiskDisk subdirectory.
+.TI
+s	The file is a system file, usually part of the operating system.
+.TI
+i	The file is marked invisible and is displayed only if the \fB\-a\fR
+option is specified.
+.TI
+f	The file has a fixed size.
+.TI
+o	The file is marked "open".  If the OS is running in networked mode,
+files are marked this way so that only one application can have write
+access at a time.
+.TI
+c	The file is copy-protected.
+.TI
+u	The file has a user-password (only on pre-LS-DOS 6.3 and pre-LDOS 5.3
+versions).
+.TI
+n	The file has been modified since the last time \fIbackup\fR(L) made a 
+copy of this file.
+.OU
+
+.if t  .bp
+.KS
+The protection attribute for each file is also listed.  Normally it is
+\fBFull\fR, but if the file has an Owner Password, it can be any
+of the following:
+.br
+.sp
+.IX
+.TX
+Full	The file has no restrictions on access.
+.TX
+Remove	The file attributes cannot be changed but all other access is allowed.
+.TX
+Rename	The file cannot removed, but all other access is allowed.
+.TX
+Write	The file can be read or written but not removed or renamed.
+.TX
+Update	The file can be read and updated, but cannot be removed, renamed or
+change size.
+.TX
+Read	The file can be read or executed, but no other access is allowed.
+.TX
+Execute	The file can be executed, but cannot be read or modified.
+.TX
+None	Without the Owner Password, the file cannot be accessed.
+.OX
+.br
+.sp
+If a file is accessed with the Owner Password, full access is always allowed.
+On older TRSDOS and LDOS versions, if the file has a User Password and an
+Owner Password, no access is allowed at all unless one of the two passwords
+are known.  
+.KE
+
+.IP \fB\-m\fR
+Files are displayed in the stream format, separated by commas.
+(Ignored if \fB\-l\fR or \fB\-x\fR is specified.)
+.if n  .bp
+.IP \fB\-p\fR
+Output of \fIls\fR is routed through the \fImore\fR(U1) utility.  The screen
+will pause once 23 lines of text have been displayed.  The \fImore\fR(U1) prompt
+("\fL\-\-More\-\-\fR") allows you to advance or search through the remainder
+of the output.  See the \fImore\fR(U1) command for additional information on
+the options that \fImore\fR(U1) provides.  The \fB\-p\fR option is ignored if the
+output is redirected.
+.IP \fB\-t\fR
+Files are sorted by time and date instead of by name.
+.IP \fB\-u\fR
+Filenames are displayed in uppercase.  By default they are displayed
+in lowercase.
+.IP \fB\-x\fR
+Files are displayed in columns and are sorted horizontally instead of
+vertically (the default).  (This option is ignored if \fB\-l\fR is
+specified.)
+.IP \fB\-z\fR
+In the \fB\-l\fR format, the file times are displayed in military hours
+instead of the AM/PM format.
+.IP \fB\-/\ or\ \-.\fR
+Forces the filenames to be displayed with "/" or "." as the
+extension character.
+.IP \fB\-!\fR
+Causes \fIls\fR to ignore any default settings that are specified in
+the \fBDEFAULTS/MAD\fR file.  \fILs\fR will also ignore any options that are
+specified to the left of the \fB\-!\fR option.  Note that the \fBDEFAULTS/MAD\fR
+file is accessed even if the \fB\-!\fR option is specified.
+.IP \fB\-?\ or\ \-h\fR
+Displays the help message.
+.IP \fIwildspec\fR
+A \fIwildspec\fR specifies none or more files that are to be displayed
+in alphabetical order.  A \fIwildspec\fR may contain none or more of
+the following wildcard characters:
+
+.IN
+.TI
+\(**	The * matches zero or more characters in the specified
+position.  For example, the \fIwildspec\fR A*Z will match any
+of the following filenames:
+.br
+.ce
+AZ		ABZ
+.br
+.ce
+ABCDEFGZ	ABC/XYZ
+.br
+Note that unlike a LS-DOS/TRSDOS 6 \fIpartspec\fR(L), the filename
+and extension are treated as a single unit.  A single * will match files
+with and without extensions.
+
+.if n  .bp
+.TI
+%	The % matches exactly one character.  So A%C matches:
+.br
+.ce
+ABC		AXC
+.br
+The file AC will not match the A%C pattern.
+
+.if t  .bp
+.KS
+.TI
+\[\ ]	Ranges specify multiple characters that may appear in
+a given position in the filenames being tested.  There
+are two formats that can be combined:
+.br
+.IX
+.TX
+[abc]	These specific characters are acceptable in this
+position in the filename.  So A[BC5]D would match:
+.br
+.ce
+ABD		ACD		A5D
+.br
+.TX
+[b\-e]	The characters in this ASCII range are acceptable
+in this position in the filename.  A[E\-J]X matches:
+.br
+.ce
+AEX		AFX		AGX
+.br
+.ce
+AHX		AIX		AJX
+.br
+Numbers can also be included in ranges, but the first value
+of the range must always have a lower ASCII value than the second
+value.
+.br
+.TX
+[!...]	The ! excludes all files that match characters in this
+position.  So A[!DKP]D will match all filenames that
+start with an "A", end with a "D", and the second
+character is any character except "D", "K", or "P".
+.br
+.KE
+.sp
+.OX
+Combinations of ranges are also allowed.  A[1\-3ABD]X would
+allow these filenames:
+.br
+.ce
+A1X		A2X		A3X
+.br
+.ce
+AAX		ABX		ADX
+.br
+
+.OU
+Any lowercase characters in the \fIwildspec\fR are converted to uppercase
+before the comparison is performed.
+
+.IP \fI:drivespec\fR 5
+The \fIdrivespec\fR specifies one or more logical drives that should
+be scanned for files that match the file \fIwildspec\fR.  The % and *
+will examine all enabled drives.  A range can also be used.
+For example, :[2\-47] will search for files on drives 2, 3, 4 and 7.
+
+If the \fIdrivespec\fR is not specified and a \fIwildspec\fR is, all drives
+are searched for files that match the file \fIwildspec\fR and all files
+that match will be displayed.  So if the command \fBls sample/txt\fR is
+used and the file SAMPLE/TXT exists on four different logical drives,
+all four files will be displayed.
+
+.if n  .bp
+.IP \fI>\fR[\fI>\fR]\fI\ file\ |\ device\fR 5
+By specifying a file or device, the
+output is sent to the specified file or device instead of the
+display.  This is known as \fIredirected output\fR.
+For example, the command \fBls a*:5 > adir:0\fR places a list of
+files from logical drive 5 with names that start with the letter 'a' in the
+file \fBADIR:0\fR.  If \fB>>\fR is used, \fIls\fR will append the
+output of \fIls\fR to the existing contents of the specified file or device.
+\fIFilespecs\fR for redirection may not specify a
+password.
+
+.IP \fI;\ next\ command\fR
+After \fIls\fR completes, the remainder of the command line is executed
+as a second command.  The command \fBls;date\fR will display directory
+information, and then the date will be displayed.  
+
+.IP <SHIFT>@
+When pressed during output to the display, the output will pause.
+Pressing any other key resumes output.  Pressing
+this key is ignored when output is redirected.
+
+.if t  .bp
+.SH \fBFiles\fR
+\fILs\fR reads the \fBDEFAULTS/MAD\fR file and uses any default options that
+are specified there.  For example, if you wanted \fIls\fR to always
+display filenames in uppercase and the times in military hours,
+the following entry in the \fBDEFAULTS/MAD\fR file would do this:
+.IN
+.IN
+LS \-U \-Z
+.br
+.OU
+.OU
+Options in the \fBDEFAULTS/MAD\fR file are ignored if the \fB\-!\fR option
+is specified on the command line.
+
+You may make copies of \fIls\fR with different names.  When examining the
+\fBDEFAULTS/MAD\fR file, the name used to invoke the program will be used to
+locate the default entries.  For example, if you made copies of \fBLS/CMD\fR
+and named them \fBNDIR/CMD\fR and \fBNCAT/CMD\fR, you could add the following
+lines to the \fBDEFAULTS/MAD\fR file:
+.IN
+.IN
+LS -1
+.br
+NDIR -LP/U
+.br
+NCAT -X/U
+.br
+.OU
+.OU
+.fi
+When \fIndir\fR is run, the output will be similar to what is produced by
+the system \fIdir\fR(L) command, \fIncat\fR would display files in the
+same order as the system \fIcat\fR(L) command, and \fIls\fR(U1) will
+display files one per line.
+
+
+.if n  .bp
+If you need more information on \fIls\fR(U1) or if you want to obtain the
+LDOS 5.3
+version, please write to M.A.D. Software, P.O. Box 331323, Ft. Worth Texas,
+76163.  Please include a Self\-Addressed\-Stamped\-Envelope when requesting
+information.
+.br
+\-\-\-\-\-\-
+.br
+305154

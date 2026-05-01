@@ -1,0 +1,463 @@
+>TM=1,BM=64,LM=5,RM=96,J=N
+FS>
+>C=Y
+
+Page -P>#-
+>C=Y
+*****  U P D A T E    L S - D O S   6 . 3 . 0   L E V E L - H   to   I  *****
+
+02/02/87 - These patches apply to disks with a Customer Service # below 16500
+>C=N
+
+In a product as complicated and as large as an operating system there will always be problems found that are in need of correction. In an ongoing effort to support LS-DOS 6.3.x LSI will from time to time issue a revision statement such as this. You may, in most cases, make the revisions yourself or you may send your MASTER disk in for updating.
+
+LSI has categorized revisions to fall into two categories. These consist of CRITICAL REVISIONS and NON-CRITICAL REVISIONS. A CRITICAL revision is a revision that corrects a problem that could cause damage to, or loss of data. ALL other revisions are considered NON-CRITICAL. In the event that a CRITICAL revision is issued all registered LS-DOS 6.3 users will be notified by mail. When we create NON-CRITICAL revisions there will be no individual notification. ALL revisions will be available on the LDOS SIG on COMPUSERVE and will be published in our column in THE MISOSYS QUARTERLY, which you can subscribe to by contacting MISOSYS at (703) 450-4181. Should you run into a problem with 6.3 that you consider a "bug" our Customer Service Department wants very much to hear from you. Most likely we will already have corrected that problem and will fire off a copy of the correcting patch by First Class mail. If you are the first to make us aware of the problem we will give it our most sincere attention. We will also be glad to provide complete revision statements (patches, etc.) to anyone requesting them, make sure you include your customer service ID#, with your request, it lets us know what revisions apply to your copy of the system.
+
+To install the patches included here you must first create each PATCH file exactly as shown as an ASCII file. Then save it with the patch name specified in the patch. Each physical line shown must be terminated with a <ENTER>. Each individual patch has been separated by a line of = signs. The /JCL file that follows will properly install all these patches. After all files have been created do a:  DO MAKE63I (D=d,S=d) <ENTER>   where the two "d"s in the example are replaced by the Source (where the /FIX files are) and the Destination (where a COPY of your Master 6.3 disk is).
+
+Also, you should note the special parameter that is given to the PATCH command for the installation of the patch to BASIC/OV2. The (O=N) parameter must be used with this patch or it will not install. This is a very special type of patch that is being applied to a special type of file.
+
+The effort needed to create these files and get the patches correctly installed is tedious, time consuming and subject to human error. For these reasons LSI has instituted the following update policy for LS-DOS:
+
+         LSI will update your MASTER disk for a service, handling and
+         shipping fee of JUST $5.00 per disk update. With each update
+         we will include an outline of what corrections have been made.
+         To receive this service you must return your original BEIGE LSI
+         MASTER disk along with a check or money order for $5.00 to:
+
+                         Logical System, Inc.
+                         Update Department
+                         PO Box 55235
+                         Grand Junction, CO. 81505
+
+         LSI will also provide a REPLACEMENT MASTER disk to a registered
+         user, for $10.00. It will be shipped to your REGISTERED address
+         only. You must include your Customer Service Number (CS#) when
+         requesting a replacement disk and include a check or money order
+         for $10.00 with your request. (NO CODs, CREDIT CARDS OR P.O.s).
+         Outside of U.S. or Canada, add $3.00 for update or replacement.
+
+It should be noted that this is the same disk update policy that LSI has had for over five years. Because we have a simple and inexpensive way for our users to update their system in an accurate and controlled manner, we will NOT help in any way with the creation, installation or implementation of upgrade patches for the system. What we are saying is that if you cannot deal with, or are uncomfortable with patch installation totally on your own, then SEND IN YOUR DISK FOR UPDATING, as stated above.
+
+We would like to point out that we do provide LS-DOS 6.3 as an "AS IS" product. No warranty of ANY kind is stated or implied. LSI has always tried to provide a reasonable level of support for our products and we hope to continue to do so, but we are not obligated to any service, update, error correction or ongoing support policy. Our policies may change from time to time and we feel that changing our policies on "AS IS" products is our right. LS-DOS 6.3 is provided to you at a very nominal fee. We simply do not make enough profit to provide unlimited, free services at this level of pricing.
+
+Please consider the position of the authors of CPM and MSDOS, neither provide any where near the level of phone and mail customer service that LSI provides and their products cost much more. When CPM and MSDOS are updated or revised (even to correct their own errors) in most cases, you must simply BUY the new version, as of now the "latest and greatest" version of MSDOS is somewhat over $100.00. At LSI we have paid a total of OVER $1800.00 over the last five years to keep current with MSDOS/PCDOS revisions. In the same time frame a TRSDOS 6.x and LS-DOS 6.3 user could not have paid more then a total of $95.00 to keep his DOS current, quite a difference we think. Try calling one of the other DOS authors and getting your questions answered, at least we are willing to TALK directly to our users.
+
+We are sure you can cite some situations where other software companies have provided excellent service and stood behind their products, with nominal or no fees, but remember LSI has a NINE YEAR track record of such service. Also, how good has your support been on other $29 or $39 products?? So, please do not complain to us about our support policies, if anything our support policies and services will become LESS liberal, and MORE expensive in the future, due to simple economics. LSI also reserves the right to totally terminate support for any product sold "AS IS", without notice.
+
+>C=Y
+LSI RETURN POLICY
+=================
+>C=N
+Should you find any the LSI support policy, or the "AS IS" condition under which LS-DOS is provided, unacceptable to you, OR FOR ANY OTHER REASON, you may return your LS-DOS 6.3, within 10 days of receipt, for a full refund. If you purchased on a credit card, please include the card number and expiration date so we can properly credit your account. Note: You must return the product completely intact and in resalable condition to receive a refund. NOTE: This policy became effective on 02/10/87.
+
+>C=Y
+Simply stated: WE WANT YOU TO BE A SATISFIED CUSTOMER.
+>C=N
+
+>C=Y
+A NOTE ABOUT BREF
+>C=N
+BREF (the BASIC variable and line cross reference utility) has also been repaired so that it will properly deal with programs that contain a line number 0 or a reference to ON ERROR GOTO 0. However we were unable to make these corrections to BREF as a patch because the patch would have been huge and totally unmanageable, so we had to reassemble. If you use this utility in your programming work and wish to have the corrected version you will have to send your disk in for updating as stated above.
+
+=============================================================================
+.***  MAKE63I/JCL ***
+.-JCL- Procedure to create a LS-DOS 6.3.0 Level - "I" from a Level - "H"
+.
+. THIS JCL AND THESE PATCHES ARE FOR DISKS WITH CUSTOMER SERVICE NUMBERS
+.                    LESS THEN 16500 ONLY !!
+.
+. NOTE: Destination to be patched and Source of patch file must be given on
+.       JCL command line, ie - DO MAKE63I/JCL (D=d,S=d) <ENTER>
+.       Replace the "d" in example with correct drive numbers
+.
+PATCH SYS5/SYS.LSIDOS:#D# using SYS51/FIX:#S#
+PATCH SYS9/SYS.LSIDOS:#D# using SYS91/FIX:#S#
+PATCH MODELA/III:#D# using MODELA1/FIX:#S#
+PATCH TED/CMD.UTILITY:#D# using TED1/FIX:#S#
+PATCH DATECONV/CMD.UTILITY:#D# using DCONV1/FIX:#S#
+PATCH BASIC/OV2.BASIC:#D# using BASIC1/FIX:#S# (O=N)
+PATCH BOOT/SYS.LSIDOS:#D# (D02,1E=49:F02,1E=48)
+PATCH TED/CMD.UTILITY:#D# using TED2/FIX:#S#
+PATCH DISKCOPY/CMD.UTILITY:#D# using DCOPY2/FIX:#S#
+.
+. This next patch may or may not install. If it does not install it is
+.     because the copy of DISKCOPY you have is already corrected.
+.
+PATCH DISKCOPY/CMD.UTILITY:#D# using DCOPY1/FIX:#S#
+.
+.  ********************************************************
+.  **** Your LS-DOS is now a version 6.3.0 / Level - I ****
+.  ********************************************************
+.END
+=============================================================================
+.** DCOPY1/FIX - 01/07/87 - For level-H - DISKCOPY/CMD.UTILITY  - PATCH #001
+.
+. This will cause DISKCOPY to work correctly on double sided drives.
+.
+. This PATCH to be installed on DISKCOPY/CMD.UTILITY - File dated 12/01/86
+.
+D04,83=28 16 FD CB 03 A6 CD 53 2B
+F04,83=CA 7F 2A CD 53 2B C2 0C 26
+.EOP
+=============================================================================
+.** SYS51/FIX - 01/13/87 - For Level-H - SYS5/SYS.LSIDOS - - - PATCH  #002/A
+.
+.Patch to correct the "P" command in extended DEBUG
+.   NOTE: THIS IS A TWO PART PATCH (SYS51/FIX and SYS91/FIX)
+.
+.This patch must be applied to SYS5/SYS.LSIDOS - File dated 12/01/86
+.
+D00,09=0D;F00,09=17
+.
+D00,12=36 2C 4C 53 49 01 08 BD 23 F5 CD 3D 06 F1 C9
+F00,12=32 2C 33 2C 34 2C 36 20 62 79 20 4C 53 49 2A
+.EOP
+=============================================================================
+.** SYS91/FIX - 01/13/87 - For Level-H - SYS9/SYS.LSIDOS - - - PATCH  #002/B
+.
+.This patch must be applied to SYS9/SYS.LSIDOS - File dated 12/01/86
+.    NOTE: Patch #002/A must be installed on SYS5/SYS also.
+.
+D01,F6=BD 23;F01,F6=7F 20
+.
+D01,F9=BD 23;F01,F9=7F 20
+.
+D02,0A=BD 23;F02,0A=7F 20
+.
+D02,16=BD 23;F02,16=7F 20
+.
+D02,26=BD 23;F02,26=7F 20
+.
+D02,36=BD 23;F02,36=7F 20
+.
+D02,3B=BD 23;F02,3B=7F 20
+.
+D02,3E=BD 23;F02,3E=7F 20
+.
+D02,52=BD 23;F02,52=7F 20
+.
+D02,5E=BD 23;F02,5E=7F 20
+.
+D02,63=BD 23;F02,63=7F 20
+.
+D02,70=BD 23;F02,70=7F 20
+.
+D02,77=BD 23;F02,77=7F 20
+.
+D02,86=BD 23;F02,86=7F 20
+.
+D02,91=BD 23;F02,91=7F 20
+.
+D02,A4=BD 23;F02,A4=7F 20
+.
+D02,A7=BD 23;F02,A7=7F 20
+.
+D02,AA=BD 23;F02,AA=7F 20
+.EOP
+=============================================================================
+.** MODELA1/FIX - 01/20/87 - For level-H - MODELA/III - - - - PATCH #003
+.
+. This patch to be applied to MODELA/III - File dated 12/01/86
+.
+. Corrects the messages in the RAM image in Model-3 mode, on Mod-4Ps.
+.
+.
+D01,33=03 49 49 49 2F;F01,33=2F 44 69 73 6B
+.
+D01,38=34 2F 34 50;F01,38=20 42 41 53
+.
+D02,16=2F 44 69 73 6B 20;F02,16=49 43 0D 28 63 29
+.
+D02,1C=42 41 53 49 43 0D;F02,1C=20 31 39 38 36 00
+.
+D38,B9=37;F38,B9=36
+.EOP
+=============================================================================
+.** TED1/FIX - 01/15/87 - For Level-H - TED/CMD.UTILITY - - PATCH #004
+.
+. This patch corrects buffer handling and screen updating in TED.
+.
+. This patch to be applied to TED/CMD.UTILITY - File dated 12/01/86
+.
+D02,3F=C3 6C 2E;F02,3F=C3 C1 28
+.
+D08,76=E5 7C 87 87 84 87 4D 6F 26 00 29 29 29 06 2F 09 1A 77 E1 C3 C1 28
+F08,76=00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+.EOP
+=============================================================================
+.** DCONV1/FIX - 01/20/87 - For Level-H - DATECONV/CMD.UTILITY - - PATCH #005
+.
+. This patch will cause DATECONV to update the GAT at 'GAT+0CBh' to a '63h'
+.
+. This patch to be applied to DATECONV/CMD.UTILITY - File dated 12/01/86.
+.
+D01,37=CD 00 2A;F01,37=CD 26 27
+.
+X'2A00'=3E 63 32 CB 29 C3 26 27
+.EOP
+=============================================================================
+. ** BASIC1/FIX - 01/25/87 - For level-H - BASIC/OV2.BASIC - - - - PATCH #006
+.
+. This PATCH to be installed on BASIC/OV2.BASIC - File dated 12/01/87
+.
+. This patch corrects the problem in FIND and SEARCH where ALL occurrences
+.    of a variable may not have been found.
+.
+D03,6D=C3 59 23 00;F03,6D=FE 84 28 F7
+.
+D05,59=FE 84 CA 68 21 FE FF C2 71 21 23 C3 60 21
+F05,59=00 00 00 00 00 00 00 00 00 00 00 00 00 00
+.EOP
+=============================================================================
+.** BOOT1/FIX - 01/20/87 - For Level-H - BOOT/SYS.LSIDOS - - - - PATCH #007
+.
+. This patch will cause the display LEVEL of 6.3.0 to change from "H" to "I"
+.
+. This patch to be applied to BOOT/SYS.LSIDOS - File dated 12/01/86.
+.
+D02,1E=49;F02,1E=48
+.EOP
+=============================================================================
+.** TED2/FIX - 02/01/87 - For Level-H - TED/CMD.UTILITY - - PATCH #008
+.
+. This patch corrects CURSOR handling and MEMORY handling in TED.
+.
+. This patch to be applied to TED/CMD.UTILITY - File dated 12/01/86
+.
+D03,90=E3;F03,90=EF
+.
+D07,12=D4;F07,12=CD
+.EOP
+=============================================================================
+. ** DCOPY1/FIX - 02/08/87 - For level-H - DISKCOPY/CMD.UTILITY  - PATCH #009
+.
+. This will correct buffer locations and usage in DISKCOPY
+.    NOTE: This affected 80 track double sided drives only.
+.
+. This patch to be applied to DISKCOPY/CMD.UTILITY - File dated 12/01/86
+.
+D02,F3=00 7F;F02,F3=C4 6C
+.
+D03,74=00 2F;F03,74=5A 2E
+.
+D03,BD=00 2F;F03,BD=5A 2E
+.
+D03,C0=60 2F;F03,C0=BA 2E
+.
+D04,01=00 30;F04,01=5A 2F
+.
+D04,35=00 30;F04,35=5A 2F
+.
+D05,3D=00 54;F05,3D=5A 53
+.
+D05,4F=03 54;F05,4F=5D 53
+.
+D05,58=CD;F05,58=27
+.
+D05,A1=00 54;F05,A1=5A 53
+.
+D05,F2=00 54;F05,F2=5A 53
+.
+D06,93=00 54;F06,93=5A,53
+.EOP
+=============================================================================
+
+
+>C=Y
+A B O U T    L S I    C U S T O M E R    S E R V I C E
+======================================================
+>C=N
+
+Our customer service department will be happy to answer any question about the use and function of LS-DOS 6.3.x. by either written request or by phone. When making a written request be as specific as possible and include as much information as possible: screen prints, copies of disks, printouts, exact keyboard sequences, error messages, etc. are all helpful. Remember, vague questions will get vague responses. When calling customer service it is best if you can be at your computer so we can have you check things, however this is not a requirement. Always include your CS# (NOT your serial #) on your correspondence with LSI or it will have to be ignored, sorry, there are no exceptions. Also, PLEASE provide us with a phone number where we can reach you, a DAY and EVENING number helps. We return all answers to the registered address for that CS# and each one IS checked.
+
+IMPORTANT: WHEN PHONING OUR CUSTOMER SERVICE DEPARTMENT YOU MUST USE THE PHONE NUMBER FOR CUSTOMER SERVICE (SEE PAGE 16 OF YOUR 6.3 DOCUMENTATION). CALLING OUR MAIN NUMBER WON'T GET YOU TO THE RIGHT PLACE. THE CUSTOMER SERVICE DEPARTMENT IS IN A SEPARATE PART OF OUR BUILDING AND HAS A SEPARATE PHONE SYSTEM.
+
+Please do NOT ask questions about products other then LS-DOS 6.3 as we probably do not know the answers. If you have a program that does not work on 6.3, it is most likely not the fault of LSI. The entire program interface, as documented for 6.2.x is identical to that of 6.3.x. So if a program fails to run identically on 6.2 and 6.3, it is probably the fault of the author of that program, NOT LSI. To get the program to run correctly on 6.3 you will have to contact the author/supplier of that program. If that can not be done you may have to be content to run the product on 6.2.x. The fact that it may run just fine on 6.2 and does not run on 6.3 is of great concern to us, but does not mean 6.3 is at fault in any way. Any program that does not run correctly on 6.3, but did on 6.2, has probably violated documented interface standards and the program is at fault.
+
+There are THOUSANDS of programs being run on the Model-4 and it would be impossible to support all of them, especially when we are providing LS-DOS at such a small cost to the user. In most cases we do not even have the program you are asking about, much less the source code for that program. Our policy will be very firm -<>- Users can NOT rely SOLELY on LSI for assistance with products other then LS-DOS 6.3.x itself -<>- This does not mean that if we have information that can be of help to you that we won't tell you, we will. But in most cases we just won't have any knowledge that would be of help.
+
+There are places to get useful information about applications running on your Model-4. Users of the Model-4 system should subscribe to "80-MICRO" magazine. You should be a member of COMPUSERVE and check in to the LDOS special interest group bulletin board on a regular basis. This is an excellent place to ask questions, any questions, and get answers from other users. Another great source of accurate and timely information is THE MISOSYS QUARTERLY, call MISOSYS at (703) 450-4181.
+
+We will answer technical questions about LS-DOS, BUT IN A GENERAL SENSE ONLY. This means we will try to answer questions if the answer is to provide general information about our system and its function. We will not answer specific PROGRAMMING QUESTIONS. If you wish to program over LS-DOS 6.3 you should have the technical reference manual from Tandy (26-2119) and the "Programmers Guide to TRSDOS 6.x" from Diskcount Data and the "SOURCE CODE TO 6.2" from MISOSYS without these you will be lost. Great amounts of accurate technical information and a special LS-DOS section dedicated to your 6.3 system are also available in THE MISOSYS QUARTERLY, from MISOSYS.
+
+Normally we will not provide patches to custom configure your system. Patches to change system defaults and to modify system functions may become available from sources other then LSI. Please do not expect LSI to get involved with these in any way. However, LSI may from time to time issue an optional patch to alter a default or modify a function. If we do, we will publish it and support it. LSI will decide if, when, how, and what to offer an optional patch for.
+
+
+>C=Y
+HERE ARE THE ANSWERS TO THE MOST COMMON USER PROBLEMS
+=====================================================
+>C=N
+
+*** QUESTION:
+I JUST RECEIVED MY 6.3 DISK AND I GET A PARITY ERROR (OR OTHER READ ERROR) WHEN I TRY TO MAKE A COPY OF THE MASTER, OR MY MASTER DISK WON'T EVEN BOOT ??
+
+ANSWER:
+The drives that we produced your MASTER disk on are kept in near perfect alignment and checked daily. This type of problem is most likely to occur if your Drive :0 is slightly out of alignment. Try this:
+
+   > BOOT UP with a 6.2 disk as you normally would.
+   > Place your LSI MASTER 6.3 in drive :1
+   > Do the command: DISKCOPY.UTILITY :1 :0 <ENTER>
+   > At the insert disks prompt, place a blank disk in Drive :0
+   > Press <ENTER>
+
+If this procedure goes through without an ERROR message then you have succeeded in duplicating your MASTER disk to your drive :0. The disk in drive :0 will now be a fully functional and usable system in your boot drive. BUT, your drive :0 should be realigned.
+
+If this procedure does not complete without ERROR then your MASTER disk probably is defective or was damaged in shipping. DON'T PANIC - just let us know and we will send you a fresh one in a RIGID, ANTI-STATIC package, and do it quickly.
+
+
+*** QUESTION:
+HOW DO I ENABLE MORE FLOPPY DISK DRIVES WITH MY LS-DOS 6.3 ??
+
+ANSWER:
+The easiest way is to refer to the SYSTEM command in your manual for information on ENABLING and DISABLING drives. The SYSGEN command will then save these desired states and initialize them when you boot up. The commands you would use to enable 2 additional drives as drives #2 and #3 are:
+
+SYSTEM (DRIVE=2,ENABLE) <ENTER>
+SYSTEM (DRIVE=3,ENABLE) <ENTER>
+SYSGEN <ENTER>
+
+This is all there is to it..... simple and straight from the 6.2.0 manual.
+
+Another way would be to "PATCH" the operating system so that the drives are enabled from the start. Although this is NOT the recommended method, it is safe and can be used without problems. To make these patches you would execute the following commands:
+
+PATCH BOOT/SYS.LSIDOS:0 (D02,84=C3:F02,84=C9) <ENTER>
+PATCH BOOT/SYS.LSIDOS:0 (D02,8E=C3:F02,8E=C9) <ENTER>
+
+Note: The first patch line ENABLES drive #2 the second patch line ENABLES drive #3. You must re-BOOT after installing for these patches to take effect.
+
+One other method of turning on extra drives or other "environment" arrangements is to put them in a JCL file called INIT/JCL and then set an "AUTO DO INIT" on your boot disk. This method is most frequently used at LSI.
+
+
+*** QUESTION:
+I WANT TO GET A COPY OF THE CURRENT 6.2 USER AND/OR TECHNICAL REFERENCE MANUAL, WHAT DO I DO?
+
+ANSWER:
+Simple, get in touch with Radio Shack, the current 6.2 user manual is available as part #26-0316, the technical reference manual is part #26-2119. If you do not have these or have old versions LSI would recommend that you obtain them while you can.
+
+
+*** QUESTION:
+DATECONV GIVES A MESSAGE "CAN'T CONVERT DATES ON NON-6.3 SYSTEM DISKS"??
+
+*** ANSWER:
+Very simple to correct. At one time the disks' directory was marked as being a "SYSTEM" type disk. This can occur in several ways, none of which are damaging to your data. Why it happened is really not important at this point so let's cure it. LSI suspected that this may become a problem for some of our users so we provided an "undocumented parameter" to override the checking in for this DATECONV. Use the command:
+
+DATECONV :d (CS) <ENTER>
+
+The (CS) is the parameter, it simply stands for Customer Service. This overrides the protection for NON-6.3 system disks, so be careful. Check any disk you use this on to make sure that it has only the /SYS files BOOT and DIR, if any other /SYS files are on the disk DO NOT USE THE CS PARAMETER!!! These /SYS files must be PURGED before you proceed. The (CS) parameter is to BE USED ON DATA DISKS ONLY.
+
+
+*** QUESTION:
+HOW DO I MAKE A DOUBLE SIDED SYSTEM DISK THAT WILL BE LAID OUT CORRECTLY ??
+
+ANSWER:
+The main reason to have a system disk laid out "CORRECTLY" is so the system modules will be clustered around the directory to reduce access time to these frequently used /SYS files. Here is a very simple JCL which will do just that.
+
+=====================================================================
+. DOUBLE/JCL
+. JCL Procedure to create a double sided SYSTEM disk
+. SOURCE (S) and DESTINATION (D) must be set on JCL COMMAND LINE
+.
+FORMAT :#D# (SIDES=2,ABS,NAME="LSDOS63",Q=N)
+MEMORY (A="A",B=17)
+BACKUP /SYS:#S# :#D# (S)
+MEMORY (A="A",B=11)
+BACKUP :#S# :#D# (I)
+MEMORY (A="A",B=1)
+.
+. A correctly structured, double sided SYSTEM disk has been created.
+. END
+====================================================================
+
+The above commands can of course be entered as individual commands at DOS ready with the same results. For convenience and accuracy we at LSI tend to use this JCL. The important part of this procedure is the use of the MEMORY command to set the "A" flag. This is the Allocation flag for the operating system and the number in this flag is the track on the disk where the file placement system will start to search for space on the disk.
+
+This is a very valuable thing to know about and use. This will allow you to structure your own disks in any manner that you wish, and to restructure and repack disks for efficiency. The normal setting of the "A" flag is for track #1.
+
+YES, those of you with hard drive should use a similar method when applying the system to your drive. Start the /SYS backup 2 tracks below the directory of your hard drive, by setting the "A" flag accordingly. Do the rest of the backup starting about 5 tracks below the directory. If you did not do something like this when you first set up your hard drive, you should reformat and do so now. This optimizing of the system on your hard drive will greatly increase the overall speed of your system.
+
+
+*** QUESTION:
+ON 6.2 I HAD A PATCH TO HAVE FORMAT DEFAULT TO DOUBLE SIDED, DOUBLE DENSITY AND 40 TRACKS. WHAT IS THE PATCH FOR THIS ON 6.3 ??
+
+ANSWER:
+If the patch that you were using for 6.2 was:
+
+       PATCH FORMAT/CMD.UTILITY (D09,5B=02:F09,5B=00) <ENTER>
+
+Then on 6.3 it would be:
+
+       PATCH FORMAT/CMD.UTILITY (D09,65=02:F09,65=00) <ENTER>
+
+FORMAT will now default to DD/DS-40 track format. If you want a different format you will now have to specify same in the command line for format (see FORMAT in your 6.2 manual). NOTE: THIS IS WHY LSI DOES NOT RECOMMEND THIS PATCH!! Users forget that they have made this patch and then call us saying "Your system is NO GOOD it won't even let me format a single sided disk".
+
+
+*** QUESTION:
+I FOLLOWED ALL THE INSTRUCTIONS FOR UPDATING MY HARD DRIVE SYSTEM BUT I STILL CAN'T SEEM TO GET IT TO WORK PROPERLY WHAT DO I DO ??
+
+ANSWER:
+The instructions for updating your hard drive system will work in almost all cases, but there are some systems that will require another method. If your system is one of the odd ones you can try a RE-SETUP.
+
+NOTE: BEFORE DOING ANY UPGRADE TO A HARD DRIVE, IT IS EXPECTED THAT YOU WILL HAVE MADE A COMPLETE BACKUP OF ALL THE IMPORTANT DATA AND FILES OFF OF THAT HARD DRIVE BEFORE YOU BEGIN. THIS IS ONLY COMMON SENSE.
+
+First you MUST start with a CLEAN exact copy of your LS-DOS 6.3 DISK made with DISKCOPY. Next using PURGE or REMOVE get rid of some files you won't be needing on this disk, keeping in mind that this is to become your BOOT DISK. We suggest you REMOVE DOS/HLP, this should give you amble room on the disk.
+
+Now, using COPY, put your hard disk DRIVER program onto this disk, this is the program used to set up your hard drive that has the extension /DCT. Then copy the hard disk formatting program that came with your system onto the disk.
+
+Now you must refer to the documentation that came with your hard disk software and perform a manual SETUP of the hard drive. You must set up the drive in such a manner that it will be partitioned in the identical manner as it was before you began your upgrading. If a SYSTEM (SYSTEM=d) command is requested as part of the setup DO NOT DO IT YET.
+
+If all has gone well you should now have your hard drive accessible now. Test this by doing a DIR on each of the logical drive numbers now designated to be on your hard drive. If everything seems correct you should now put 6.3.0 onto the hard drive surface that contained your 6.2.0 do this with:
+
+          BACKUP :0 :d (S,I) <ENTER>
+
+If you have followed the instruction drive 0 should still contain a fresh 6.3.0 that is missing the DOS/HLP file. Replace the "d" in the backup command with the present logical drive number for the hard drive partition that will become drive 0.
+
+After the BACKUP has completed you should do a:
+
+          SYSTEM (SYSTEM=d) <ENTER>
+
+Replace the "d" above with the same drive number used in the backup above. This will swap drive 0 with drive "d". Test things a bit by doing a DIR:0. If all is well you should get the directory of your hard drive SYSTEM platter. If this checks out OK then is time to save things, so do a:
+
+          SYSGEN (DRIVE=d) <ENTER>
+
+Again replace the "d" with the same drive number as before. This will cause this SYSGEN to go to the 6.3.0 floppy that is in the PHYSICAL drive position :0. You should now be able to RESET the system and it should end up running correctly.
+
+If you will be using the HELP command you should copy DOS/HLP onto hard drive :0 from a fresh copy of 6.3.0. This will complete the setup of the system. You now can reboot and then add any addition setup you may require in your SYSGEN or create an AUTO function. Just make sure that any SYSGEN or AUTO you do is specified to the BOOT floppy drive #.
+
+If the above procedure fails in any way you will have to contact the company that provided you with your DRIVER AND FORMATTER for the hard drive. You may have to RE-FORMAT the whole drive or something else. DO NOT call LSI unless you are using the OFFICIAL Radio Shack driver and formatter, these are the ones we wrote and understand. There are many other drivers and formatters out there for drives other than Radio Shacks or for special purposes. We can't help with those, sorry.
+
+
+*** QUESTION:
+HOW CAN I MAKE A BUNCH OF BLANK, FORMATTED DISKS, REAL QUICK ??
+
+ANSWER:
+Format a blank disk in the normal fashion using the FORMAT command in LS-DOS 6.3. Now simply use DISKCOPY to make copies of this blank disk. DISKCOPY is very smart and only duplicates tracks that contain real data, blank tracks are just formatted and verified. Try it, you will be amazed at the speed.
+
+
+*** QUESTION:
+HOW LONG IS LSI GOING TO SUPPORT LS-DOS 6.3.0 ON THE MODEL-4 ??
+
+ANSWER:
+Honestly, at this time we don't know. Three things will be given consideration in determining when we will stop. First, as long as there are enough questions and interest from users to justify keeping a customer service department running we will try to do so. Second, we will have to feel confident that there are NO serious problems with the Operating System that would require our attention. Lastly we MUST consider economics: LS-DOS 6.3.0 is not an expensive product, LSI HAS TO SHIP OVER 500 COPIES PER MONTH JUST TO BREAK EVEN. When the cash flow stops the support may have to stop, there simply may not be an alternative. But we will do the best we can.
+
+Full support of LS-DOS will certainly continue through all of 1987 and most likely through most of 1988, possibly much longer.
+
+We are considering offering a Support and Update Newsletter (The S.U.N.) which would contain tips on usage, technical information, patches to the system and answers to common questions and problems for users of LS-DOS. In the future, a publication like this may be the only way that LSI will provide update information to our users. We would have to charge about $20 per year for this type of service publication. Please, let us know if you would be interested in such a publication.
+
+
+*** QUESTION:
+THE ANTI-PIRACY PROTECTION SCHEME ON LS-DOS 6.3 SCARES ME. I'M AFRAID SOMETHING MIGHT GO WRONG WITH IT AND I WILL LOSE VALUABLE DATA ??
+
+ANSWER:
+Not to worry. You are right to assume that the protection system is VERY sophisticated, it cannot even be found using any conventional software technique. LSI spent much time and effort in the design and testing of this protection system and we can assure you that:
+
+"NO MATTER WHAT HAPPENS, NO LEGITIMATE USERS WILL EVER LOSE DATA OR HAVE ANY OTHER PROBLEM WITH THIS PROTECTION SYSTEM" - "PIRATES OR USERS WHO VIOLATE OUR LICENSE AGREEMENT WILL HAVE TROUBLE WITH THE SYSTEM"
+
+We will know if, and when, a violation occurs based on the problems that are reported by the user. But, under no circumstances will the PROTECTION SYSTEM ever damage DATA.
+
+>C=Y
+************ OUR PARTING COMMENT ***********
+>C=N
+
+ALL USERS: Please do yourself a BIG favor and carefully read the following sections of your TRSDOS Version 6 Reference Manual: BACKUP / FORMAT / SYSTEM / SYSGEN.
+
+A very large portion of the questions we get from users could be answered if the user had a clear understanding of ALL the functions in these four areas of the TRSDOS and LS-DOS systems.
+ 

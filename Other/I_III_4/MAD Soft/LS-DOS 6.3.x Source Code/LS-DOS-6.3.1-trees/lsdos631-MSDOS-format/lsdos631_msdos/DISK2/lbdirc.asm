@@ -1,0 +1,1065 @@
+;LBDIRC/ASM - DIR math, strings, & buffers
+	SUBTTL	'<LBDIRC - Math Routines>'
+	PAGE
+;
+;	CALCK - Calculate the # of K given # of Grans
+;	DE => # of Granules
+;	HL => Destination of #K ASCII string
+;
+CALCK	LD	(CALCK2+1),HL	;Stuff dest address
+;
+;	Calc # of Free Sects (Sectors/Gran x Grans)
+;
+	EX	DE,HL		;HL = # of Free Grans
+CALCK1	LD	C,$-$		;C = Sectors/Gran
+	@@MUL16			;Mult HL x C
+;
+;	LA = Total # of Sectors - Divide by 4 for K
+;
+	PUSH	AF		;Save offset
+	LD	H,L		;Set HL = LA
+	LD	L,A
+	SRL	H		;Divide HL / 4
+	RR	L
+	SRL	H
+	RR	L
+;
+;	P/u dest address & stuff in # of FULL K
+;
+CALCK2	LD	DE,$-$		;P/u destination address
+	@@HEXDEC
+	INC	DE		;DE => Hundredths
+;
+;	Stuff hundredths value into string
+;
+	POP	AF		;Rcvr offset to
+	AND	3		;Get offset
+	ADD	A,A
+	LD	B,0
+	LD	C,A		;BC = offset
+	LD	HL,HUNDTAB	;HL => Hundredths table
+	ADD	HL,BC		;HL => Hundredths offset
+	LD	C,2		;BC = 2 characters
+	LDIR			;Transfer to DE
+	RET
+;
+;	CPHLDE - Compare HL to DE
+;
+CPHLDE	LD	A,H		;P/u high byte
+	CP	D		;Same ?
+	RET	NZ		;No - Return C or NC
+	LD	A,L		;P/u low byte
+	CP	E		;Less than or greater ?
+	RET			;Return - C, NC, or Z
+;
+;	UNPACK - Unpack the Date from a directory entry
+;	HL => DIR+1
+;	DE <= Date in DATE$ format
+;
+UNPACK	LD	A,(HL)		;Get month
+	AND	0FH
+	LD	E,0
+	LD	D,A
+	SRL	D
+	RR	E		;Split into DE
+	INC	HL		;Pt to day
+	LD	A,(HL)
+	AND	0F8H
+	RRCA
+	OR	E
+	LD	E,A		;Month to E
+	LD	A,($-$)
+YFLAG1	EQU	$-2
+	DB	0CBH
+DVTEST	DB	47H
+	JR	NZ,NWDT		;Go if new type date
+	LD	A,(HL)
+	AND	7		;Else use old
+SHFTD	RLCA			;Into bits 3-7
+	RLCA
+	RLCA
+	OR	D
+	LD	D,A
+	RET
+NWDT	LD	A,L
+	ADD	A,17
+	LD	L,A		;Pt to new year
+	LD	A,(HL)
+	AND	1FH
+	JR	SHFTD
+;
+;	CKPAGE - Check for Page Pause
+;
+	IF	@BLD631
+CKPAGE1	LD	A,CR		;<631>
+	CALL	BYTOUT		;<631>
+	ENDIF
+CKPAGE	LD	A,$-$		;Ck for display pause
+	DEC	A		;Count down
+	LD	(CKPAGE+1),A	;Update
+	RET	NZ		;Ret if not yet full
+;
+;	Displayed a full page - Reset Counter
+;
+	LD	A,22		;Reset to max lines/page
+	LD	(CKPAGE+1),A
+;
+;	Don't pause if NOPAUSE (N) parm entered
+;
+NPARM	LD	DE,0		;P/u NOPAUSE parm
+	LD	A,E		;Specified ?
+	OR	D
+	RET	NZ		;Nonstop if non-zero
+;
+;	Non-Stop if <DO> in effect
+;
+SFLAG	LD	A,$-$		;P/u SFLAG$
+	AND	20H		;Strip all but <DO> bit
+	RET	NZ		;Return if do in effect
+;
+;	There isn't a <DO> in effect - Wait for key
+;
+	@@KEY			;Wait for key entry
+IOERR5	JP	NZ,IOERR
+;
+;	Clear Screen
+;
+	LD	A,105
+	NOP			;CLS out for now
+;	rst	40		;Uncomment for CLS
+	JR	NZ,IOERR5
+;
+;	If the NOTITLE flag is set - don't display
+;
+NOTITLE	LD	A,$-$		;P/u flag
+	OR	A		;No title ?
+	RET	NZ		;Then RETurn
+;
+;	Display a title if there were matching files
+;
+	LD	A,(FILFLAG)	;Was a matching file
+	OR	A		;  displayed ?
+	CALL	NZ,CKTITL	;Yes - display title
+	RET			;Return
+;
+;	CKPAWS - Check for <SHIFT><@> or <BREAK>
+;
+CKPAWS
+;
+;	Was the <BREAK> key hit ?
+;
+KFLAG	LD	A,($-$)		;P/u KFLAG$
+	RRCA			;<BREAK> hit ?
+	JP	C,ABORT		;Yes - cease DIR
+;
+;	Is the <PAUSE> bit set ?
+;
+	RRCA			;<PAUSE> bit set ?
+	RET	NC		;Ret if not pause
+;
+;	The <PAUSE> bit is set - Wait for Char
+;
+CKPAW1	@@KEY			;Scan keyboard
+;
+;	Character entered - Ignore it if <SHIFT><@>
+;
+CKPAW2	CP	60H		;<SHIFT><@> ?
+	JR	Z,CKPAW1	;Yes - get another char
+	CP	BREAK
+	JP	Z,ABORT
+;
+;	Reset <PAUSE> & <ENTER> bits
+;
+RESKFL	LD	A,($-$)		;P/u KFLAG$
+	AND	0F9H		;Reset <PAUSE> & <ENTER>
+KFLAG1	LD	($-$),A		;Stuff into KFLAG$
+	RET			;  & RETurn
+;
+;	CKTITL - Display Title
+;
+;	Display Disk type Header
+;
+CKTITL	LD	HL,DSTRING	;HL => Heading
+	CALL	LINOUT		;Output line
+	CALL	CKPAGE		;Bump line count
+	CALL	CKPAGE		;  twice.
+;
+;	Display Attributes header if A parm spec'd
+;
+	LD	A,(APARM+1)	;Was the A parm spec'd
+	OR	A
+	LD	A,CR		;Output a CR if A
+	JP	Z,BYTOUT	;  not specified.
+;
+	LD	HL,HEADING	;HL => Attr heading
+	CALL	LINOUT		;Output line
+;
+;	Display Underline
+;
+	PUSH	BC		;Save BC
+	LD	B,79		;Display underline
+D79L	LD	A,'-'
+	CALL	BYTOUT		;Output byte
+	DJNZ	D79L		;  79 times
+	POP	BC		;Restore BC
+	IF	@BLD631
+	JP	CKPAGE1		;<631>Check page pause & RET
+	ELSE
+	LD	A,CR		;One CR between
+	CALL	BYTOUT
+	JP	CKPAGE		;Check page pause & RET
+	ENDIF
+;
+	SUBTTL	'<LBDIRC - Sort Code>'
+;
+;	SORTIT - Set up Directory Records for Shell Sort
+;
+SORTIT	LD	HL,(DIRPTR)	;Calculate # of records
+	LD	DE,MEMORY	;Point to buf start
+	LD	(HL),E		;Prime the 1st index
+	INC	HL		;  in case there is
+	LD	(HL),D		;  only one record
+	DEC	HL		;  to sort
+	XOR	A
+	SBC	HL,DE		;PTREND - PTRBGN
+	RET	Z		;Ret if nothing
+;
+;	Set HL = # of directory entries
+;
+	LD	B,5		;Divide by
+SORT1	SRL	H		;  32 bytes/record
+	RR	L
+	DJNZ	SORT1
+;
+;	Set B = # of entries & init count
+;
+	LD	B,L		;Set loop counter
+	PUSH	BC		;Save it for printing
+	LD	(COUNTM1),HL	;Init the count
+;
+;	Skip sort if # of entries = 0
+;
+	LD	A,H		;If length = 0
+	OR	L		;  then no need to sort
+	JR	Z,SORT2A
+	ADD	HL,HL		;Make sure enuff room
+	EX	DE,HL
+	LD	HL,(MAXMEM)
+	XOR	A
+	SBC	HL,DE
+	JP	C,NOMEM
+	LD	HL,(DIRPTR)	;Set up the index array
+	LD	DE,MEMORY	;Starting record pointer
+SORT2	LD	(HL),E		;Place record pointers
+	INC	HL		;  into index array
+	LD	(HL),D
+	INC	HL
+	LD	A,E		;Increment pointer by 32
+	ADD	A,32
+	LD	E,A
+	JR	NC,$+3		;Go if no overflow
+	INC	D		;  else bump high order
+	DJNZ	SORT2		;Loop for all records
+	CALL	SHELL		;Sort the dir records
+SORT2A	POP	BC		;Recover loop counter
+	LD	HL,(DIRPTR)	;P/u starting record
+SORT3	LD	E,(HL)		;Grab its address
+	INC	HL
+	LD	D,(HL)
+	INC	HL
+	PUSH	HL		;Save index pointer
+	PUSH	BC		;Save loop counter
+	EX	DE,HL		;Record address -> HL
+	CALL	MATCH		;Display the record
+	POP	BC		;Rcvr loop counter
+	POP	HL		;Rcvr index pointer
+	DJNZ	SORT3
+	RET
+;
+;	SHELL - Shell Sort Routine
+;
+SHELL	LD	HL,$-$		;P/u count minus 1
+COUNTM1	EQU	$-2
+	LD	(STORM),HL
+;
+;	Start Select & Compare
+;
+CYCLE	LD	DE,0		;M = M / 2
+STORM	EQU	$-2
+	SRL	D
+	RR	E
+	LD	A,D		;Return when M=0
+	OR	E
+	RET	Z
+	LD	(STORM),DE
+	LD	HL,(COUNTM1)	;K = N - M
+	SBC	HL,DE
+	LD	(STORK),HL
+	LD	HL,0		;J = 0
+	LD	(STORJ),HL
+AGAIN	LD	HL,$-$		;I = J
+STORJ	EQU	$-2
+	LD	(STORI),HL
+REPEAT	LD	HL,$-$		;L = I + M
+STORI	EQU	$-2
+	LD	DE,(STORM)
+	ADD	HL,DE
+	ADD	HL,HL		;L * 2 -> regHL
+	PUSH	HL		;Save L
+	LD	HL,(STORI)	;I * 2 -> regHL
+	ADD	HL,HL
+	LD	BC,(DIRPTR)	;P/u string parm ptr
+	ADD	HL,BC		;Pt to A$(I) parm
+	EX	DE,HL		;Ptr -> DE
+	POP	HL		;Pt to A$(L) parm
+	ADD	HL,BC		;Ptr -> HL
+	PUSH	HL		;Save ptr to A$(L)
+	PUSH	DE		;Save ptr to A$(I)
+	LD	B,11		;Set compare length
+	PUSH	BC		;Save cpr len & flag
+	LD	A,(HL)		;P/u string2 ptr
+	INC	HL
+	LD	H,(HL)
+	LD	L,A
+	LD	BC,5		;Key is 5 bytes in
+	ADD	HL,BC
+	EX	DE,HL		;String2 ptr -> rDE
+	LD	A,(HL)		;P/u string1 ptr
+	INC	HL
+	LD	H,(HL)
+	LD	L,A
+	ADD	HL,BC		;Key is 5 bytes in
+	POP	BC		;Rcvr len & flag
+BACK	LD	A,(DE)		;Go swap if str1>str2
+	SUB	(HL)
+	JR	C,POP
+	JR	NZ,FINIS	;Next str if str2>str1
+	INC	DE		;Loop if this matches
+	INC	HL
+	DJNZ	BACK
+	JR	FINIS		;None really should match
+POP	POP	DE		;Else swap
+	POP	HL
+	LD	B,2		;Swap 2-byte
+SWAP	LD	C,(HL)		;String pointer
+	EX	DE,HL
+	LD	A,(HL)
+	LD	(HL),C
+	EX	DE,HL
+	LD	(HL),A
+	INC	HL
+	INC	DE
+	DJNZ	SWAP
+	LD	HL,(STORM)	;P/u M
+	EX	DE,HL
+	LD	HL,(STORI)	;P/u I
+	XOR	A
+	SBC	HL,DE
+	LD	(STORI),HL	;I = I - M
+	JR	NC,REPEAT	;Repeat if I => 0
+	JR	EXITSRT		;Else exit the loop
+FINIS	POP	DE
+	POP	HL
+EXITSRT	LD	HL,(STORJ)
+	INC	HL		;J = J + 1
+	LD	(STORJ),HL
+	XOR	A
+	LD	DE,$-$
+STORK	EQU	$-2
+	SBC	HL,DE		;J - K
+	JP	NC,CYCLE	;Cycle if J => K *
+	JP	AGAIN		;Else again
+;
+	SUBTTL	'<LBDIRC - Data>'
+;
+PRMTBL$	DB	80H		;6.x parameters
+;
+;	A - Flag input only
+;
+	DB	FLAG!1
+	DB	'A'
+	DB	0
+	DW	APARM+1
+;
+;	INV (I) - Flag input only
+;
+	DB	FLAG!ABB!3
+	DB	'INV'
+	DB	0
+	DW	IPARM+1
+;
+;	P - Flag input only
+;
+	DB	FLAG!1
+	DB	'P'
+	DB	0
+	DW	PPARM+1
+;
+;	SYS (S) - Flag input only
+;
+	DB	FLAG!ABB!3
+	DB	'SYS'
+	DB	0
+	DW	SPARM+1
+;
+;	N - Flag input only
+;
+	DB	FLAG!1
+	DB	'N'
+	DB	0
+	DW	NPARM+1
+;
+;	DATE (D) - Flag or String input
+;
+	DB	FLAG!STR!ABB!4
+	DB	'DATE'
+DRESP	DB	0
+	DW	DATPRM+1
+;
+;	MOD (M) - Flag input only
+;
+	DB	FLAG!ABB!3
+	DB	'MOD'
+	DB	0
+	DW	CKMOD+1
+;
+;	SORT (O) - Flag input only
+;
+	DB	FLAG!4
+	DB	'SORT'
+	DB	0
+	DW	SORTPRM+1
+;
+	DB	FLAG!1
+	DB	'O'
+	DB	0
+	DW	SORTPRM+1
+;
+;
+	DB	0
+;
+DEN	DB	'xDEN'
+HARD	DB	'Hard'
+;
+DSTRING	DB	'Drive :'
+DRIVE	DB	'd  '
+NAME	DB	'diskname  '
+CYLCNT	DB	'    Cyl, '
+DENSITY	DB	'nDEN, Free ='
+KFREE	DB	'     .  K / '
+KPOSS	DB	'     .  K,  Date '
+DATBUF	DB	'dd-mmm-yy',CR
+;
+HEADING	DB	'Filespec    MOD Attr   Prot  LRL'
+	DB	'  #Recs  EOF  File Size  Ext  Mod '
+	DB	'Date   Time',CR
+;
+FDISP	DB	'    files of'
+FUSED	DB	'     selected, '
+SPUSED	DB	'     .  K',LF,CR
+;
+NODISK	DB	'Drive :'
+NDRIVE	DB	'n  [No  Disk]',LF,CR
+;
+TDATE	DB	'mm/dd/yy"'
+PROTS$	DB	'FULLREMVNAMEWRITUPDTREADEXECNO  '
+MAXDAYS	DB	31,28,31,30,31,30,31,31,30,31,30,31
+HUNDTAB	DB	'00255075'
+NOMEM$	DB	'No memory for SORT',CR
+BADFMT$	DB	'Bad date format',CR
+	IF	@BLD631D
+P631D1:	DEC	HL		;<631D>
+	@@FLAGS			;<631D>
+	LD	A,(HL)		;<631D>
+	RET			;<631D>
+P631D2:	BIT	4,(IY+8)	;<631D>
+	POP	IY		;<631D>
+	JP	P631D3		;<631D>
+;<631D>If you want the code to exactly match the MISOSYS PATCH DIR1/FIX,
+;<631D>Uncomment the EQU and comment-out the DB.  WARNING, the EQU references
+;<631D>a location in SYSRES to avoid making the module grow by the patch size.
+MONTBL	EQU	04DCH		;<631D>Location of MONTBL$ in SYSRES
+	DB	'JunJulAugSepOctNovDec'	;<631D>Use with MONTBL$ EQU
+;<631D>If you build the code, build it right, but it won't match exactly
+;MONTBL	DB	'JanFebMarAprMayJunJulAugSepOctNovDec'	;<631D>
+	ELSE
+MONTBL	DB	'JanFebMarAprMayJunJulAugSepOctNovDec'
+	ENDIF
+FTFLG	DB	0
+FILFLAG	DB	0
+DIRPTR	EQU	$
+MAXMEM	EQU	DIRPTR+2
+FMPAKD	EQU	MAXMEM+2
+TOPAKD	EQU	FMPAKD+2
+LILBUF$	EQU	TOPAKD+2
+;
+;
+BLANKS	EQU	LILBUF$+3
+PLEVEL	EQU	BLANKS+13
+LRL	EQU	PLEVEL+6
+RECORDS	EQU	LRL+5
+OFFSET	EQU	RECORDS+7
+KSIZE	EQU	OFFSET+5
+EXTENTS	EQU	KSIZE+12
+DATEFLD	EQU	EXTENTS+4
+ETXBUF	EQU	DATEFLD+16
+;
+GAT	EQU	ETXBUF+1<-8+1<+8
+HIT	EQU	GAT
+BUF2	EQU	GAT+256
+MEMORY	EQU	GAT+512
+;
+	IFGT	MEMORY,3000H
+	ERR	'Buffers overflow LIB region'
+	ENDIF
+;
+	SUBTTL	'<LBDIRC - Initialization Code>'
+	PAGE
+;
+;	DIR Entry Point - Initialization code
+;
+DIR
+	@@CKBRKC		;Check for break
+	JR	Z,DIRA		;If not go
+	LD	HL,-1		;  else abort
+	RET
+;
+DIRA
+	LD	(SAVESP+1),SP	;Save SP address
+	PUSH	HL		;Save command ptr
+;
+;	Pick up Flag Table base Address
+;
+	@@FLAGS			;IY => System Flag table
+	PUSH	IY		;Xfer to DE too
+	POP	DE
+	LD	HL,'Y'-'A'	;Get date type flag
+	ADD	HL,DE
+	LD	(YFLAG1),HL
+	LD	(YFLAG2),HL
+;
+;	Calculate KFLAG$ address & stuff away
+;
+	LD	HL,KFLAG$	;KFLAG$ offset
+	ADD	HL,DE		;HL => KFLAG$
+	LD	(KFLAG+1),HL	;Save for later testing
+	LD	(RESKFL+1),HL
+	LD	(KFLAG1+1),HL
+;
+	CALL	RESKFL		;Reset bits 0-2 of KFLAG$
+	POP	HL		;Rvr command ptr
+;
+;	Pick up SFLAG
+;
+	LD	A,(IY+'S'-'A')	;Get SFLAG
+	LD	(SFLAG+1),A	;Save for later testing
+;
+;	Find parameter entry if existent
+;
+	PUSH	HL		;Save command ptr
+FPLP	LD	A,(HL)		;P/u character
+	CP	'('		;Parameter(s) ?
+	JR	Z,GETPRM	;Yes - go get 'em
+	CP	CR		;End of line ?
+	JR	Z,RESTPTR	;Yes - restore ptr
+	INC	HL		;No - bump til end
+	JR	FPLP		;Do til eol or "("
+;
+;	Process any parameters entered
+;
+GETPRM	LD	DE,PRMTBL$	;DE => Parameter table
+	@@PARAM			;@PARAM
+RESTPTR	POP	HL		;Recover ptr
+	JP	NZ,IOERR	;NZ - "Parameter Error"
+;
+	PUSH	HL
+	LD	HL,BLANKS	;Clear dsp buffer area
+	LD	(HL),' '
+	LD	D,H
+	LD	E,L
+	INC	DE		;Set to blank buffer
+	LD	BC,ETXBUF-BLANKS
+	LDIR
+	LD	A,ETX
+	LD	(DE),A
+	LD	A,'.'
+	LD	(KSIZE+5),A
+	LD	A,'K'
+	LD	(KSIZE+8),A
+	POP	HL
+;
+;	If first character is a "8" or "9" abort
+;
+	LD	A,(HL)		;Is this a "8" or "9" ?
+	CP	CR		;If CR, then global
+	JR	Z,DIR2
+	CP	'8'		;If so - Illegal drive #
+	JR	Z,ILLDRV
+	CP	'9'
+	JR	NZ,CKITOUT	;Must be a partspec
+;
+;	Illegal Drive Number
+;
+ILLDRV	JP	ERR32		;Go to I/O error handler
+;
+;	Pick up Drive # Range field if any
+;
+CKITOUT	PUSH	HL		;Save source ptr
+	CALL	CKDSPEC		;Legal Drive range ?
+	POP	DE		;Save source ptr in DE
+	JR	Z,DIR3		;Legal - use HL
+;
+;	Point DE => Partspec match field, B=8 chars
+;
+	EX	DE,HL		;Illegal - use DE
+	LD	A,(HL)		;P/u first char
+	INC	HL		;  and bump to next
+DIR0	LD	DE,BLANKS	;DE => Partspec area
+	LD	B,8		;B = 8 chars/filename
+;
+;	Was the NOT switch entered ?
+;
+	CP	'-'		;NOT ?
+	JR	NZ,DIR1		;No - continue
+;
+;	NOT "-" entered - set flag & bump cmd ptr
+;
+	LD	(MFLG+1),A	;Stuff "-" in flag
+	LD	A,(HL)		;P/u next char & bump
+	INC	HL		;  command ptr
+;
+;	Transfer Filename to Filespec buffer
+;
+DIR1	CALL	PRSPC		;Parse 8 chars
+	CP	'/'		;Extension ?
+	JR	Z,DIR1A
+	CP	'.'
+	JR	NZ,DIR2
+;
+;	Transfer Extension to Filespec buffer
+;
+DIR1A	LD	DE,BLANKS+8	;DE => Extension field
+	LD	B,3		;Max 3 chars
+	LD	A,(HL)		;P/u next character
+	INC	HL		;Bump
+	CALL	PRSPC		;Xfer extension
+;
+;	Was a drivespec entered ?
+;
+DIR2	CP	':'		;Drive entered?
+	LD	BC,7		;St = 0, terminating = 7
+	JR	Z,DIR2A		;Yes, check it out
+	CP	'('+1		;Was last char valid?
+	JR	C,DIR3		;Yes, global dir
+	LD	A,19		;"Illegal filename
+	JP	IOERR
+;
+;	Check if char following is a legal drive #
+;
+DIR2A	CALL	CKDSPEC		;Legal Drive field ?
+	JR	NZ,ILLDRV	;Illegal - abort
+	CP	8		;Trap DIR :8
+	JR	Z,ILLDRV
+;
+;	B = Start drv #, C = Term drv # - save 'em
+;
+DIR3	LD	A,B		;Save starting drive
+	LD	(DIR3A+1),A
+	SUB	C		;Set Specific Drive flag
+	LD	(SPECIF+1),A
+	LD	A,C		;Save term drive
+	LD	(TERMDRV+1),A
+;
+;	Command line parsed - check available mem
+;
+	BIT	1,(IY+CFLAG$)	;Called from @CMNDR?
+	LD	HL,0		;Set SORT (O) parm = 0
+	JR	Z,GETHI		;No - fine
+;
+;	Executing from @CMNDR - Turn off SORT
+;
+	LD	(SORTPRM+1),HL
+;
+;	Pick up Current HIGH$, & set max mem to use
+;
+GETHI	LD	B,L		;B=0
+	@@HIGH$
+	LD	DE,-33		;Subtract 33 from it
+	ADD	HL,DE
+	LD	(MAXMEM),HL	;Stuff in maximum memory
+;
+;	Turn on N parm if P parm specified
+;
+	LD	HL,(PPARM+1)	;P/u P-parm
+	LD	A,H		;Specified ?
+	OR	L
+	JR	Z,GTDATE	;No - don't change N
+	LD	(NPARM+1),HL	;Turn on N-parm
+;
+;	Was the DATE parameter specified ?
+;
+GTDATE	LD	A,(DRESP)	;Check out response
+	OR	A		;Any response ?
+	JR	Z,DIR3A		;None entered - no date
+;
+;	Something was specified - Check type
+;
+DATPRM	LD	HL,$-$		;P/u date
+	BIT	6,A		;Flag input ?
+	JR	Z,CHKSTR	;No - must be string
+;
+;	Flag input - if YES, then use today's date
+;
+	LD	A,H		;DATE = OFF ?
+	OR	L
+	JR	Z,DIR3A		;Yes - ignore it
+;
+;	DATE parameter entered - get today's date
+;
+	LD	HL,TDATE	;HL => Todays Date
+	PUSH	HL		;Save position
+	@@DATE			;Get today's date
+	POP	HL		;HL => Today's Date
+;
+;	Display dates before "-mm/dd/yy" ?
+;
+CHKSTR	LD	A,(HL)		;P/u first char
+	CP	'-'		;"to-" ?
+	JR	Z,CKTO		;Yes - do it
+;
+;	Not before - set flag accordingly
+;
+	LD	A,80H		;Set from bit
+	LD	(FTFLG),A	;Note from entered
+;
+;	Pack Date entry
+;
+	CALL	PAKDAT		;Pack the date entry
+	LD	(FMPAKD),BC	;Stuff away date
+;
+;	End of first date ?
+;
+	LD	A,(HL)		;P/u terminator
+	CP	'"'		;End of date ?
+	JR	Z,FRCTO		;Yes - use spec'd date
+;
+;	Is there a to "-" symbol following date ?
+;
+	CP	'-'		;Check for "-to"
+	JR	NZ,DIR3A	;No - check if legal
+;
+;	Is there a date following ?
+;
+CKTO	INC	HL		;Bypass the '-'
+	LD	A,(HL)		;P/u next char
+	CP	'"'		;End of parm ?
+	JR	Z,DIR3A		;Yes - use that date
+;
+	CP	CR		;End of parm ?
+	JR	Z,DIR3A		;Yes - use that date
+;
+;	Something following - parse date
+;
+	CALL	PAKDAT		;Pack Date
+;
+;	Stuff in "TO" packed date & set TO flag
+;
+FRCTO	LD	A,(FTFLG)	;P/u From-To Flag
+	OR	1		;Set TO bit
+	LD	(FTFLG),A	;Stuff in flag
+	LD	(TOPAKD),BC	;Stuff for later
+;
+;	P/u starting drive #, & init page counter
+;
+DIR3A	LD	C,$-$		;P/u starting drive
+	LD	A,22		;Max lines to dsply
+	LD	(CKPAGE+1),A	;Stuff in counter
+	JP	DIR4		;Directory Start
+;
+;	CKDSPEC - Check if a drive spec field is legal
+;	HL => Drive specification Field
+;	Z - Set if Drive spec Field is Legal
+;	B <= Starting Drive # (0-7)
+;	C <= Terminating Drive # (0-7)
+;
+CKDSPEC	LD	A,(HL)		;P/u first character
+	CP	'-'		;"TO" or "NOT" ?
+	JR	NZ,NOTDASH	;No - check if drive #
+;
+;	Char is a "-" ---- Could be "TO" or "NOT"
+;
+	CALL	LEGDRV		;Legal Drive Number ?
+	RET	C		;No - RETurn NZ
+;
+;	Legal Drive # - Next char must be a term
+;
+	LD	C,A		;C = Terminating Drive
+	INC	HL		;HL => Following char
+	CALL	TERM		;Does a term follow ?
+	LD	B,0		;B  default start 0
+	RET			;RETurn Z or NZ
+;
+;	Is the First character a legal drive # ?
+;
+NOTDASH	CALL	LEGDRV1		;Legal drive (0-7) ?
+	RET	C		;No - RETurn NZ (ex 8)
+	LD	B,A		;Set B = Starting Drive
+	LD	C,A		;Set C = Terminator
+;
+;	Legal Drive - a "-" or term MUST follow
+;
+	INC	HL		;Bump to next char
+	LD	A,(HL)		;If next char is not a
+	CP	'-'		;  "-", RETurn Z or NZ
+	JR	Z,CKTDRIV	;  depending on next char.
+	CALL	TERM		;Legal terminator ?
+	JP	NZ,ILLDRV	;No - Illegal Drive #
+	RET			;Yes - Return
+;
+;	Is the character a terminator ?
+;
+TERM	LD	A,(HL)		;P/u char
+	CP	' '		;Space is legal
+	RET	Z		;RETurn Z if space
+	CP	CR		;CR is legal
+	RET	Z		;RETurn Z if CR
+	CP	'('		;Paren is legal
+	RET			;RETurn w/ condition
+;
+;	Next char must be a valid drive # or term
+;
+CKTDRIV	CALL	LEGDRV		;Legal Drive # ?
+	LD	C,7		;C = Default term drive 7
+	JR	C,TERM		;Not drv # - ck for term
+;
+;	Make sure Term Drive # > or = Start Drive #
+;
+	LD	C,A		;Set C = Term drive #
+	CP	B		;> or = start drive # ?
+	RET	C		;Less - Return
+;
+;	Drive span range good - make sure term legal
+;
+	INC	HL		;Bump ptr
+	JR	TERM		;RETurn Z or NZ
+;
+;	LEGDRV - Is a character a legal drive #
+;	HL => One before Character to check
+;	HL <= Character in question
+;	A  <= Drive Number (0-7)
+;	CF <= Set if Character is not a legal drive #
+;
+LEGDRV	INC	HL		;Bump to next
+LEGDRV1	LD	A,(HL)		;P/u char
+	SUB	'0'		;Convert to binary
+	CP	7+1		;Greater than "7" ?
+	CCF			;C - Illegal
+	RET			;RETurn with condition
+;
+;	PRSPC - Parse a line and stuff in buffer
+;	HL => Source Buffer
+;	DE => Destination of converted field
+;	B = # of characters to parse
+;
+PRSPC:	CP	'*'		;Global wc?
+	JR	NZ,PS4		;Go if not
+	LD	A,'$'		;Make all remaining into $
+PS5	LD	(DE),A
+	INC	DE
+	DJNZ	PS5
+	LD	A,(HL)		;Get next char
+	INC	HL		;Posn for next char
+	RET
+;
+PS4	CP	'$'		;Wild character?
+	JR	Z,PS2		;Yes - stuff in buff
+	CP	'A'		;Alphabetic ?
+	JR	NC,PS1		;Maybe - convert to U/C
+;
+;	Is the character a numeric value (0-9) ?
+;
+	CP	'9'+1		;Greater than "9" ?
+	RET	NC		;Yes - return
+	CP	'0'		;Less than "0" ?
+	RET	C		;Yes - return
+;
+;	Convert character to Upper Case
+;
+PS1	CP	'a'		;Lower case alpha ?
+	JR	C,PS2		;No - stuff in buffer
+	CP	'z'+1
+	JR	NC,PS2
+	RES	5,A		;Convert to U/C
+;
+;	Put char in buffer, & bump cmd & buffer ptrs
+;
+PS2	LD	(DE),A		;Stuff in buffer
+PS3	INC	DE		;Bump
+	LD	A,(HL)		;P/u command buff char
+	INC	HL		;Bump
+	DJNZ	PRSPC		;  B times
+	RET
+;
+;	PAKDAT - Pack Date & Stuff into buffer
+;	HL => Buffer containing Date string
+;	BC <= Packed Date in lsb,msb format
+;
+PAKDAT	LD	A,(HL)		;P/u character
+	LD	C,'/'		;Init separator
+;
+;	Is the date a valid entry ?
+;
+	CALL	PARSDAT		;Parse entry
+	JP	NZ,BADFMT	;Abort on format error
+;
+;	If year = 1980 or 84 then set FEB = 29 days
+;
+	IF	@BLD631
+	LD	A,(DE)		;<631>
+	CP	0CH		;<631>
+	JR	NC,L2F5D	;<631>
+	ADD	A,64H		;<631>
+	LD	(DE),A		;<631>
+L2F5D:				;<631>
+	ENDIF
+	EX	DE,HL		;Save command ptr
+	IF	@BLD631
+	ELSE
+	LD	A,(LILBUF$)	;P/u year (80-87)
+	ENDIF
+	AND	3		;Mask off bits 7-2
+	LD	HL,MAXDAYS+1	;Set Feb to have 29 days
+	JR	NZ,NOTLEAP	;No - don't inc it
+	INC	(HL)		;Leap year - inc max days
+;
+;	Check Range of month - must be 1-12
+;
+NOTLEAP	LD	A,(LILBUF$+2)	;P/u month
+	DEC	A		;Set month = 1-11
+	CP	12		;Valid month ?
+	JP	NC,BADFMT	;Abort if 0 or >12
+;
+;	Valid month - point HL to max days/month
+;
+	DEC	HL		;Point before JAN entry
+	ADD	A,L		;Add the month
+	LD	L,A		;HL => max days for month
+	JR	NC,NOINC	;Bump H if C set
+	INC	H
+;
+;	Check if day entry is valid
+;
+NOINC	LD	A,(LILBUF$+1)	;P/u day entry
+	DEC	A		;Reduce for test (0->FF)
+	CP	(HL)		;More than max days ?
+	JP	NC,BADFMT	;Go if too large (or 0)
+;
+;	Pick up month from buffer
+;
+	LD	HL,LILBUF$+2	;Pt to month
+	LD	B,(HL)
+	LD	C,0
+	SRL	B		;LSbit of mon to C
+	RR	C
+	DEC	HL		;Pt to day
+	LD	A,(HL)
+	DEC	HL
+	RLCA			;Shift day left to
+	RLCA			; bits 2-6
+	OR	C		;Merge w/month
+	LD	C,A
+	LD	A,(HL)		;Get year
+	SUB	80		;Use only offset
+	IF	@BLD631
+	CP	70H		;<631>
+	JR	C,GDATE		;<631>Go if date ok
+	ELSE
+	JR	NC,GDATE	;Go if date ok
+	ENDIF
+	XOR	A		; else use 0
+GDATE	RLCA			;Posn for merge with month
+	RLCA
+	RLCA
+	OR	B
+	LD	B,A
+	EX	DE,HL
+	RET
+;
+;	PARSDAT - Parse TIME/DATE string entry
+;	HL => Buffer containing string to parse
+;	C  => Delimiter ("/" = DATE, ":" = TIME)
+;	LILBUF$-LILBUF$+2 <= Data in compressed format
+;	Z  - Set if successful
+;
+PARSDAT	LD	DE,LILBUF$+2	;Point to buf end
+	LD	B,3		;Process 3 fields
+;
+;	Parse a field - Return NZ if bad
+;
+PRS1	PUSH	DE		;Save pointer
+	CALL	PRS2		;Get a digit pair
+	POP	DE		;Recover pointer
+	RET	NZ		;Ret if bad digit pair
+;
+;	Good field - Stuff in buff, dec ptr, & count
+;
+	LD	(DE),A		;  else stuff the value
+	IF	@BLD631
+	DEC	B		;<631>Loop countdown
+	RET	Z		;<631>Do for 3 fields
+	DEC	DE		;<631>Backup the pointer
+	ELSE
+	DEC	DE		;Backup the pointer
+	DEC	B		;Loop countdown
+	RET	Z		;Do for 3 fields
+	ENDIF
+;
+;	Parsed a field - is the separator valid ?
+;
+	LD	A,(HL)		;P/u separator
+	INC	HL		;Bump pointer
+	CP	C		;Correct ?
+	JR	Z,PRS1		;Yes - continue
+	RET			;No - RET NZ
+;
+;	PRS2 - Parse a digit pair at HL
+;
+PRS2	CALL	PRS4		;Get a digit
+	JR	NC,PRS3		;Illegal - clr stc & RET
+;
+;	Legal Digit - Multiply by 10
+;
+	LD	E,A		;Multiply by ten
+	RLCA			;X 2
+	RLCA			;X 4
+	ADD	A,E		;X 5
+	RLCA			;X 10
+	LD	E,A		;Stuff in E
+;
+;	Get another digit
+;
+	CALL	PRS4		;Get ones digit
+	JR	NC,PRS3		;Bad - return NZ
+;
+;	Legal digit - Add to tens digit & set Z flag
+;
+	ADD	A,E		;Accumulate new digit
+	LD	E,A		;Save 2-digit value
+	CP	A		;Clear flags
+	RET			;Return Z
+;
+;	Force NZ & Return
+;
+PRS3	OR	A		;Set NZ
+	RET			;RETurn
+;
+;	Pick up a digit and convert to binary
+;
+PRS4	LD	A,(HL)		;P/u a digit &
+	INC	HL		;  bump ptr
+	SUB	'0'		;Convert to binary
+	CP	10		;Legal ?
+	RET			;C - legal, NC - illegal
+;
+ENDMEM	EQU	$
+

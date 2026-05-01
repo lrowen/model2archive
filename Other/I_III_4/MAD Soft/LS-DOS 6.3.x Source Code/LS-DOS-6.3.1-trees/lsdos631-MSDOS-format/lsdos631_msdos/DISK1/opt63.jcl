@@ -1,0 +1,53 @@
+. OPT63/JCL - 05/27/86 - use to create LSDOS 6.3 - BETAs
+.
+memory (a="A",b=1)
+memory (a="N",b=128)
+copy help/cmd:#S# :#D#
+copy dos/hlp:#S# :#D#
+copy dateconv/cmd:#S# :#D#
+BACKUP KSM/FLT:#S# :#D# (S,I)
+COPY CLICK/FLT.FILTER:#S# :#D#
+COPY FLOPPY/DCT.UTILITY:#S# :#D#
+COPY CONV/CMD.UTILITY:#S# :#D#
+COPY REPAIR/CMD.UTILITY:#S# :#D#
+COPY LOG/CMD.UTILITY:#S# :#D#
+COPY TAPE100/CMD.UTILITY:#S# :#D#
+COPY PATCH/CMD.UTILITY:#S# :#D#
+COPY COMM/CMD.UTILITY:#S# :#D#
+COPY COM/DVR.DRIVER:#S# :#D#
+COPY FORMS/FLT.FILTER:#S# :#D#
+COPY MEMDISK/DCT.UTILITY:#S# :#D#
+BACKUP SYS9/SYS:#S# :#D# (S,I)
+BACKUP SYS5/SYS:#S# :#D# (S,I)
+COPY FORMAT/CMD.UTILITY:#S# :#D#
+COPY BACKUP/CMD.UTILITY:#S# :#D#
+BACKUP SYS0/SYS:#S# :#D# (S,I)
+BACKUP SYS7/SYS:#S# :#D# (S,I)
+BACKUP SYS4/SYS:#S# :#D# (S,I)
+BACKUP SYS10/SYS:#S# :#D# (S,I)
+BACKUP SYS12/SYS:#S# :#D# (S,I)
+. ******* SHOULD BE AT DIR/CYL NOW !! *******
+//PAUSE
+FREE :#D#
+//PAUSE
+BACKUP SYS2/SYS:#S# :#D# (S,I)
+BACKUP SYS3/SYS:#S# :#D# (S,I)
+BACKUP SYS1/SYS:#S# :#D# (S,I)
+BACKUP SYS6/SYS:#S# :#D# (S,I)
+BACKUP SYS8/SYS:#S# :#D# (S,I)
+COPY BASIC/OV1.BASIC:#S# :#D#
+COPY BASIC/CMD.BASIC:#S# :#D#
+COPY BASIC/OV2.BASIC:#S# :#D#
+copy diskcopy/cmd:#S# :#D#
+copy bref/cmd:#S# :#D#
+copy modela/iii:#S# :#D#
+copy ted/cmd:#S# :#D#
+attrib dateconv/cmd:#D# (o=utility,p=ex)
+attrib bref/cmd:#D# (o=utility,p=ex)
+attrib diskcopy/cmd:#D# (o=utility,p=ex)
+attrib basic/ov2:#D# (o=basic,p=read,i)
+attrib ted/cmd:#D# (o=utility,p=ex
+.
+FREE :#D#
+.
+. **** JOB COMPLETED ****

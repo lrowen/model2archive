@@ -1,0 +1,180 @@
+.sp .5i
+.ps 10p
+.vs 10p
+.ce
+\s+2Questions and Answers\s-2
+.br
+.nf
+									Page  1
+
+(c) Copyright 1990, M. A. D. Software, All Rights Reserved.		004161
+
+.fi
+We receive queries about our products from time to time and there are some
+commonly-asked questions.  This document discusses these issues so
+that you can be better-informed on the capabilities and limitations of
+our products, and be able to determine which are right for you.
+
+We thank you for your interest in our products and look forward to hearing from you.
+
+
+.in .5i
+.ti -.5i
+Q:	How does HBUILD6 work?
+
+
+.ti -.5i
+A:	HBUILD6 replaces the boot track on 
+logical drive 0 (which must be on head 0 on the primary hard disk drive)
+with one that contains code capable of booting from the hard disk drive.
+When the operating system was originally moved to the hard disk from
+the distribution floppy, the BACKUP utility simply copied the boot
+track that is used to boot from a floppy drive, and placed it on the
+hard disk.  Model 4P owners have to hold down the F2 key when booting
+so that the system will not try to use the boot-from-floppy boot track
+that was deposited on the hard disk drive. 
+
+
+.ti -.5i
+Q:	Is HBUILD6 all I need to boot from the hard disk?
+
+.ti -.5i
+A:	It depends on what type of system you have.  The Model 4P boot ROM
+was designed with hard disk boot-capability in mind.  If you have a Model
+4P and a Radio Shack (Western Digital) hard disk controller, then the
+HBUILD6 utility is the only item needed. 
+
+If you have a Model 4P and a MISOSYS disk controller (XEBEC or Adaptec),
+then the Model 4P boot-ROM must be replaced.
+
+If you have a Model 4 or 4D, the boot ROM must be replaced with one that
+knows how to operate a Radio Shack or MISOSYS hard disk system. 
+
+All you have to do is specify the correct part number when you order
+HBUILD6 and you will get the software and the ROM (if required) that
+your system needs.
+
+.ti -.5i
+***	Model 4 owners must also make sure they have the correct "A" ROM
+in their systems.
+The method for determining if you have an old "A" ROM is in the XROM/XDROM
+description in the catalog.
+
+
+.ti -.5i
+Q:	I have Radio Shack and MISOSYS hard disk systems that I use one at
+a time on my computer.  Can I switch back and forth and still
+have boot capability?
+
+.ti -.5i
+A:	The code in the ROM is completely different for the two disk
+controllers.  The code that HBUILD6 places in the hard disk
+boot track is also written to talk to a single type of controller. 
+Both cannot be supported at the same time.  You could boot off the hard disk
+automatically with one disk system and continue to use a start-up diskette
+for the other.
+
+
+.ti -.5i
+Q:	Once my system can boot off the hard disk, how do I force the system
+to boot off a floppy?
+
+.ti -.5i
+A:	On a Model 4 or 4D, the XROM will always attempt to boot from 
+floppy drive 0 first.  If there is no floppy present or the drive door
+is open, it will then boot off of the hard disk drive.  This identical
+to how most MS-DOS systems work.
+
+On a Model 4P, the boot ROM always tries to boot off the hard disk first.
+If you don't want that, press the F2 key as you have done in the past.
+
+
+.ti -.5i
+Q:	How much memory does HBUILD6 require?
+
+.ti -.5i
+A:	HBUILD6 requires no more memory than your hard disk drive is using
+now.  HBUILD6 simply arranges for your hard disk driver to be loaded when
+the system starts to boot instead of later as part of the sysgen configuration.
+
+
+.ti -.5i
+Q:	Does HBUILD6 expect certain drivers to be used and do they have to
+be placed in a particular location?
+
+.ti -.5i
+A:	The hard disk driver can either be in low or high memory, but it
+must be either the first driver loaded in low memory (lowest address) or
+the first driver loaded in high memory (highest address).  If your system
+is not already configured this way, it can be with minimal effort.  A
+utility is included with HBUILD6 that can be used to force the hard disk
+driver into high memory.  (Systems that used the automatic installation
+program provided by Radio Shack are correctly configured.)
+
+The currently-supported hard disk drivers are:
+.br
+.nf
+	TRSHD6/DCT	(Radio Shack hard disk drivers)
+	RSHARD6/DCT	(MISOSYS hard disk drivers for Radio Shack hardware)
+	MSCSI6/DCT	(MISOSYS hard disk drivers for MISOSYS hardware)
+
+Other types of drivers are not supported at this time.  (We are interested
+in hearing which ones should be provided.)
+.fi
+
+
+.ti -.5i
+Q:	Can HBUILD6 and XROM/XDROM be used with the XLR8er adapter?
+
+.ti -.5i
+A:	The XLR8er adapter is ignored by HBUILD6.  It does not care if
+it is present or not.  However, the standard Houde accelerator patches
+conflict with HBUILD6.  To avoid this problem, a utility called XLR8SET
+is included with HBUILD6 that provides the same improvements that the
+Houde patches offer, but uses less than 40 bytes of low memory.  (The
+standard Houde patches use over 125 bytes.)
+
+If you have a Model 4 or 4D system, you must indicate that your system
+has a XLR8er adapter.  One version of our XROM/XDROMs are designed to be used
+with a different 64180-based accelerator that has to be programmed
+differently than the XLR8er adapter.
+
+
+.ti -.5i
+Q:	Can HBUILD6 and XROM/XDROM be used with a SmartWatch?
+
+.ti -.5i
+A:	HBUILD6 does not care if a SmartWatch is present.  The sole task
+of HBUILD6 is to start the boot process and that code runs for less than
+a second.
+
+The XROM/XDROM also do not care about the presence of the SmartWatch as
+they are normal EPROMs.  (The code contained within these parts does
+not access the SmartWatch.)  However, the combination of a SmartWatch
+and a XLR8er adapter has been reported to cause problems.  The problems
+occur when accessing the SmartWatch.  The problem is not unique to the
+XROM/XDROM, and happens with certain manufacturers masked ROMs straight
+from Radio Shack.  The problem is caused by the XLR8er adapter accessing
+the ROM too quickly.  Although most people have put faster RAM in their
+machines, the ROMs remain as fairly slow devices.  This can be resolved
+by using the XLR8SET utility to delay setting the XLR8er adapter to its
+maximum operating speed until the clock has been read.
+
+Original Model 4 systems only:
+.br
+In addition to the above example of the XLR8er running faster than the
+ROMs (and the SmartWatch) can handle, there are some non-Radio Shack
+modifications that defeat the wait states that are generated in original
+Model 4 systems to ensure that accesses to the RAMs and ROMs (and the
+SmartWatch) are long enough to meet the timing specifications of these
+parts.  The intent of the modifications was to remove 1 or 2 wait states
+that are present in the Model 4 systems (not in 4D or 4P) after faster
+RAM was installed.  However, the bypassed hardware was also supposed
+to delay access to the ROM's and this function is still needed.  If
+your system has these modifications, we cannot guarantee that your system
+will work correctly with a EPROM installed instead of a masked ROM.
+
+.ti -.5i
+- - - - - -
+.br
+

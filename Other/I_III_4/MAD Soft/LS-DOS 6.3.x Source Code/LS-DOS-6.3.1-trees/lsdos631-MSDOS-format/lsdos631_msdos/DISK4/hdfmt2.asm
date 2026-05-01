@@ -1,0 +1,953 @@
+;HDFMT2/ASM - Hard format module - 10/31/83
+	IF	LDI
+;*=*=*
+;       Begin the actual format - Check for "one" drive
+;*=*=*
+	XOR	A		;Init the count
+	EXX
+	LD	B,A
+	EXX
+	LD	C,(IY+1)	;P/u the driver vector
+	LD	B,(IY+2)	;  & ck for # parts
+	LD	HL,DCT$
+TSTDCT	PUSH	HL
+	LD	A,(HL)		;Is this disabled?
+	CP	0C9H
+	JR	Z,NOTRES
+	INC	HL
+	LD	E,(HL)		;P/u the driver vector
+	INC	HL
+	LD	D,(HL)
+	XOR	A
+	EX	DE,HL
+	SBC	HL,BC
+	EX	DE,HL
+	JR	NZ,NOTRES	;Go if not this driver
+	INC	HL
+	INC	HL
+	INC	HL		;Point to DCT+5
+	LD	A,(HL)
+	CP	(IY+5)		;Is this the same drive?
+	JR	NZ,NOTRES
+	EXX
+	INC	B		;Bump the drive count
+	EXX
+NOTRES	POP	HL
+	LD	DE,10		;Advance to next one
+	ADD	HL,DE
+	LD	A,8*10+DCT$&0FFH
+	CP	L		;Done with DCTs?
+	JR	NZ,TSTDCT
+	EXX			;Check how many drives!
+	DEC	B		;Is there only one?
+	EXX
+	JR	NZ,HRDRV1	;Only FORMAT if one!!!
+;*****
+;       Hard drive format - most work done by controller
+;*****
+HRDRV	BIT	3,(IY+3)	;Check for floppy
+	JR	Z,AFLOP		;Go if a floppy
+	LD	HL,LAST$	;Give one last chance to
+	CALL	GETARG		;Abort before wiping disk
+	AND	5FH		;Make U/c
+	CP	'Y'		;Must be yes to continue
+	JP	NZ,FMTABT
+AFLOP	LD	A,(SYSPRM+1)	;Bypass the formatting
+	OR	A		; if system info only
+	JR	NZ,HRDRV1
+	LD	HL,FMTG$	;"formatting - be patient
+	LD	DE,0		;Set up for no interleave
+	BIT	3,(IY+3)	;Hard drive?
+	JR	NZ,GOFMT
+	LD	E,5		;Set interleave for 5"
+	BIT	5,(IY+3)	;5" floppy?
+	JR	Z,GOFMT
+	LD	E,5		;Same, but patchable!
+GOFMT	CALL	FMTHD		;Format hard drive
+	JP	NZ,IOERR
+	ENDIF
+;
+;*=*=*
+;       Clear out the BOOT space
+;*=*=*
+HRDRV1	LD	HL,BOOT1	;CLear the BOOT space
+PATLP	LD	(HL),6DH	;Using 6DB6 pattern
+	INC	L
+	LD	(HL),0B6H
+	INC	L
+	LD	A,L
+	CP	208
+	JR	NZ,PATLP
+;*=*=*
+;       Calculate sectors/track & sectors/cylinder
+;*=*=*
+	LD	A,(IY+7)	;# of sectors/track
+	LD	D,A		;-> reg E
+	AND	1FH		;Strip # of heads
+	LD	E,A
+	INC	E		;Bump for 0 offset
+	LD	(SECTRK),A	;Stuff # sectors/track
+	XOR	D
+	RLCA			;Get # of heads
+	RLCA			;  into reg D
+	RLCA
+	INC	A		;Adjust for zero offset
+	CALL	MULTEA@
+	BIT	5,(IY+4)	;Double tracking?
+	JR	Z,$+3
+	ADD	A,A		;Twice the number
+	LD	(SECCYL),A
+;*=*=*
+;       Test if SYSTEM information only
+;*=*=*
+SYSPRM	LD	HL,0		;P/u system info only
+	LD	A,H		;Don't format if system
+	OR	L		;  info only is req
+	JP	NZ,DONTFMT
+;
+	IF	LSI!MTI!ARM!TRS!PDC
+;*=*=*
+;       Begin the formatting
+;*=*=*
+	LD	HL,FMTCYL$	;"formatting clinder...
+	CALL	@DSPLY
+BGNFMT	LD	D,0		;Init to cyl 0
+BFMT1	LD	A,D		;P/u cylinder position
+	CALL	CVDEC		;Cvrt to decimal
+	PUSH	DE		;Don't alter reg D
+	CALL	DSPCYL		;Display cyl #
+	POP	DE
+	ENDIF
+;
+	IF	MTI!TRS!PDC
+	LD	HL,SKEWDAT	;Point to skew table
+	ENDIF
+;
+	IF	LSI!MTI!ARM!TRS!PDC
+	CALL	WRCYL		;Cylinder write
+	JP	NZ,IOERR
+BFMT5	LD	A,D		;Was this the last
+	INC	D		;  cylinder to format?
+	CP	(IY+6)
+	JR	NZ,BFMT1
+	ENDIF
+DONTFMT	EQU	$
+;
+	IF	LSI
+;*=*=*
+;       Lockout the alternate cylinder
+;*=*=*
+	LD	HL,ALTLO$	;"Inhibiting...
+	CALL	@DSPLY
+	LD	HL,GATBUF+77
+	LD	(HL),0FFH
+	ENDIF
+;
+;**** Lock out CYL #1 on TRS or PERCOM for diagnostics.
+	IF	TRS!PDC
+	LD	HL,DIAG$
+	CALL	@DSPLY
+	LD	HL,GATBUF+1
+	LD	(HL),0FFH
+	ENDIF
+;
+VERPRM	LD	DE,-1		;P/u verify parm
+	LD	A,D		;If 0, don't verify
+	OR	E
+	JP	Z,DONTVER
+;*****
+;       Begin the verification process
+;*****
+	LD	HL,VERCYL$	;"Verifying cylinder...
+	CALL	@DSPLY
+	LD	D,0		;Init cylinder ctr
+BVER1	LD	L,D		;Pt to GAT byte for this
+	LD	H,GATBUF<-8	;  track & bypass verify
+	LD	A,(HL)		;  if track not formatted
+	INC	A
+	JR	Z,BVER8
+	LD	A,D		;If this is the DIR cyl,
+;
+	IF	MTI!LSI!ARM!TRS!PDC
+	CP	(IY+9)		; use VERSYS, else VERSEC
+	LD	HL,WRSEC	;Init for reg sector
+	JR	NZ,$+5
+	LD	HL,WRSYS	;Init for system sector
+	LD	(BVER2W+1),HL	;Stuff vector
+	LD	HL,VERSEC
+	JR	NZ,$+5
+	LD	HL,VERSYS
+	LD	(BVER2V+1),HL
+	ENDIF
+;
+	CALL	CVDEC		;Cvrt to decimal
+	PUSH	DE
+	CALL	DSPCYL		;Display cylinder #
+	POP	DE
+	XOR	A		;Initialize starting
+	LD	(BVER5+1),A	;  sector
+	LD	E,A
+BVER2	LD	HL,BOOT1	;Point to buffer
+;
+	IF	LDI
+	BIT	3,(IY+3)	;Only WRSEC a hard disk *
+	CALL	NZ,WRSEC	;Write first then...
+	CALL	Z,VERSEC	;SECtor or SYStem verify
+	ENDIF
+;
+	IF	MTI!LSI!ARM!TRS!PDC
+BVER2W	CALL	WRSEC		;Write first then...
+BVER2V	CALL	Z,VERSEC	;SECtor or SYStem verify
+	ENDIF
+;
+	JR	NZ,BVER9	;Go on error
+BVER5	LD	A,0		;P/u sector #
+	INC	A		;Bump it up
+BVER6	LD	(BVER5+1),A	;  and save new #
+	LD	E,A		;Xfer to sector register
+	LD	A,(SECCYL)	;Is this = a cyl?
+	CP	E
+	JR	NZ,BVER2	;Go if cyl not done
+;*=*=*
+;       Readjust for end of cylinder
+;*=*=*
+BVER8	LD	A,D		;P/u current cyl position
+	INC	D		;Bump to next cyl
+	CP	(IY+6)		;Cp to highest # cyl
+	JR	NZ,BVER1	;Go if more to verify
+;
+	IF	LDI
+;*=*=*
+;       If a floppy, then do the lockout table
+;*=*=*
+	BIT	3,(IY+3)	;If floppy, make a
+	JR	NZ,CALCDIR	;  lockout, else skip   *
+	LD	HL,GATBUF	;Allocation table
+	LD	DE,GATBUF+60H	;Lockout table
+	LD	B,0		;High order length
+	LD	C,(IY+6)	;# of cyls
+	INC	C		;Adj for zero offset
+	LDIR
+	ENDIF
+;
+	JR	CALCDIR		;Go start system info
+;*=*=*
+;       Got verify error
+;*=*=*
+BVER9	EQU	$
+;
+	IF	LDI
+	BIT	3,(IY+3)	;If floppy, only l/o
+	JR	NZ,BVER9A	;  error 4 & 5
+	CP	5		;Data rec not found?
+	JR	Z,BVER10
+	CP	4		;Parity error?
+	JP	NZ,IOERR
+	JR	BVER10
+BVER9A	EQU	$
+	ENDIF
+;
+	CP	8		;Hard, l/o all except
+	JP	Z,IOERR		;  device not avail...
+	CP	16		;  & all > 15
+	JP	NC,IOERR
+;*=*=*
+;       Lockout granule (hard) or cylinder (floppy)
+;*=*=*
+BVER10	PUSH	DE
+	LD	HL,STAR$	;Show the * lockout
+	CALL	@DSPLY
+	POP	DE
+	LD	L,D
+	LD	H,GATBUF<-8
+	BIT	3,(IY+3)	;If hard drive, then
+	JR	NZ,BVER11	;  only lockout gran
+	LD	(HL),0FFH	;Lockout this cylinder
+	JR	BVER8		;  its a floppy...
+;*=*=*
+;       Bad sector on hard drive - Lockout the Granule
+;*=*=*
+BVER11	LD	A,(IY+8)	;Get # of sectors/gran
+	PUSH	DE		;Save this reg
+	AND	1FH
+	INC	A		;Adj for zero offset
+	CALL	DIVEA@		;Calc which granule
+	PUSH	AF		;Save gran #
+	LD	E,(HL)		;P/u current GAT byte
+	CALL	SETBIT		;Show gran allocated
+	LD	(HL),E		;Restuff into GAT
+	LD	A,(IY+8)	;Now point to next sector
+	AND	1FH
+	INC	A
+	LD	E,A		;Xfer SPG to reg E
+	POP	AF		;Rcvr # of bad gran
+	INC	A		;Bump to start on next  *
+	CALL	MULTEA@		;Calc 1st sector of
+	POP	DE		;  next gran & continue
+	JR	BVER6		;
+DONTVER	EQU	$
+	;*****
+;       Perform expanding binary search to find
+;       a cylinder available for the directory
+;       but start with suggested cylinder
+;*****
+CALCDIR	LD	A,CR		;Close the display line
+	CALL	@DSP
+;
+	IF	LSI		;Laredo must use this cyl
+	LD	L,(IY+9)	;P/u recommended dir cyl
+	ENDIF
+;
+	IF	.NOT.LSI
+	LD	L,(IY+6)	;P/u highest # cyl
+	INC	L		;Bump for 0 offset
+	SRL	L		;Find midpoint
+	ENDIF
+;
+	LD	C,0		;Point to GAT byte for
+	LD	H,GATBUF<-8	;  this cylinder
+CALC1	LD	A,0		;P/u default GAT byte
+	CP	(HL)		;Is this cylinder locked?
+	JR	Z,GENSYS	;Bypass if available
+	INC	C		;Bump C
+	LD	A,C
+	RRCA			;Test if odd or even
+	LD	A,L		;Get current test pos
+	JR	NC,CALC2	;Jump if C was even
+	ADD	A,C		;Add to previous pos
+	LD	L,A
+	CP	(IY+6)		;Go over the top?
+	JR	NZ,CALC1	;Loop if not
+	JR	CALC3		;Else abort
+CALC2	SUB	C		;Try a lower cylinder #
+	LD	L,A
+	JR	NZ,CALC1	;At cylinder 0?
+CALC3	LD	HL,NOCYL$	;"No dir space avail...
+	JP	FMTABT
+;*=*=*
+;       Generate the system initialization
+;*=*=*
+GENSYS	LD	(IY+9),L	;Stuff the dir cyl
+	LD	A,L
+	CALL	CVDEC		;Cvrt reg A to 3 dec digs
+	LD	(DIRASC$),BC	;Stuff into the message
+	LD	(DIRASC$+2),A
+	LD	HL,DIRCYL$	;"Dir will be placed...
+	CALL	@DSPLY
+	LD	HL,IPLSYS$	;"Initializing...
+	CALL	@DSPLY
+	LD	HL,GATBUF
+	LD	A,(HL)		;P/u GAT byte for 1st
+	OR	1		;Cylinder & show 1st
+	LD	(HL),A		;Gran in use for BOOTs
+	LD	A,(IY+9)	;Dir cyl # into DIR/SYS
+	LD	(DIRDIR+16H),A
+	LD	L,A		;Show entire directory
+	LD	(HL),0FFH	;Cylinder locked out
+;*=*=*
+;       Update BOOT for DIR
+;*=*=*
+	LD	DE,0		;Init for cyl 0, sect 0
+	CALL	VERSEC		;Test if formatted
+	JP	NZ,NOTFMT	;Error if not
+	LD	HL,BOOT1	;Pt to R/S E/I BOOT rtn
+	LD	C,0
+	CALL	RDSECT@		;Read BOOT1 from Drive 0
+	JP	NZ,IOERR
+	LD	A,(IY+9)	;Dir cyl into BOOT
+	LD	(BOOT1+2),A
+	CALL	WRSEC		;Write R/S BOOT sector
+	JP	NZ,IOERR
+	CALL	VERSEC		;Verify after write
+	JP	NZ,IOERR
+	CALL	DOT		;Show "."
+	LD	DE,1		;Pt to cyl 0, sector 1
+	LD	C,0		;Refer to drive 0
+	CALL	RDSECT@		;Read the real BOOT
+	JP	NZ,IOERR
+	LD	A,(IY+9)	;Dir cyl into BOOT
+	LD	(BOOT1+2),A
+	CALL	WRSEC		;Write 0/1
+	JP	NZ,IOERR
+	CALL	VERSEC		;Verify after write
+	JP	NZ,IOERR
+	CALL	DOT
+;*=*=*
+;       Complete GAT construction
+;*=*=*
+	LD	A,(IY+6)	;P/u highest # cylinder
+	SUB	22H		;Adj offset from 34
+	LD	(GATBUF+0CCH),A	;Stuff GAT cyl excess
+	LD	A,(IY+4)	;P/u sec siz & # of sides
+	AND	80H+20H
+	LD	B,A
+	LD	A,(IY+3)	;P/u density
+	AND	40H
+	OR	B
+	LD	B,A
+	LD	A,(IY+8)	;P/u # of grans/cyl
+	RLCA
+	RLCA
+	RLCA
+	AND	7
+	LD	(CYLGRN+1),A
+	OR	B		;Merge the two
+	IF	RAM
+	OR	88H		;Set DATA disk bit
+	ENDIF
+	LD	(GATBUF+0CDH),A	;Stuff into GAT
+;
+	LD	DE,GATBUF+255-10;6.2 Media Data Block
+	LD	HL,LSIID	;Point to header
+	LD	BC,04		;Set length
+	LDIR			; move it
+	PUSH	IY
+	POP	HL		;This drive's DCT
+	INC	HL
+	INC	HL
+	INC	HL		;Bypass the JP addr
+	LD	C,7		; bytes to move
+	LDIR			; move it in
+	JR	WRGAT1		;Skip around string
+LSIID	DB	03,'LSI'
+;
+;*=*=*
+;       Write copy of GAT into 0/3
+;*=*=*
+WRGAT1
+	LD	HL,GATBUF	;Pt to GAT buffer
+	LD	D,0		;Write it out to
+	LD	E,3		;Cyl 0, sector 3
+	CALL	WRSEC		;Write 0/3
+	JP	NZ,IOERR
+	CALL	VERSEC		;Verify after write
+	JP	NZ,IOERR
+	CALL	DOT
+;*=*=*
+;       Write the config sector 0/2
+;*=*=*
+	LD	HL,HITBUF	;Zero out buffer
+GSYS1	LD	(HL),0
+	INC	L
+	JR	NZ,GSYS1
+	LD	HL,HITBUF	;Set first byte to xx
+	LD	(HL),RLS	;For release number
+	LD	DE,2		;Pt to cyl 0, sector 2
+	CALL	WRSEC		;Write 0/2
+	JP	NZ,IOERR
+	CALL	VERSEC		;Verify after write
+	JP	NZ,IOERR
+	CALL	DOT
+;*=*=*
+;       Write the Granule Allocation Table
+;*=*=*
+	LD	HL,GATBUF	;Pt to GAT sector buffer
+	LD	D,(IY+9)	;P/u the dir cyl
+	LD	E,0		;Denote sector 0
+	CALL	WRSYS		;Write the GAT
+	JP	NZ,IOERR
+	CALL	VERSYS		;Verify the GAT
+	JP	NZ,IOERR
+	CALL	DOT
+;*=*=*
+;       Construct the HIT
+;*=*=*
+	LD	HL,HITBUF	;Point to the HIT buffer
+	LD	(HL),0A2H	;Stuff BOOT/SYS hash code
+	INC	HL
+	LD	(HL),0C4H	;Stuff DIR/SYS hash code
+	DEC	HL
+	LD	D,(IY+9)	;P/u dir cyl #
+	LD	E,1		;Pt to sector 1
+	CALL	WRSYS		;Write the HIT
+	JP	NZ,IOERR
+	CALL	VERSYS		;Verify after write
+	JP	NZ,IOERR
+	CALL	DOT
+	LD	DE,HITBUF	;Establish buffer for
+	LD	HL,BOOTDIR	;Dir records
+	LD	BC,32		;Move BOOT/SYS dir record
+	LDIR			;  into 1st slot
+	LD	D,(IY+9)	;P/u dir cyl
+	LD	E,2		;This will be sector 2
+	LD	HL,HITBUF	;Pt to buffer start
+	CALL	WRSYS		;Write the sector
+	JP	NZ,IOERR
+	CALL	VERSYS		;Verify after write
+	JP	NZ,IOERR
+	CALL	DOT
+	LD	A,(SECCYL)	;P/u # of records
+	OR	A		;If 256 SPC, then
+	JR	Z,USE34		;  the CP won't work
+	CP	35
+	JR	C,STUFSPC
+USE34	LD	A,34		;Max # of sectors
+	LD	(SECCYL),A
+STUFSPC	LD	(DIRDIR+14H),A	;& stuff into DIR/SYS
+CYLGRN	LD	A,0		;P/u # grans/cyl
+	BIT	5,(IY+4)	;Test 2-sided
+	JR	Z,$+4
+	ADD	A,A		;Double count on 2-sided
+	INC	A		;Plus 1 for 0 offset adj
+	LD	(DIRDIR+23),A	;Stuff in DIR/SYS
+	LD	A,(IY+9)	;P/u the dir cyl # &
+	LD	(DIRDIR+16H),A	;  stuff into the DIR rec
+	LD	HL,DIRDIR	;Pt to start of DIR data
+	LD	DE,HITBUF	;Pt to start of dir buf
+	LD	BC,32		;Move DIR/SYS into buf
+	LDIR
+	LD	D,(IY+9)	;P/u dir cyl #
+	LD	E,3		;Write as sector 3
+	LD	HL,HITBUF	;Pt to start of buffer
+	CALL	WRSYS		;Write the sector
+	JP	NZ,IOERR
+	CALL	VERSYS		;Verify after write
+	JP	NZ,IOERR
+	CALL	DOT
+	LD	HL,HITBUF	;Zero the 1st 32 bytes
+	LD	B,32		;Of the buffer to clear
+GSYS2	LD	(HL),0		;Where we stuffed the
+	INC	HL		;BOOT & DIR dir records
+	DJNZ	GSYS2
+	LD	D,(IY+9)	;P/u dir cyl #
+	LD	E,4		;Cont writing at sect 4
+GSYS3	LD	HL,HITBUF	;Pt to start of buffer
+	CALL	WRSYS		;Write the sector
+	JP	NZ,IOERR
+	CALL	VERSYS		;Verify the sector
+	JP	NZ,IOERR
+;*=*=*
+;       Write the remaining directory
+;*=*=*
+	PUSH	DE		;Save cyl/sect
+	CALL	DOT		;Display a dot for each
+	POP	DE		;Directory sector
+	INC	E		;Bump the sector pointer
+	LD	A,(SECCYL)	;P/u highest # sector
+	CP	E		;Are we finished yet?
+	JR	NZ,GSYS3	;Loop if not
+	LD	IX,(DCTPTR)	;Real DCT for drive
+	LD	A,(IY+9)	;DIR posn
+	LD	(IX+9),A	;Update for system
+;*=*=*
+;       exit procedures
+;*=*=*
+	LD	HL,FMTCAO$	;"Formatting complete...
+	CALL	@LOGOT
+	JP	@EXIT
+;*****
+;       disk I/O requests
+;*****
+WRCYL	PUSH	BC
+	LD	B,15		;Write track
+	IF	TRS!PDC
+	CALL	FMTDVR		;WRCYL code in formatter
+	POP	BC
+	RET
+	ELSE
+	JR	DISKIO
+	ENDIF
+;
+	IF	LDI
+FMTHD	PUSH	BC
+	LD	B,12		;Format hard disk
+	JR	DISKIO
+	ENDIF
+;
+WRSEC	PUSH	BC
+	LD	B,13		;Write data sector
+	JR	DISKIO
+WRSYS	PUSH	BC
+	LD	B,14		;Write system sector
+	JR	DISKIO
+RDSEC	PUSH	BC
+	LD	B,9		;Read data sector
+	JR	DISKIO
+VERSEC	PUSH	BC
+	LD	B,10		;Verify a sector
+	JR	DISKIO
+;*****
+;       Perform a verification to ensure system sector
+;*****
+VERSYS	CALL	VERSEC		;Sector verify
+	JR	Z,VERS1		;Bypass if not system
+	SUB	6		;Test read system retcod
+	RET	Z		;Go if that's what it was
+	ADD	A,6		;Restore orig retcod
+	RET
+VERS1	OR	1		;S/b system, found data
+	LD	A,0
+	RET
+;
+DISKIO	LD	C,-1		;P/u drive #
+	LD	A,32		;Init to illegal drive
+	OR	A
+	CALL	GOIO		;Go after DCT vector
+	POP	BC
+	RET
+GOIO	JP	(IY)		;Vector to DCT
+;
+;*****
+;       routine to convert reg A to 3 decimal digits
+;       in registers C B A
+;*****
+CVDEC	LD	C,'0'		;Init to count 100's
+CVD1	SUB	100		;How many hundreds?
+	JR	C,CVD2		;Go if no more
+	INC	C		;Else bump & loop
+	JR	CVD1
+CVD2	ADD	A,100		;Adjust for underflow
+	LD	B,30H
+CVD3	SUB	10		;How many 10s
+	JR	C,CVD4		;Go if underflow
+	INC	B		;Bump 10s
+	JR	CVD3		;Loop for more
+CVD4	ADD	A,3AH		;Adjust units place
+	RET
+;*=*=*
+;       display cyl #
+DSPCYL	PUSH	AF		;Save units place
+	PUSH	BC		;Save tens/hundreds
+	LD	B,3
+	LD	A,8
+BKUP	CALL	@DSP		;Backspace 3
+	DJNZ	BKUP
+	POP	BC
+	LD	A,C
+	CALL	@DSP		;Display hundreds
+	LD	A,B
+	CALL	@DSP		;Display tens
+	POP	AF		;Get back units
+	CALL	@DSP		;Display units
+	RET
+;*****
+;       Hash a diskette password
+;*****
+CKMPW	CALL	CKMPW0
+	RET	NZ
+	CALL	HASHMPW
+;
+	IF	RAM
+	JP	NZ,IOERR
+	ENDIF
+;
+	XOR	A
+	RET
+;
+HASHMPW	LD	A,0E4H
+	RST	28H
+;
+CKMPW0	LD	B,8
+	PUSH	DE
+	POP	HL
+	LD	A,(HL)		;P/u 1st char
+	JR	CKMPW2		;  & check <A-Z>
+CKMPW1	INC	HL
+	LD	A,(HL)
+	CP	' '
+	JR	Z,CKMPW7
+	CP	'0'
+	JR	C,INVMPW
+	CP	'9'+1
+	JR	C,CKMPW3
+CKMPW2	CP	'A'
+	JR	C,INVMPW
+	CP	'Z'+1
+	JR	NC,INVMPW
+CKMPW3	DJNZ	CKMPW1
+	XOR	A		;All OK
+	RET
+CKMPW5	INC	HL
+	CP	(HL)		;No imbedded spaces
+	JR	NZ,INVMPW
+CKMPW7	DJNZ	CKMPW5
+	XOR	A		;All OK
+	RET
+INVMPW	LD	HL,BADMPW$
+	LD	A,63		;Indicate extended error
+	OR	A		;Set NZ
+	RET
+;*****
+;       Routines to convert input strings to uc
+;*****
+GETARG	LD	B,1		;1 char input
+GETARGX	CALL	@DSPLY		;B chars input
+	LD	C,0
+	LD	HL,HITBUF	;Buffer area
+INPT	CALL	@KEYIN		;Enter them
+	JP	C,FMTABT	;Break pressed!
+	LD	A,B
+	OR	A
+	RET	Z		;No input
+; convert input line to U/C
+	PUSH	BC
+	PUSH	HL
+GETUC	LD	A,(HL)
+	CP	'a'
+	JR	C,UC2
+	AND	5FH		;Make U/C
+	LD	(HL),A
+UC2	INC	HL
+	DJNZ	GETUC		;Do entire input
+	POP	HL
+	POP	BC
+	LD	A,(HL)		;P/u one char
+	OR	A		;Make NZ
+	RET
+;
+INPMPW	LD	B,8		;Max chars
+	CALL	GETARGX		;Input U/C into HITBUF
+	RET	Z		;If no input
+	LD	DE,MPWBUF	;Then move to MPWBUF
+	PUSH	DE
+	LD	A,9		;An extra char means we don't
+	SUB	B		;Have to check for zero here
+	LD	C,B
+	LD	B,0		;Xfer length
+	LDIR			;Move input
+	LD	B,A		;Chars needed
+	LD	A,' '		;Load a blank
+FILLBLK	LD	(DE),A		;Padd response
+	INC	DE
+	DJNZ	FILLBLK
+	POP	HL		;=>string
+	RET
+;
+;*=*=*
+;       Routine to set a bit
+;*=*=*
+SETBIT	RLCA			;Shift to "b" field
+	RLCA
+	RLCA
+	OR	0C3H		;Establish as SET b,E
+	LD	(SBIT1+1),A	;Alter the OP code
+SBIT1	SET	0,E		;Turn on the bit
+	RET
+;*=*=*
+; print one "."
+;*=*=*
+DOT	LD	A,'.'
+	JP	@DSP
+;*****
+;       Temporary storage space for format drive DCT
+;*****
+TMPDCT	DS	10
+;*****
+;       Parm error exit
+;*****
+BADNAM	LD	HL,BADNAM$
+	DB	0DDH
+DIFDVR	LD	HL,DIFDVR$	;Driver mismatch...
+	DB	0DDH
+NOTFMT	LD	HL,NOTFMT$
+	DB	0DDH
+NOTZER	LD	HL,NOTZER$	;Can't format drive 0
+	DB	0DDH
+ILLEG	LD	HL,ILLEG$	;Drive is disabled
+	DB	0DDH
+BADMPW	LD	HL,BADMPW$	;Wrong MPW entered
+	DB	0DDH
+FMTABT	LD	HL,FMTABT$
+	DB	0DDH
+NOTHARD	LD	HL,HARD$
+	DB	0DDH
+PRMERR	LD	HL,PRMERR$
+	CALL	@LOGOT
+	JP	@ABORT
+;*=*=*
+; abort if JCL running
+	IF	RAM
+SFLAG$	EQU	0		;Stuffed by init code
+	ENDIF
+ABTJCL1	NOP			;Patchable w/RET
+ABTJCL	PUSH	AF
+	LD	A,(SFLAG$)
+SFLAG	EQU	$-2		;RAM version sets address
+	BIT	5,A
+	JR	NZ,FMTABT	;Log out
+	POP	AF
+	RET
+;
+IOERR	PUSH	AF		;Save error code
+	LD	A,CR
+	CALL	@DSP		;Do a CR first
+	POP	AF
+	LD	L,A
+	LD	H,0
+	OR	0C0H		;Mask
+	LD	C,A
+	CALL	@ERROR
+	IF	.NOT.RAM
+	JP	@ABORT
+	ENDIF
+;*=*=*
+; 6.x exit routine follows....
+;      provide compatible I/O routines for 6.x LDOS
+; accomodate EDAS's insistance on resolving labels
+;With MACRO expansion inside of FALSE conditionals
+;By not using SVCMAC here  
+	IF	RAM
+MOD1	EQU	0		;Keep EDAS happy when
+MOD3	EQU	0		;Evaluating .NOT.RAM option
+	;*=*=*
+;  system routines for RAM version of HD formatters
+;*=*=*
+QUIT	LD	SP,$-$
+SPSAV	EQU	$-2
+	LD	A,106
+	RST	40
+	RET
+@ABORT	LD	HL,-1
+	DB	0DDH		;Make next inst IX
+@EXIT	LD	HL,0
+	JR	QUIT
+;
+@DSP	LD	C,A
+	LD	A,2
+	RST	28H
+	RET	Z
+	JR	IOERR
+@DSPLY	LD	A,10
+	RST	28H
+	RET	Z
+	JR	IOERR
+;
+DECHEX	LD	A,96
+	RST	28H
+	RET
+HEXDEC	LD	A,97
+	RST	28H
+	RET
+@KEYIN	LD	A,9
+	RST	28H
+	RET
+@PARAM	LD	A,17
+	RST	28H
+	RET
+@LOGOT	LD	A,12
+	RST	28H
+	RET
+MULTEA@	LD	C,A
+	LD	A,90
+	RST	28H
+	RET
+DIVEA@	LD	C,A
+	LD	A,93
+	RST	28H
+	RET
+GETDCT@	LD	A,81
+	RST	28H
+	RET
+@DATE	LD	A,18
+	RST	28H
+	RET
+RDSECT@	LD	A,49
+	RST	28H
+	RET
+@ERROR	LD	A,26
+	RST	28H
+	RET
+;
+;*=*=*
+;      entry point if 6.x
+;*=*=*
+;
+BEGIN
+	LD	A,106
+	RST	40
+	JR	Z,BEGINA	;Continue if no break
+	LD	HL,-1
+	RET			; else abort
+;
+BEGINA	LD	(SPSAV),SP	;Save callers stack
+	PUSH	HL
+	LD	A,101		;@@FLAGS
+	RST	28H		;Find SFLAG$
+	LD	DE,'S'-'A'	;Offset
+	ADD	IY,DE		;Calc byte address
+	LD	(SFLAG),IY	;Save for JCL test
+	POP	HL
+	JP	USER		;To pgm start
+	ENDIF
+;
+;*=*=*
+	IF	.NOT.RAM	;Get version equates...
+;Get correct EQU file
+*GET	VERSION
+*LIST	OFF
+	IF	MOD1
+*GET	MOD1/EQU
+*LIST	OFF
+	ENDIF
+	IF	MOD3
+*GET	MOD3/EQU
+	ENDIF
+*LIST	ON
+;
+;*=*=*
+;       Routine to convert ascii =>HL to number in BC
+;*=*=*
+DECHEX	LD	DE,0		;Clear to start
+CXDEC	LD	A,(HL)		;P/u char
+	SUB	30H		;To BCD
+	CP	10		;Must be less
+	JR	NC,DONECON	;End if not digit
+	PUSH	HL		;Save ascii ptr
+	LD	H,D
+	LD	L,E		;Merge digit
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,DE
+	ADD	HL,HL
+	EX	DE,HL
+	ADD	A,E
+	LD	E,A
+	LD	A,0
+	ADC	A,D
+	LD	D,A
+	POP	HL
+	INC	HL		;Next char
+	JR	CXDEC
+DONECON	PUSH	DE
+	POP	BC		;Put answer in BC
+	RET
+;
+HEXDEC	LD	A,' '		;Blank
+	PUSH	HL
+	LD	HL,TENTBL
+HDC1	LD	C,(HL)
+	INC	HL
+	LD	B,(HL)
+	INC	HL
+	EX	(SP),HL
+	PUSH	DE
+	LD	D,A
+	XOR	A
+HDC2	INC	A
+	ADD	HL,BC
+	JR	C,HDC2
+	SBC	HL,BC
+	LD	B,D
+	POP	DE
+	DEC	A
+	JR	NZ,HDC3
+	INC	C
+	JR	Z,HDC5
+	DEC	C
+	LD	A,B
+	LD	(DE),A
+	JR	HDC4
+HDC5	DEC	C
+HDC3	ADD	A,'0'
+	LD	(DE),A
+	LD	A,'0'
+HDC4	INC	DE
+	INC	C
+	EX	(SP),HL
+	JR	NZ,HDC1
+	POP	HL
+	RET
+TENTBL	DW	-10000,-1000,-100,-10,-1
+;
+	ENDIF
+

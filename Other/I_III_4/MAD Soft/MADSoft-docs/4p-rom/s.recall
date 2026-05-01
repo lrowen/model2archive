@@ -1,0 +1,107 @@
+.ps 12p
+.vs 13p
+.sp .6i
+.fi
+.ce
+M. A. D.  SOFTWARE		4P-ROM CUSTOMERS	JANUARY 25, 1992
+.br
+.ps 10p
+.vs 11p
+
+.ti .3i
+M. A. D. Software has recently discovered two problems in our 4P-ROM
+products.  Our records indicate that you own at least one 4P-ROM.  (You
+may have obtained a 4P-ROM as part of the HBUILD6 package.)
+
+.ti .3i
+To provide the best service possible, this notice will describe the
+problems and what you can do to get corrections.  Your 4P-ROM has at least
+one of the problems listed here.
+
+.nf
+Problem #1.	Affects 4P-ROM systems with MISOSYS SCSI drivers ONLY.
+.fi
+.ti .3i
+This problem can prevent your system from booting directly from the
+hard disk drive if your system has a XEBEC SCSI hard disk controller.
+(Adaptec controllers are not affected by this problem.)   To test your system,
+turn your computer and hard disk systems on simultaneously.  If the system
+fails to boot directly from the hard disk drive (no floppy needed), your
+system is affected.  With this controller and certain drives, the 4P-ROM
+does not wait long enough for the drive and controller to become ready
+when the power is first applied to the system. 
+This problem is considered significant if you expect
+your system to boot by itself after a power failure or if the power
+for the computer and drives is controlled by a switch on a power strip.
+
+.nf
+Problem #2.	All 4P-ROM systems are affected.
+.fi
+.ti .3i
+Due to a coding problem, version 33 through 36 of the 4P-ROM have a 64K
+Memory test diagnostic that only runs one pass and then hangs the system.
+If any RAM errors are detected, the system also hangs.  The memory test is
+invoked only by pressing RESET while holding down the <.> key.  This problem is
+present in ALL versions (Radio Shack, MISOSYS RSHARD, Powersoft Series RS
+and I, and MISOSYS SCSI) of the 4P-ROM.  This problem is considered minor
+since it has existed for 18 months and was only recently reported.  The
+version number can be displayed by pressing RESET and the <V> key.
+
+Obtaining a Correction
+
+.ti .3i
+M. A. D. Software will provide a replacement 4P-ROM at no charge* (except
+for shipping) to owners who purchased a 4P-ROM since October 25th, 1991.
+Owners who purchased the 4P-ROM prior to October 25th, 1991 may obtain the
+newer version for $8.00 (plus shipping).
+
+.ti .3i
+Since most customers will have 4P-ROMs that only have Problem #2, we
+offer a disk-based version of the 64K Memory Test.  This disk does not
+correct the code in the ROM.  It simply provides an equivalent utility
+that may be used in place of the faulty ROM code.  This software (4PDMD01)
+is available for $3, plus shipping.
+
+* Ordering a Replacement ROM
+
+To order a replacement ROM, place an order for the appropriate 4P-ROM part.
+The part numbers and prices are:
+.nf
+	4PBR640U	$30.00	If you use the Radio Shack TRSHD6 drivers
+			    OR	If you use the MISOSYS RSHARD6 drivers
+			    OR	If you use the Powersoft Series RS drivers
+
+	4PBR645U	$30.00	If you use the MISOSYS MSCSI6 drivers
+
+	4PBR647U	$30.00	If you use the Powersoft Series I drivers
+Shipping for one or two items is $3.00 US, $4.00 Canada, an $7.00 Foreign.
+.fi
+
+.ti .3i
+Send the amount stated, plus shipping.  M. A. D. Software will send you the
+updated component you request.  Once you have installed the new part,
+return the old ROM to M. A. D. Software.  Upon receipt of a reusable 
+ROM and adapter, we will refund you either $30.00 for customers in
+warranty, or $22.00 for customers out of warranty.  You must return the
+old 4P-ROM and adapter within 30 days.   Damaged or modified adapters will
+not be accepted, so you if you have modified the adapter in your system,
+you should use it with the new part and return the new adapter with the
+old ROM.
+
+.ti .3i
+If you want your part customized, include the $10.00 charge along with the
+customization text.  If the old part was customized, the $10.00 charge
+is also refunded.  (For upgrade owners only, customization will be available
+until April 15th 1992.)
+
+.ti .3i
+Customers who are eligible to receive the new 4P-ROM at no charge must 
+place their orders no later than April 15th 1992 or you will be charged
+the same as the out-of-warranty upgrades.
+
+If you have any questions about this upgrade, please write to us.
+
+									M. A. D.  Software
+
+202071
+

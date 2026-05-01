@@ -1,0 +1,289 @@
+.sp .5i
+.ps +2p
+.ce
+\fBUsing the SMARTWATCH(TM) with the XDROM in gate-array Model 4/4D systems\fR
+.br
+.ps -2p
+.ce
+Copyright 1991, M. A. D. Software, All Rights Reserved.
+.br
+
+
+.fi
+There are three methods of utilizing a SMARTWATCH with the XDROM.  Each
+method requires hardware modifications or places limitations on your system.
+
+M. A. D. Software normally uses a 2764 EPROM (Electrically Programmable Read
+Only Memory) for the XDROM.  This is a commonly-available, high speed
+EPROM, but has a pin organization that is incompatible
+with the pin organization of the original "D" ROM.  To allow the 2764 to be
+used, an adapter is provided that rearranges the pin-out so that the 2764 can
+be used.   The 2764 will support Model 4/4D systems running as fast as 8MHz
+with no wait states.  (Other components in the system may not be able to
+handle this speed, however.)
+
+The 68764/68766 EPROM is pin-compatible with the original "D" ROM, but was
+only manufactured by one company and it does not meet the speed requirements
+of Model 4/4D systems that have been modified to run faster than 4MHz.
+In addition, the 68764/68766 are now becoming hard-to-get and are expensive.
+
+To add a SMARTWATCH to a system using the XDROM, the following
+alternatives are available:
+
+.in .5i
+.ti -.5i
+1.	Plug the SMARTWATCH into the XDROM adapter.  No jumper wires are
+required, as the SMARTWATCH is pin-compatible with the 2764, which
+is the type of EPROM that is used with the adapter.
+
+.br
+The problem with this alternative is that the combination of
+adapter, EPROM,
+and SMARTWATCH is too tall to fit under the RF-shield, and in
+some cases, the cover itself may not fit.   If the only problem is that
+the RF-shield is in the way (the plastic cover will still fit,
+you could cut a small hole in the RF-shield over the XDROM adapter.
+You should not run your system without the RF-shield in place.
+Failure to do so can cause radio and TV interference which you 
+are required (by law) to correct.
+
+.ti -.5i
+2.	Use a 68764/68766 EPROM instead of the adapter and the 2764 EPROM.
+M. A. D. Software will exchange the adapter and 2764 for a 68764/68766
+EPROM on request.  The SMARTWATCH would then be used in the "D" ROM
+socket as before (same straps and jumpers are required).  However,
+systems using the 68764/68766 will not be able to fully utilize any
+speed modifications that have been made to the system.
+	
+.br
+For example, if you have an XLR8er adapter, you must run with at least
+one (1) memory wait state when running in Model III mode.  There is no
+additional restriction on the number of wait states in Model 4 mode.
+If you are currently able to use zero (0) wait states in Model 4 mode,
+you may continue to do so.
+
+.br
+If you have directly modified your system to run the Z80 at a speed
+higher than 4MHz, you may not be able to use the 68764/68766 EPROM.
+An EPROM memory cycle must be at least 400 nsec, which means that you
+may have to add additional wait states or operate at a reduced speed
+while in Model III mode (this includes the booting period for
+Model 4 mode).  The Model III mode CPU speed cannot exceed 5MHz.
+Once you have entered Model 4 mode, you can increase the speed.
+(If you want the BOOT command to work in Model 4 mode, you will have to
+reduce the speed prior to giving this command, as it places the machine in
+Model III mode.)
+
+.ti -.5i
+3.	Place the SMARTWATCH in the "A" ROM socket.  This solution allows the
+XDROM (2764) and adapter to be placed in the "D" ROM socket, and the
+"A" ROM and SMARTWATCH reside in the "A" ROM socket.   You may operate
+your system at any speed you ran it at previously, and the RF-shield
+should not be hampered by the XDROM and its adapter.  The SMARTWATCH
+will still be the tallest item.
+
+The only problem with this arrangement is that several jumpers, or
+"flying wires" are required to use the SMARTWATCH in the "A" ROM socket.
+You will need a soldering iron and some fine wire to apply these
+modifications.  If you already have jumpers on your SMARTWATCH,
+read over these instructions, as some of the jumpers are probably
+identical to the ones you have now.
+
+
+.ti -.5i
+SMARTWATCH is a trademark of Dallas Semiconductor
+
+.ce
+Page  1
+.br
+.bp
+.sp .5i
+
+Instructions for installing the SMARTWATCH in the "A" ROM socket.
+
+.in 1.0i
+.ti -.5i
+1.	On the bottom of the SMARTWATCH, connect a jumper wire between
+pins 26 and 28.  Note that pin 26 must still plug into a
+socket, so make your connection next to the body of the
+SMARTWATCH and be neat.
+
+.ti -.5i
+2.	Bend pin 20 of the SMARTWATCH outwards, so that it will
+not plug into the socket later on.
+
+.ti -.5i
+3.	Bend pin 22 of the SMARTWATCH outwards, so that it will
+not plug into the socket.
+
+.ti -.5i
+4.	Connect a jumper wire between pin 20 and pin 22 of the 
+SMARTWATCH.  This can be underneath the SMARTWATCH.  An additional
+wire will be attached to pin 22 in the next step.
+
+.ti -.5i
+5.	Connect a jumper wire between pin 6 of U45 (a 7408, located
+below and to the right of the "A" ROM socket) and
+pin 22 of the SMARTWATCH.  There are now two wires on pin 22.
+
+.ti -.5i
+6.	Remove the "A" ROM from its socket, U29 (located below
+the "D" ROM socket).
+
+.ti -.5i
+7.	Remove U5, a 40 pin chip labeled "4.2".  Bend pin 21
+(lower right) outwards so that it will not plug into the
+socket.
+
+.ti -.5i
+8.	Bend pin 20 of the "A" ROM outwards so that it will not
+go back into the socket.
+
+.ti -.5i
+9.	Connect a jumper wire between pin 20 of the "A" ROM and
+pin 21 of the "4.2" chip.  Make sure the wire is long
+enough to reach once both chips are reinstalled.
+
+.ti -.5i
+10.	Re-insert the "4.2" part into U5.  Make sure all pins 
+(except pin 21) are properly aligned and go into the socket.
+
+.ti -.5i
+11.	Bend pin 18 of the "A" ROM outwards so that it will not
+go back into the socket.
+
+.ti -.5i
+12.	Remove the jumper clip on JP8/JP9.
+
+.ti -.5i
+13	Connect a jumper wire between the center pin of JP8/JP9 and
+pin 18 of the "A" ROM.  Make sure you can get the jumper clip
+back over the JP8/JP9 pins when you are done.
+
+.ti -.5i
+14.	Install the jumper clip in the JP8 position, on top of
+the wire installed in step 13.
+
+.ti -.5i
+15.	Remove the XDROM from its adapter.  Bend pin 22 of the
+XDROM (NOT THE ADAPTER) outwards so that the pin will not
+go back into the adapter.
+
+.ti -.5i
+16.	Using a small (half-inch) piece of 24 or 26 AWG wire, insert
+one end of the wire into socket position 20 of the SMARTWATCH.
+Then fold this wire inwards so that it lies flat over the
+center of the SMARTWATCH.  If it extends far enough to touch pins
+on the other side of the SMARTWATCH, cut the wire shorter.
+
+.ti -.5i
+17.	Connect a jumper wire between pin 22 of the XDROM and the
+piece of wire inserted to socket position 20 of the SMARTWATCH.
+
+.ti -.5i
+18.	Re-install the XDROM into the adapter.  This can take a
+little time.  The chip will insert easily, but only if
+all the pins are centered in the socket-cups.  You may
+have to adjust one pin at a time.
+
+.ti -.5i
+19.	Once the XDROM is installed in the adapter, make sure
+pin 22 is still sticking out and is not touching the contacts on the adapter.
+
+.ti -.5i
+20.	Insert the "A" ROM into the SMARTWATCH, placing pin 1
+of the "A" ROM in position 3 of the SMARTWATCH socket.  The wire connecting
+to socket position 20 in the SMARTWATCH should be routed between the two
+rows of pins.
+
+.ce
+Page  2
+.br
+.bp
+.sp .5i
+
+.in 1.0i
+.ti -.5i
+21.	Once the "A" ROM is installed in the SMARTWATCH, confirm
+that pins 18 and 20 of the "A" ROM are still sticking
+over the sides of the SMARTWATCH.  Pay extra attention to pin 18, making
+sure it does not make contact with the wire inserted into the SMARTWATCH
+underneath.
+
+.ti -.5i
+22.	Install the SMARTWATCH into the "A" ROM socket on the
+CPU board, placing pin 3 of the SMARTWATCH into position 1
+of the socket.  Pins 1, 2, 27 and 28 should be hanging
+over the side.
+
+.ti -.5i
+23.	Now confirm that pins 20 and 22 of the SMARTWATCH are
+sticking over the side of the CPU board socket.
+
+.ti -.5i
+24.	If you removed the XDROM and adapter from the "D" ROM
+socket, reinstall it now.
+
+.ti -.5i
+25.	At this point, you should have the following wires
+installed:  (Recheck your connections)
+
+.in 1.5i
+.ti -.5i
+1.	SMARTWATCH pin 28 to SMARTWATCH pin 26.
+
+.ti -.5i
+2.	SMARTWATCH pin 20 to SMARTWATCH pin 22.
+Pins 20 and 22 do not go into the "A" ROM socket.
+
+.ti -.5i
+3.	SMARTWATCH pin 22 to U45 pin 6.
+Pin 22 does not go into the "A" ROM socket.
+
+.ti -.5i
+4.	"A" ROM pin 20 to "4.2" chip in U5, pin 21.
+Pin 20 does not go into the SMARTWATCH socket.  Pin 21
+does not go into the U5 socket.
+
+.ti -.5i
+5.	"A" ROM pin 18 to center pin of JP8/JP9 jumpers.
+Pin 18 does not go into the SMARTWATCH socket.
+
+.ti -.5i
+6.	SMARTWATCH socket position pin 20 to XDROM pin 22.  Pin 22
+does not go into the XDROM adapter.
+
+.in .5i
+The SMARTWATCH should now work as it did when it was installed in
+the "D" ROM socket.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+103202
+
+
+.ce
+Page  3
+.br
+.bp

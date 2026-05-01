@@ -1,0 +1,55 @@
+A few words about the LS-DOS source code distribution on MS-DOS format media.
+
+MSDOS.TXT							29-May-2000
+
+For the MS-DOS distribution package, the files comprising the LS-DOS operating
+system and build environment have been imported from LS-DOS, and stored
+in subdirectories named after the 360K floppy diskette they were originally
+distributed on.  The contents of several of these disks are stored on the
+LS-DOS logical drive 3 in order to perform the standard operating system
+build, while the remainder go on other specified drives.
+
+Because you may wish to view the ASCII format files using MS-DOS, text files
+have been converted to contain the CR/LF sequence required by the MS-DOS
+environment.  Binary files are untouched.  This material can be found in the
+directories named "DISK1", "DISK2", "DISK3", and so on.
+
+Note that files converted to the MS-DOS CR/LF format also have a trailing
+CTRL-Z appended to the file as part of the MS-DOS conversion.  (This is done
+by the SuperCross utility that was used to perform the conversion.)
+
+The presence of this extra character may cause problems with certain LS-DOS
+programs, notably PATCH.  If you do have problems, remove this extra
+character from the offending text files.  The LED62 editor (included) can do
+this.
+
+If you plan to move these files to a UNIX or UNIX-like environment where
+only LF is used to separate lines (instead of just CR used in LS-DOS and
+CR/LF used in MS-DOS), I suggest using the FTP utility and its ASCII mode
+on the text files (TXT, JCL, EQU, ASM, SRC, etc), which will take care of
+converting them to whatever format is correct for the destination system.
+The FTP BINARY mode should be used for moving the binary files (CMD, CIM,
+DCT, FLT, REF, HLP, III, etc).
+
+The directories "DISK1I", "DISK2I", "DISK3I", etc contain the same files,
+but all files are in these directories are in the original LS-DOS file
+format, and these are suitable for use in a LS-DOS operating system
+environment.
+
+The directory "DIRS" contains directory listings of the LS-DOS format
+distribution, which can be helpful if you want to restore the permissions
+and other attributes to the files, values that are lost when the data is
+imported into a MS-DOS disk format.
+
+The file "LABELS.TXT" contains the information from the diskette labels used
+in the LS-DOS format distribution.  These are helpful in showing where
+various files must be placed in order for the build process to work.
+
+The "BUILD.TXT" file contains documentation on how to set up the environment
+needed to build the LS-DOS operating system, and then how to perform the
+build process.
+
+Copyright 1998, 2000, M. A. D. Software
+P. O. Box 331323
+Fort Worth Texas 76163-1323
+

@@ -1,0 +1,344 @@
+;LBCREATE/ASM - CREATE Command
+	TITLE	<CREATE - LS-DOS 6.2>
+;
+*GET	BUILDVER/ASM:3
+*GET	SVCMAC:3		;SVC Macro equivalents
+*GET	VALUES:3		;Misc. equates
+;
+	ORG	2400H
+;
+CREATE	EQU	$
+	IF	@BLD631
+	LD	(SAVESP+1),SP	;<631>Save SP address
+	@@CKBRKC		;<631>Break key down?
+	JP	NZ,ABORT	;<631>Abort
+	ELSE
+	@@CKBRKC		;Break key down?
+	JR	Z,BEGINA	;Ok if not
+	LD	HL,-1		;  else abort
+	RET
+;
+BEGINA	LD	(SAVESP+1),SP	;Save SP address
+	ENDIF
+	CALL	CREATCD		;Do the CREATE code
+;
+;	Set ERN & offset in FCB = value at @INIT
+;
+ERN	LD	HL,$-$		;P/u ERN (probably 0)
+	LD	(FCB+12),HL	;Stuff into FCB
+OFFSET	LD	A,$-$		;P/u offset byte
+	LD	(FCB+8),A	;Stuff into FCB
+;
+;	CLOSE the file if possible
+;
+	LD	DE,FCB		;DE => FCB
+	IF	@BLD631
+	LD	BC,(FCB+6)	;<631>
+	ENDIF
+	@@CLOSE			;Close file
+	JP	NZ,IOERR	;NZ - I/O Error
+;
+;	Exit Routine
+;
+	IF	@BLD631
+SHRINK:	LD	DE,0		;<631>
+	LD	A,D		;<631>
+	AND	E		;<631>
+	INC	A		;<631>
+	CALL	Z,CLRCRE	;<631>Clear Create flag
+	LD	HL,0		;<631>
+	ELSE
+	LD	HL,0		;Successful - HL = 0
+	ENDIF
+	RET			;Return
+;
+;	Parse the Filespec given
+;
+CREATCD	LD	DE,FCB		;Fetch filespec
+	@@FSPEC
+	JP	NZ,SPCREQ	;Quit on bad name
+;
+;	Check out parameter input
+;
+	LD	DE,PRMTBL$	;Get parms
+	@@PARAM
+	JP	NZ,IOERR	;Jump on parm error
+;
+;	Check If Rec or LRL were specified
+;
+	LD	A,(LRESP)	;P/u LRL response
+	LD	B,A		;Save in B
+	LD	A,(RRESP)	;P/u REC response
+	OR	B		;Either specified ?
+	JR	Z,RPARM		;No - check # records
+;
+;	If Size parm also was specified - Parameter Error
+;
+	LD	A,(SRESP)	;Size can't be used
+	OR	A		;  with REC or LRL
+	JP	NZ,PRMERR	;Specified ? - Error
+;
+;	Check Record count
+;
+RPARM	LD	BC,$-$		;P/u # of records
+	LD	A,B
+	OR	C
+	JR	NZ,LPARM
+;
+;	Zero Records - Use Size instead
+;
+SPARM	LD	HL,$-$		;P/u size parm
+	LD	A,H
+	OR	L
+	JP	Z,PRMERR	;Err if size not entered
+;
+;	Multiply HL x 4 to get # of sectors
+;
+	ADD	HL,HL		;X 2
+	ADD	HL,HL		;X 4
+	LD	(RPARM+1),HL	;Pretend it's rec input
+;
+;	Make sure LRL input is valid
+;
+LPARM	LD	BC,$-$		;P/u LRL
+	LD	A,B		;Test for > 256
+	OR	A		;If hi-order = 0,
+	JR	Z,LP1		;Just use lo-order
+	DEC	A		;Test hi-order = 1
+	JP	NZ,PRMERR	;Quit if any other
+	OR	C		;P/u lo-order
+	JP	NZ,PRMERR	;Lo-order must be 0
+LP1	OR	C		;Merge lo-order
+;
+;	Open the File with the LRL specified
+;
+	LD	DE,FCB		;Open the file
+	LD	HL,BUFFER
+	LD	B,A		;LRL = 256, or user entry
+	@@INIT
+	JP	NZ,IOERR	;Jump on init error
+;
+;	Display "Creating : Filespec" String
+;
+	LD	DE,FILESP	;DE => Filespec
+	LD	BC,(FCB+6)	;P/u drive #, DEC
+	LD	A,(FCB)		;P/u to test device/file
+	CALL	$FNAME
+	JP	NZ,IOERR	;Leave on error
+	LD	HL,CREATE$	;"Creating : "
+	@@DSPLY			;Display it
+	JP	NZ,IOERR	;Quit on dsply error
+	LD	C,CR		;End line
+	@@DSP
+	JP	NZ,IOERR
+;
+;	Save ERN & offset from FCB for later
+;
+	LD	HL,(FCB+12)	;P/u ERN
+	LD	(ERN+1),HL
+	LD	A,(FCB+8)	;P/u offset byte
+	LD	(OFFSET+1),A
+;
+;	Check if the New Size > Old Size ?
+;
+BIGGER	LD	DE,FCB		;DE => FCB+0
+	@@LOF			;Get length of file
+	LD	H,B		;Move len to HL
+	LD	L,C
+	LD	BC,(RPARM+1)	;P/u # of records
+	XOR	A		;Clear carry
+	PUSH	HL		;Save ERN
+	SBC	HL,BC		;Is new ERN > old ERN?
+	POP	HL		;HL = ERN
+	JP	NC,BADSIZ	;Go if not
+;
+;	Position FCB to Ending Record Number
+;
+	DEC	BC		;Reduce to offset from 0
+	@@POSN			;Position to new ERN
+;
+;	Fill a 256 byte buffer with X'E5' bytes
+;
+	LD	HL,BUFFER	;Buffer area
+	LD	DE,BUFFER+1	;"format" a sector
+	LD	BC,255
+	LD	(HL),0E5H
+	LDIR
+;
+;	Write the last Record of the file
+;
+	LD	DE,FCB		;Write the new ERN sector
+	DEC	H		;Set HL = buffer start
+	INC	HL
+	CALL	WRITE		;Write the last record
+	@@REW			;Rewind File
+;
+;	Read in the directory entry
+;
+	LD	BC,(FCB+6)	;Get drive # & DEC
+	IF	@BLD631
+	CALL	SETCRE		;<631>Set Create flag in directory
+	ELSE
+	@@DIRRD			;Read in record
+	JR	NZ,IOERR	;Jump on read error
+;
+;	Set the CREATE bit, and write it back out
+;
+	INC	HL		;Point to FCB+1 &
+	SET	7,(HL)		;  set the CREATE bit
+	@@DIRWR			;Write entry back
+	JR	NZ,IOERR	;Jump on write error
+	ENDIF
+;
+;	Do we have to Fill the file ?
+;
+FILL	LD	BC,0100H	;P/u FILL parm
+	DEC	B
+	RET	Z		;RETurn	if no Fill
+;
+;	Create a Buffer with the FILL bytes
+;
+	PUSH	DE		;Save FCB pointer
+	LD	HL,BUFFER	;I/O buffer
+	LD	(HL),C		;Byte to xfer
+	LD	DE,BUFFER+1
+	LD	BC,255+256	;Hit both buffers
+	LDIR			;Xfer into buffer
+;
+;	Pt HL => User Buff, DE => FCB, BC = last Rec
+;
+	POP	DE		;Restore FCB pointer
+	LD	BC,(RPARM+1)	;P/u last record
+	LD	HL,UBUFF	;User Buffer
+;
+;	Loop to write logical records
+;
+WRLOOP	LD	A,B		;Is rec cnt = 0 ?
+	OR	C
+	RET	Z		;Yes - done
+	CALL	WRITE		;Write Record
+	DEC	BC		;Dec one
+	JR	WRLOOP		;Do til BC = 0
+;
+;	Write the buffer contents
+;
+WRITE	@@WRITE			;Write buffer
+	RET	Z		;Good - RETurn
+	DB	21H		;Skip LD A,## instruction
+PRMERR	LD	A,PAR_ERR	;Parameter Error
+;
+;	I/O error display & abort routine
+;
+IOERR	LD	L,A		;Save error # in HL
+	LD	H,0
+	OR	0C0H		;Short error message
+	LD	C,A		;Stuff in C for @ERROR
+	@@ERROR			;Display error message
+SAVESP	LD	SP,$-$		;P/u original SP
+	RET			;Done, RETurn
+	IF	@BLD631
+CLRCRE	LD	A,0BEH		;<631>
+	LD	(CREFLG),A	;<631>
+SETCRE:	@@DIRRD			;<631>
+	JR	NZ,IOERR	;<631>
+	INC	HL		;<631>
+CREFLG:	EQU	$+1		;<631>
+	SET	7,(HL)		;<631>
+	@@DIRWR			;<631>
+	JR	NZ,IOERR	;<631>
+	RET			;<631>
+	ENDIF
+;
+;	Routine to pick up device/file name
+;
+$FNAME	BIT	7,A		;Test device/file
+	JR	Z,FNAME1	;Go if device
+	@@FNAME
+	RET
+FNAME1	LD	A,'*'		;Stuff device indicator
+	LD	(DE),A
+	INC	DE
+	LD	A,C		;Stuff 1st character
+	LD	(DE),A
+	INC	DE
+	LD	A,B		;Stuff 2nd character
+	LD	(DE),A
+	INC	DE
+	LD	A,3		;Stuff ETX
+	LD	(DE),A
+	RET
+;
+;	Error Message Display routine
+;
+SPCREQ	LD	HL,SPCREQ$
+	DB	0DDH
+BADSIZ	LD	HL,BADSIZ$
+;
+;	Log Error Message & Abort
+;
+	@@LOGOT			;Log error message
+	IF	@BLD631
+ABORT:				;<631>
+	ENDIF
+	LD	HL,-1		;Set abort code
+	JR	SAVESP		;Exit
+;
+;	Messages
+;
+SPCREQ$	DB	'File spec required',CR
+BADSIZ$	DB	'File exists larger',CR
+CREATE$	DB	'Creating: '
+FILESP	DS	15
+;
+;PARAMETER TABLE
+;
+PRMTBL$	DB	80H		;6.x Parameter Table
+;
+;	SIZE (S) - Accept Numeric Input only
+;
+	DB	NUM!ABB!4
+	DB	'SIZE'
+SRESP	DB	0
+	DW	SPARM+1
+;
+;	REC (R) - Accept Numeric input only
+;
+	DB	NUM!ABB!3
+	DB	'REC'
+RRESP	DB	0
+	DW	RPARM+1
+;
+;	LRL (L) - Accept Numeric input only
+;
+	DB	NUM!ABB!3
+	DB	'LRL'
+LRESP	DB	0
+	DW	LPARM+1
+;
+;	FILL (F) - Accept Numeric or Flag input
+;
+	DB	FLAG!NUM!ABB!4
+	DB	'FILL'
+FRESP	DB	0
+	DW	FILL+1
+	IF	@BLD631
+;
+;	SHRINK (S) 
+;
+	DB	FLAG!6			;<631>
+	DB	'SHRINK'		;<631>
+	DB	0			;<631>
+	DW	SHRINK+1		;<631>
+	ENDIF
+	DB	0
+;
+;	I/O buffer
+;
+FCB	DB	0
+	DS	31
+	ORG	$<-8+1<8
+BUFFER	DS	256
+UBUFF	DS	256
+;
+	END	CREATE
+

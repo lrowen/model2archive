@@ -1,0 +1,432 @@
+\"Updated 30-Apr-90
+.lg 0
+.de bx
+.ds B \(br\|\s-2\fB\\$1\fP\s+2\|\(br
+.nr X 0-\w'\\*B'
+\&\\*B\l'\\nXu\(rn'\l'\\nXu\(ul'\c
+.rr X
+.rm B
+..
+.de en
+\\$1\c
+\fB\s-2\(br\|BREAK\|\(br\l'|0\(rn'\l'|0\(ul'\s+2\fR 
+..
+.sp .5i
+.ps 16p
+.vs 18p
+.ce
+UNIVERSAL CHARACTER GENERATOR
+.br
+.ps 13p
+.vs 14p
+.ce
+Installation Instructions
+.br
+.ce
+Copyright 1989, M. A. D. Software, All Rights Reserved.
+.sp
+.ps 10p
+.vs 11p
+
+\s+2What you should know before starting the installation\s-2
+
+Installing the universal character generator requires that you disassemble your computer.
+When you do this, the "warranty seal" will be broken.  The strictest reading
+of the Radio Shack repair policy is that any remaining warranty (original
+or a repair warranty) will be void if the seal is broken, and if the machine
+is ever repaired again by Radio Shack, the technicians may remove or replace
+any "alien" components to restore the unit to its original state.
+
+However, in 1982 Ed Juge (the Press Officer of Radio Shack/Tandy)
+clarified how "alien" modifications are handled by
+Radio Shack Service Centers.  In "TRS-80 Microcomputer News", July/August
+1982, and in "80-US", May 1982, Mr. Juge states that Radio Shack will
+service a machine with a modification and will ignore it if doesn't seem
+to be hurting anything.  If the modification prevents the technician
+from properly testing the unit, they may ask you for permission to remove
+it. 
+
+It is also possible
+that some future repair may require the CPU board be exchanged and the
+technician may not notice that you have a different character
+generator in your
+machine and may fail to move it to the replacement
+board.  To avoid this, be sure to tell the technician that you have the
+new character generator installed.  Be sure this
+gets written down on the repair ticket in case a different person ends up
+working on your machine. 
+
+
+\s+2Installation\s-2
+
+As discussed above, installing the character generator requires your computer
+to be disassembled.  The entire job can be done in about 30 minutes.  Two
+steps are much easier if you have a second person to help.  Read through the
+following steps and if the procedure seems beyond your capabilities, seek
+help from a local computer shop, TV repair store or local college.
+
+The installation instructions are written for the person who has never
+disassembled a Model 4 before, but is able to perform repairs
+on the car or the toaster.   If you have installed a battery-powered
+clock in your computer or changed a disk drive, the instructions need
+only be skimmed.  Otherwise, read each step entirely and then perform
+the action.  It is suggested that you place a check mark next to
+each step as it is completed so that you won't skip anything.
+
+
+\s+2Installing the character generator\s-2
+
+.in .5i
+.ti -.5i
+1.	You will need a medium-sized Phillips screwdriver, a small
+flat-blade screwdriver (1/4" wide tip or smaller), a large
+towel (or towels) that will cover a 5' x 3' area, and a
+table or workbench with at least 5' x 3' of space.
+
+.ti -.5i
+2.	Place the cloth or towel over the area that is to be used.
+This will protect the surface of the table and the case of
+computer during disassembly.
+
+.ti -.5i
+3.	Unplug the power cord and disconnect all other cables attached
+to the computer.
+
+.ti -.5i
+4.	Place the Model 4 on the left hand side of the table
+and lay it on its left side, as one looks at the keyboard.
+
+.ti -.5i
+5.	Remove the ten Phillips screws that hold the top and bottom
+of the case together.   Keep track of where the screws come from as
+they may be of different types and sizes.  In some cases, one or more
+screws may be missing or may be hidden under the warranty seal.  Two
+recessed screws on either side of the case are sometimes hard to
+remove.  If you don't have a magnetized screwdriver, simply unscrew
+them until they are loose.  They should fall out in the next step.
+
+.ti -.5i
+6.	Set the machine upright by tipping it from its side.  It
+should now be on the right side of the table.  While tilting 
+the machine, keep in mind that the cover is loose, so hold the
+top and bottom sections together.
+If you had trouble with the two side screws, check to see that
+they have fallen out onto the table.  If they did not, go back
+to Step 4.
+
+.in 0
+.ce
+Page  1
+.in .5i
+.bp
+.sp .5i
+
+.ti -.5i
+7.	Remove the Phillips screw from the back of the cabinet.  If it is missing, don't worry; it is
+possible that this part was left out after some previous
+disassembly.
+
+.ti -.5i
+8.	If you have floppy drives with "garage door" latches (these came
+standard on the Model 4 but not on the Model 4D), close them before
+proceeding.
+
+.ti -.5i
+9.	READ STEP 9 ENTIRELY BEFORE DOING STEP 9.
+
+Very carefully, lift the top half of the case STRAIGHT UP.
+Watch the neck of the CRT through the vent at the top of the
+computer, or through the top floppy drive opening.  It is VERY
+IMPORTANT that you not lift the cover at an angle or push the
+cover towards the back because the CRT socket or cabling could
+catch on the lower half of the chassis and break the tube.  If you
+have a second person to help, have them watch the CRT neck and
+give directions as you lift.  Do not allow the top half of
+the computer to slip or drop, as the CRT could implode.
+
+Once the cover is clear of the lower half of the computer, lay
+the cover on its side next to the bottom half.  The cables from
+the bottom half to the cover are long enough to do this.
+The cover should be sitting on the left side of the computer now, as
+one looks at the keyboard.
+
+.ti -.5i
+10.	Move around to the back of the computer.  If a metal plate covers
+the circuit boards (across the back), remove the brass-colored screws
+that hold the cover in place.  These are located across the top
+and sides of the CPU enclosure.  Do not remove the screws that
+hold the CPU to the plastic base.  If there is no shield, skip
+to step 13.
+
+.ti -.5i
+11.	Some machines are equipped with Network 4 or a Model III graphics
+hardware.  These boards (only one can be present in a machine)
+are mounted on the shield.  If these boards are present, one or
+more multi-wire cables will plug into connectors that stick
+out of a slot in the shield.  Make a note of where each connector
+goes (label them if necessary) and unplug them from the connector(s)
+on the shield.
+
+.ti -.5i
+12.	Once the screws are removed, gently fold the shield (metal surface
+that faces the back of the machine) down.  In some machines, 
+small metal hooks were installed to hold the cover in place while the
+screws are being inserted.  By bending the cover back in one area at a
+time, the cover should fold down so that the CPU board is revealed.
+
+Some units also have a metal foil across the bottom of the shield.
+If this prevents the shield from folding down, peel it off the
+shield but leave it attached to the base of the machine.  You will
+have to re-apply the foil later, so don't destroy it.
+
+.ti -.5i
+13.	Near the top of
+the circuit board, just to the right of center is the character generator.
+This is a 24 pin part.  Near each socket (usually
+just above it) is written a number like U23.  U23 is the part we want
+to replace.
+
+If you cannot find U23, or the socket with that number is the wrong
+size, don't panic.   There were several different circuit boards
+built for the Model 4, and the one you have may have the socket
+in a slightly different place or it may have a different
+socket number.
+
+Search the CPU board for the following items and you should be
+able to identify the character generator:
+
+.in 1i
+.ti -.5i
+1.	The chip must have 24 pins.
+
+.ti -.5i
+2.	There should be one other 24 pin chip adjacent
+(in the same row or column) to the chip you located.
+
+.ti -.5i
+3.	The part number on \fBother\fR chip should have the number 6116
+written on it.
+
+.in .5i
+Once you locate a chip that meets these requirements, you have
+found the correct part. 
+
+.ti -.5i
+14.	On one end of the chip (character generator) there will be a notch, indentation or small
+"divot".  This indicates which end of the chip has pin 1.  It is
+extremely important to remember which way the chip goes in so that
+the new character generator can be installed correctly.   Although the CPU board
+may also have a "1" marked on it indicating where pin 1 is, CPU
+boards have been known to be incorrectly marked.  
+
+
+.in 0
+.ce
+Page  2
+.in .5i
+.bp
+.sp .5i
+
+.ti -.5i
+15.	Remove the old character generator from the socket.
+If you know how to remove the part, do so and skip to 16.   
+
+If you don't know how to remove the chip, here is one way to do it
+with the tools you have.   Using the blade of the flat-blade 
+screwdriver, slip the end between the chip and the socket on either
+end of the chip.  DO NOT try to do this between the pins.  Insert the
+screwdriver only a quarter of an inch, or less.  Now rotate the
+screwdriver VERY GENTLY so that the chip lifts away from the socket.
+If you can't do this, then use the screwdriver as a lever and pry
+the chip up NO MORE than 1/8 of an inch.  DO NOT try to pry the chip
+out of its socket with a single motion or you could bend or break
+the pins, or even crack the chip.
+
+Now that you have one end of the chip lifted slightly, insert
+the screwdriver further under the chip (about 3/4 of an inch, or
+as far as it will go without forcing), and repeat the process.
+This will lift the chip out of its socket without bending the pins.
+You may have to insert the screwdriver one more time to completely
+lift the chip.
+
+If the chip has not fallen out, you should be able to grasp it on
+each end with a finger and pull it straight out.  If it is too tight
+to be removed using two fingers, repeat the screwdriver maneuver.
+
+.ti -.5i
+16.	Remove the new character generator from the foam or tube.  If the chip
+was packaged in foam, check between the pins for any small pieces
+of the foam that may have stuck to the pins or to the chip.
+Remove these particles.
+
+.ti -.5i
+17.	Insert the old character generator into the foam or the tube.  This will
+protect the part from static electricity.
+
+.ti -.5i
+18.	Insert the new character generator into the socket that the 
+old part came from.  Make
+sure the notch, indention or "divot" on the chip is facing the
+same way as the part you removed.   This is most important, as 
+improper insertion will ruin the character generator.
+
+Line the chip up so that its legs are sitting in the sockets.
+You may have to bend one or more pins ever so slightly to get them
+all started into the socket.   When everything appears to be
+lined up, press the chip into the socket part-way by pressing it
+with your thumb.  Confirm that all the pins are still going into
+the socket and that none are going outside the socket or are
+bending under the chip.  (The top of the pin usually bows out
+if the bottom of the pin is bending under the chip.)  If one
+or more pins are out of line, remove chip using the
+screwdriver method, and straighten the pins out that are not
+inserting properly.  Then try again.  It may take a few tries
+to get all the pins going into the socket.
+
+If the pins are still going into the socket after you have pushed
+it halfway into place, push it down until it feels firmly seated.
+There is usually about 1/8 to 1/16 of an inch between the bottom
+of the chip and the socket when it is inserted properly.
+
+Do not try to force the chip flush with the socket.  Some sockets
+are designed to prevent you from doing this and the excessive
+force could crack the CPU board.
+
+Now run your finger along the pins on either side.  If a pin feels like
+it is out of line, examine it carefully, as it may have folded under
+the chip despite your efforts.  If you have a flashlight, examine
+the pins by looking under the chip from one end.  If a leg is bent,
+carefully remove the chip and straighten the leg by bending it very slowly and try
+again.  A chip leg can usually be straightened twice without breaking, 
+but that is all.
+
+.ti -.5i
+19.	In the upper half of the case, check the connector that attaches
+to the video board (mounted on the side of the cover).  Sometimes
+this comes loose when the machine is disassembled.  Make sure
+the connector is pushed all the way onto the circuit board.  
+
+.ti -.5i
+20.	Re-install the shield over the CPU board if your machine had one.
+If there was a piece of foil-covered tape along the bottom of the
+shield, be sure the foil is on the outside of the shield when
+you put it back in place.   Press the tape into place and if the
+adhesive is not holding the tape in place, use non-fiber packing
+tape or electricians tape to hold it in position.
+
+Once the shield is back in position, insert and tighten the
+brass screws that hold the shield in place.
+
+If your machine has the Network 4 or Model III graphics boards,
+reconnect the cables that you removed earlier.   If you have
+the Model III graphics board and fail to reconnect these cables
+correctly, the screen will not display anything when you test the
+installation.
+
+.in 0
+.ce
+Page  3
+.in .5i
+.bp
+.sp .5i
+
+.ti -.5i
+21.	At this point, you can either completely reassemble the machine,
+or test the character generator first.   If you want to go ahead and reassemble
+the machine, Skip to step 29.
+
+
+
+.ti -.5i
+\s+2Testing the character generator installation with the machine disassembled\s-2
+
+.in 1.5i
+.ti -1.0i
+\fBCAUTION!	HIGH VOLTAGE EXISTS WITHIN THE CABINET WHEN
+POWER IS APPLIED, EVEN WHEN THE POWER SWITCH
+IS OFF.  AVOID TOUCHING ALL METAL SURFACES.  NEVER TOUCH ANY
+OF THE CIRCUITS WHILE POWER
+IS APPLIED TO THE COMPUTER.\fR
+.in .5i
+
+.ti -.5i
+24.	Reach under the right edge of the machine and turn the power switch
+on.  Because the 120 volt connections to that switch are exposed
+while the cover is removed, that area should be avoided during
+this test.   For this test, the computer will be turned on and
+off by plugging it into the outlet or an extension cord.
+
+.ti -.5i
+25.	Plug the power cable into the outlet.  The floppy drive should
+light and the floppy drive motor should run for a few seconds
+and then it may stop. 
+
+.ti -.5i
+26.	Press RESET and hold down the
+.bx BREAK
+ key.  You should see the \fLCass ?\fR prompt.  (This message may be displayed more than once.
+This is normal.) 
+If you see the message, go to step 28.
+
+
+.ti -.5i
+27.	Wait one minute.  You should see the message \fLCass?\fR
+on the display.  If there is no text on the screen, adjust the
+brightness and contrast controls on the left side of the base,
+but AVOID TOUCHING ANY WIRES.  Turn both controls to maximum so
+that you can see the screen raster (fine lines running horizontally
+across the screen.)
+
+If you do not see the message \fLCass?\fR, try Steps 26 and 27 again.
+If that does not work, unplug the power cord and wait one minute.  Then
+check the installation and makre sure the part was installed correctly and
+all cables were reconnected.  If the problem is not found, remove the
+new character generator.  If the pins are not bent, install the old
+character generator and see if it works.  If neither part works, then a
+cable is probably loose somewhere.
+
+.ti -.5i
+28.	If the above checks worked correctly, the character generator installation is correct.  Now unplug the
+power cord and wait one minute.
+Now reassemble the computer by following the instructions below.  
+
+
+\s+2Reassemble the Computer\s-2
+
+.ti -.5i
+29.	Make sure the power cord is unplugged.    From the front of the
+machine, lift the cover and place it over the computer base.
+Watch the neck of CRT through the top vents or through the
+top floppy drive opening in the cover.  The cover should be guided
+so that the CRT neck does not strike the CPU enclosure and does
+not hang on any of the wires that are routed near the CRT.
+If the CRT socket won't clear the wires, remove the cover and
+adjust the wiring so that the CRT and its socket have more room.
+If you have a second person to help, they should assist in guiding
+the cover into position.
+
+.ti -.5i
+30.	Unplug the computer and replace the screw in the back of the cover.
+Then set the machine on its side and install the 10 screws that
+came from the bottom.  Be sure you get them back in the right
+holes.  Tighten but do not force as these bolts are going into
+plastic and can be easily stripped.
+
+
+.in 0i
+This completes the installation of the character generator.
+
+
+
+
+004301
+
+
+
+
+
+
+
+.in 0
+.ce
+Page  4

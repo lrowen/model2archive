@@ -1,0 +1,111 @@
+.ps 12
+.vs 13
+.sp .5i
+.lg 0
+.de bx
+.ds B \(br\|\s-2\fB\\$1\fP\s+2\|\(br
+.nr X 0-\w'\\*B'
+\&\\*B\l'\\nXu\(rn'\l'\\nXu\(ul'\c
+.rr X
+.rm B
+..
+.ce
+XLR8SET
+.ce
+Dynamic Patch Loader for XLR8er systems
+.ce
+1-Jul-90
+.ce
+Copyright 1990, M. A. D. Software, All Rights Reserved.
+
+
+.ps 10
+.vs 11
+The enclosed diskette contains XLR8SET in a ready-to-use form (executable)
+and the source code.  You may use the source code to implement any
+modifications that your environment requires, within the limits noted below.
+
+See the READ/ME file on the diskette for the latest information on
+the contents of the diskette.
+
+
+\s+2License Agreement and Warranty\s-2
+
+The XLR8SET program (binary, source and listings), its documentation, and
+all other included software are copyrighted with all rights reserved.
+It may be modified in any way provided the copyright strings, messages,
+comments, and related code are unchanged.
+
+The user is granted a site license to use this software on any
+Model 4, 4D or 4P systems in his/her possession at a given location. 
+If you have one or more computers at \fBeither\fR your home or office, they
+may all use this product.  Using the same copy at home \fBand\fR at
+an office not located in the same building is not acceptable.
+
+The software may not be redistributed to other parties in any form
+without prior written permission from M. A. D. Software.  This includes
+source files or binaries that contain your own modifications. 
+
+You may
+exchange modifications to source and binaries with a third party
+\fBonly\fR if that party has purchased a copy of this product from
+M. A. D. Software.
+
+If you wish
+to publish modifications, a context-comparison (diff) of the source that
+only shows the changes plus up to four adjacent lines of the original
+code per change may be distributed.  For example, if you add
+a line to
+the source code,
+you may distribute two lines of the original code before and after the change
+to help identify where the change should go.  This will
+allow others to apply your changes to their own
+copy of the software.  
+
+The purchaser must also ensure that all enclosed code is not
+placed on a system where it could be downloaded or otherwise accessed
+by systems off-site.
+
+
+
+M. A. D. Software warrants the diskette media on which XLR8SET is recorded
+to be free from defects under normal use for a period of 90 days from the
+date of original purchase.  If during this 90 day period a defect in the
+diskette media makes the recorded data unusable, you may return the
+diskette to M. A. D. Software for replacement without charge.  The
+user does pay the cost of delivering the diskette to M. A. D. Software.
+
+M. A. D. Software makes no commitment to provide any upgrade.  However, if
+one is produced, the following upgrade policy will apply:
+
+.in .5i
+If an upgrade version of XLR8SET becomes
+available during the 90 day warranty period, the user will be advised to
+return the original diskette to M. A. D. Software
+for replacement without charge.
+
+.in 0i
+Any diskette that is returned due to a defect for an in-warranty exchange or
+for an upgrade (in or out of warranty) that has a defaced or invalid
+registration number, or has been modified or totally erased will not be
+accepted.
+
+
+Except as provided for above, the author and/or M. A. D. Software make no
+warranties, either expressed or implied, with respect to this software
+or its fitness for any purpose.  This software is provided "as-is".  Although
+significant testing has been performed to insure that this product will
+work with the systems listed, this software cannot be expected to work
+in systems other than those listed and on versions of operating systems
+other than the ones specified.   Non-standard versions of 
+hardware or software can also prevent this product from functioning
+as intended.   Should the software prove defective or incompatible, the
+user assumes the entire cost of all necessary servicing, repair, or
+correction and any incidental or consequential damages.  The author and
+M. A. D. Software assume no liability for direct, indirect, incidental or
+consequential damages resulting from any use of or any defects in the
+software.
+
+
+
+007011

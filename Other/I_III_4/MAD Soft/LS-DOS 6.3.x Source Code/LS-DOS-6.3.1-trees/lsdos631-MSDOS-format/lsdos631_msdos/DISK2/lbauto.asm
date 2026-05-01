@@ -1,0 +1,224 @@
+;LBAUTO/ASM - AUTO Command
+	TITLE	<AUTO - LS-DOS 6.2>
+;
+;
+*GET	BUILDVER/ASM:3
+*GET	SVCMAC:3		;SVC Macro equivalents
+*GET	VALUES:3		;Misc. equates
+;
+SECTOR	EQU	0<8+2
+OFFSET	EQU	20H		;Offset to Auto Buffer
+RST28	EQU	28H		;SVC restart
+@CMNDR	EQU	25		;Execute & return
+@RDSEC	EQU	49		;Read a sector SVC #
+@WRSEC	EQU	53		;Write a sector SVC #
+;
+	ORG	2400H
+;
+AUTO
+	LD	(SAVESP+1),SP	;Save SP address
+	CALL	PARSE		;Do AUTO command
+	LD	HL,0		;Set no error
+;
+;	Reinstall SP & RETurn
+;
+SAVESP	LD	SP,$-$		;P/u old SP
+	RET
+;
+;	Skip any leading spaces
+;
+PARSE	DEC	HL		;Back one
+PARSE2	INC	HL		;Bump buff ptr
+	LD	A,(HL)		;P/u character
+	CP	' '		;Space ?
+	JR	Z,PARSE2	;Go til non-space
+;
+;	Display auto Buffer on drive :d ?
+;
+	CP	'?'		;Display auto buffer ?
+	JR	Z,DISAUTO
+;
+;	Execute Auto Buffer on drive :d ?
+;
+	CP	'='		;Execute auto buffer ?
+	JR	Z,EXAUTO
+;
+;	Install the command in the auto buffer
+;
+	CALL	GETDRV		;P/u drive #
+	JR	WRBUFF		;Write new auto & RETurn
+;
+;	Display command in auto buffer
+;
+DISAUTO	CALL	GETAUTO		;P/u drive #
+	@@LOGOT			;Display it
+	JP	NZ,IOERR	;NZ - I/O Error
+	RET			;Z - done
+;
+;	Execute command in auto buffer
+;
+EXAUTO	CALL	GETAUTO		;P/u drive #
+	@@FLAGS
+	LD	A,(HL)		;P/u first character
+	CP	'*'		;Non-<BREAK>able auto ?
+	JR	NZ,DOAUTO	;No - do it
+;
+;	Non <BREAK>able auto command - skip "*"
+;
+	INC	HL		;Bump to next char
+	SET	4,(IY+SFLAG$)	;Disable <BREAK>
+;
+;	Exit via @CMNDI or @CMNDR if requested
+;
+DOAUTO	BIT	1,(IY+CFLAG$)	;If CMNDR executing, then
+	LD	A,@CMNDR	;  exit via CMNDR
+	JP	NZ,RST28
+	DEC	A		;  else readjust to
+	RST	40		;  CMNDI & exit
+;
+;	GETAUTO - Get Auto Command from BOOT sector
+;
+;	Advance to next byte in line
+;
+GETAUTO	INC	HL		;Bump to next char
+	LD	A,(HL)		;  & p/u 1st char of drvspc
+	CALL	GETDRV		;Get drive #
+	CALL	RDBOOT		;Read BOOT sector
+	EX	DE,HL		;Pt HL to auto buffer
+	RET			;RETurn
+;
+;	GETDRV - Check if (HL) contains a legal drive #
+;
+GETDRV	CP	CR+1		;No drivespec ?
+	RET	C		;Use drive 0 as default
+;
+;	Drivespec indicator entered ?
+;
+	CP	':'		;Drivespec indicator ?
+	RET	NZ		;No - use drive 0
+;
+;	Drivespec ":" entered - p/u drive #
+;
+	INC	HL		;Position to drive #
+	LD	B,(HL)		;P/u drive #
+;
+;	Position to command following drivspec
+;
+	INC	HL		;Position to command
+	LD	A,(HL)		;C/R following spec ?
+	CP	CR+1
+	JR	C,SKIPINC	;Yes - don't INC
+	INC	HL		;Position to command
+;
+;	Is the drive number in legal range ?
+;
+SKIPINC	LD	A,B		;P/u Drive #
+	SUB	'0'		;Less than "0" ?
+	LD	(DRIVE+1),A	;Stuff away drive #
+	IF	@BLD631
+	ELSE
+	JR	C,ILDRIVE	;C - Illegal drive #
+	ENDIF
+	CP	7+1		;Greater than 7 ?
+	RET	C		;RETurn if legal
+;
+;	Illegal Drive Number - Display & abort
+;
+ILDRIVE	LD	A,32		;Init "Illegal drive #
+	JR	IOERR		;Abort
+;
+;	WRBUFF - Write Auto Command to Boot
+;
+WRBUFF	CALL	RDBOOT		;Read in BOOT
+;
+;	Skip Leading spaces
+;
+	DEC	HL		;Skip leading spaces
+SKPSPCS	INC	HL
+	LD	A,(HL)		;P/u char
+	CP	' '		;Space ?
+	JR	Z,SKPSPCS	;Yes - skip it
+;
+;	Transfer command into buffer
+;
+XFLP	LD	A,(HL)		;P/u byte
+	LDI			;(HL) => (DE) INC HL & DE
+	CP	CR+1		;Eol ?
+	JR	NC,XFLP
+;
+;	RDBOOT/WRBOOT - Read/Write BOOT sector
+;
+;	Set A = @WRSEC Supervisory CALL #
+;
+WRBOOT	LD	A,@WRSEC	;Write Sector SVC #
+	JR	BOOTIO		;Go to I/O routine
+;
+;	RDBOOT - Check if the Drive is there
+;
+RDBOOT	LD	A,(DRIVE+1)	;P/u drive #
+	LD	C,A		;Xfer to C for @CKDRV
+	@@CKDRV			;Drive alive
+	LD	A,32		;Init "Illegal drive #
+	JR	NZ,IOERR	;Abort if bad drive
+;
+;	Read GAT from directory if Model II
+;
+	IF	@MOD2
+	PUSH	IY		;Save
+	@@GTDCT			;Locate DCT
+	LD	D,(IY+9)	;Dir cyl
+	LD	A,(IY+3)	;Get DCT data
+	LD	E,(IY+4)	;Get dct data
+	POP	IY		;Restore
+	AND	28H		;8" floppy?
+	CP	20H		;Yes?
+	JR	NZ,SETSYSI	;Nope, sysinfo on 0
+	LD	A,E		;Get +4
+	AND	50H		;Bit 6/4
+	CP	40H		;DD not alien?
+	JR	NZ,SETSYSI	;Go if alien
+;
+	PUSH	HL		;Save
+	LD	HL,BUFF		;Start buffer
+	LD	E,0		;GAT table
+	@@RDSSC			;Read directory
+	LD	DE,(BUFF+0CDH)	;Get GAT info byte
+	POP	HL		;Restore buffer
+	JR	NZ,IOERR	;Go on disk error
+	BIT	7,E		;System disk?
+SETSYSI	LD	DE,SECTOR	;Sysinfo sector
+	JR	NZ,$+3		;Go if data disk
+	INC	D		;Sysinfo on cyl 1
+	LD	(SYSINFO),DE	;Save sysinfo sector
+	ENDIF
+	LD	A,@RDSEC	;A = @RDSEC SVC #
+;
+;	Pt HL => Buffer, DE = T/S, C = :d, A = SVC #
+;
+BOOTIO	PUSH	HL		;Save command ptr
+	LD	HL,BUFF		;HL => I/O buffer
+DRIVE	LD	C,$-$		;P/u drive # in C
+;
+	LD	DE,SECTOR	;DE = Track 0, Sector 2
+SYSINFO	EQU	$-2
+;
+;	Issue SVC & point DE => Auto comm buffer
+;
+	RST	40		;Read or Write Sector
+	POP	HL		;Recover command ptr
+	LD	DE,BUFF+OFFSET	;DE => Auto command buff
+	RET	Z		;RETurn if successful
+;
+;	I/O Error Handler - Clean up stack & Abort
+;
+IOERR	LD	L,A		;Set HL = Error #
+	LD	H,0
+	OR	0C0H		;Short error message
+	LD	C,A		;Xfer to C for @ERROR
+	@@ERROR			;Display error
+	JP	SAVESP		;Exit
+;
+BUFF	EQU	$<-8+1<+8	;Next page boundary
+;
+	END	AUTO
+

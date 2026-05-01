@@ -1,0 +1,1 @@
+. MEMORY1/FIX - 08/27/90 - Patch to LS-DOS 6.3.1 SYS6/SYS. Patch cleans up video screen when data goes to 2nd screen.. Apply via DO FIX631G (D=n) ... See FIX631G/JCLD04,63=18;F04,63=17D04,6E=7F;F04,6E=0CD04,DB=15;F04,DB=0FD04,F2=CD 9C 27 C3 6A 27F04,F2="No mem"D04,F8="No memory"F04,F8="ory space". Eop

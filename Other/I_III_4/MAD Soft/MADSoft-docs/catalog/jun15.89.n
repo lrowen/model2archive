@@ -1,0 +1,212 @@
+.sp .5i
+.ps 10p
+.vs 11p
+Thank you for requesting information about our products for the Model 4/4D/4P.
+If you don't see what you are looking for, please let us know! 
+
+
+.br
+.ps 12p
+.vs 13p
+.ce
+Model  4 / 4D / 4P   Products
+.br
+.ps 10p
+.vs 11p
+.nf
+											June 15, 1989
+
+\fBHBUILD6\fR							Specify	4GHB600		$15.00
+
+.fi
+This utility allows the Model 4, 4D or 4P owner with a hard disk to boot
+directly into LS-DOS 6.3 or TRSDOS 6.2.x from the hard disk without using a
+start-up floppy.  Most systems can install HBUILD6 in less than five minutes.
+Completely transparent to TRSDOS 6.2.x
+and LS-DOS 6.3 and uses no program memory.
+Detailed instructions tell you what to do if you have a non-standard system
+configuration.  Hard disk booting can be disabled with a single command.
+
+Requirements:
+.br
+.in 1i
+.ti -1i
+CPU		Model 4 or 4D with a XROM or XDROM firmware. (See the ordering info below.)
+.br
+Model 4P systems do not need firmware changes.
+.br
+Z80A or any superset processor.
+.br	
+.ti -1i
+Floppy Drive	A 5.25" SSDD or DSDD floppy drive used during installation.
+.br	
+.ti -1i
+Drive Controller	A Radio Shack hard disk controller or a programmable equivalent.
+.br
+.ti -1i
+Hard Drive(s)	Any combination of 5, 10, 12, 15, or 35 meg drives that are
+supported by the Radio Shack hard disk drivers.
+.br	
+.ti -.5i
+  or	Any combination of drives that are supported by the Misosys "RSHARD"
+hard disk drivers.
+.ti -1i
+Software	The Radio Shack or the Misosys "RSHARD" 
+hard disk drivers must be in use.
+TRSDOS 6.2.x or LS-DOS 6.3 must be installed and a system
+drive must start on head 0 of the primary drive.
+(Other operating systems stored on other parts of the drive
+or on secondary drives will not be disturbed.)
+.br	
+.in 0i
+
+Other disk controllers and drivers may also work.  Write to us with specifics
+of your system along with a SASE.
+
+
+.nf
+\fBXROM\fR for Model 4 systems 					Specify	4BXR000		$15.00
+\fBXDROM\fR for Model 4D systems 					Specify	4DXR010		$25.00
+.fi
+
+These ROMs replace the "C" ROM or "D" ROM in your Model 4 or 4D.
+They improve performance
+when using any Model III operating system or ROM BASIC.  They also allow
+you to
+boot directly from a hard disk or Networks III or 4. Detailed instructions
+assist you in removing the cover and installing the ROM in your system.
+Installation takes less than 30 minutes.  Model III mode features include:
+.br
+.in .5i
+.ti -.5i
+o	The keyboard produces all 128 ASCII characters and handles
+key-rollover, and debounce correctly at 2 and 4 MHz.
+.br
+.ti -.5i
+o	The keyboard repeat rate is adjustable.
+.br
+.ti -.5i
+o	The time-of-day clock keeps correct time even when the system is running
+at 4 MHz.  The cursor blink rate also remains constant.
+.br
+.ti -.5i
+o	A fully programmable 6845 CRT controller can be used in place of the 68045.
+.br
+.ti -.5i
+o	All documented calls into the "C" ROM, including those
+documented by LDOS and Radio Shack produce the same results
+as in the original part.
+.br
+.ti -.5i
+o	Interrupt-driven software is more reliable than in the original "C" ROM.
+.br
+.in 0i
+The XROM/XDROM comes with documentation on the new Model III mode features.
+.br
+The XDROM includes built-in tests for memory, video, floppy drive,
+and printer (available via hardware strap.)
+.br
+
+Requirements:
+.br
+.in 1i
+.ti -1i
+CPU		Model 4 system.   Order "X" ROM.
+Model 4D system.  Order "XD" ROM.
+.br
+.ti -1i
+Memory		64K minimum.
+.br
+.ti -1i
+Floppy Drive	Any Radio Shack compatible configuration including no drives.
+.br
+.ti -1i
+Hard Drive	Any Radio Shack compatible configuration including no drives.
+.br
+.ti -1i
+Software	Operating Systems tested:
+LDOS 5, TRSDOS 6, LS-DOS 6, CP/M+, NEWDOS, TRSDOS 1.3/1.4.
+.br
+.in 0i	
+
+
+.ce
+\fBIMPORTANT
+.br
+.sp
+When ordering the XROM or XDROM, be sure to specify the correct part for your system.
+The XROM will not work in a Model 4D system, and the XDROM will not work
+in a Model 4D.\fR
+
+.br
+.bp
+.sp .5i
+.nf
+											Page  2
+
+
+
+\fBUniversal Character Generator\fR for early Model 4 systems	 	Specify	4BCG000		$3.00
+
+.fi
+If your Model 4 was built before the fall of 1983, it may contain an obsolete
+character generator.  About that time, Radio Shack switched to a "universal"
+character generator which was used in all subsequent U.S. and international
+versions of the Model 4, 4P & 4D.  To check to see if you have the older
+part, go into BASIC and type:  \fL?CHR$(0);CHR$(26) <ENTER>
+.br
+\fRIf a vertical line is displayed, then you have the newer part.  If you see
+the letter \fLa\fR or some other character, you should consider upgrading your
+machine.  Instructions for installation of this genuine Radio Shack part
+are included.  Documentation on the character set begins on page A-58 of the
+\fITRSDOS 6.2 Disk System Owners Manual\fR.
+.nf
+
+
+Ordering information
+
+M.A.D. Software
+P.O. Box 331323
+Ft. Worth, Texas   76163
+
+
+.fi
+Prices are subject to change without notice.
+Texas residents must add state sales tax (6%).
+.br
+(The rate for Texas residents of Tarrant County is 7.5%.) 
+.br
+.sp
+First item shipping $2 US, $3 Canada, $6 Foreign.  Add .50 for each 
+additional item in order.
+.br
+We may ship your order using U.P.S. unless you specify
+otherwise or if the address is a P.O. Box.
+.br
+.sp
+Please include a daytime phone number we can use to reach you if there
+is a question about your order.
+.br
+Most orders will be shipped within one week.  If the order is delayed by
+more than three weeks, we will contact you and give you the option to
+cancel.
+
+
+
+Under development for Model 4/4D/4P systems
+
+.in .5i
+.ti -.5i
+o	New Boot ROM for Model 4P systems - Boot Model III operating systems
+in less than three seconds. Includes video, disk, and memory diagnostics and
+other features.
+.br
+
+.ti -.5i
+o	Networking Software for LS-DOS 6.3 using OMNINET/Network 4 hardware
+.br
+
+.in 0i
+
+If you are interested, send a SASE for more information.
+

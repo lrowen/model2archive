@@ -1,0 +1,519 @@
+;LBSYSGEN/ASM - SYSGEN Command
+	TITLE	<SYSGEN - LS-DOS 6.2>
+;
+PAR_ERR	EQU	44		;Parameter Error
+CR	EQU	13
+MOD3BUF	EQU	4300H
+RST28	EQU	28H
+;
+*GET	SVCMAC:3		;SVC Macro equivalents
+*LIST	OFF			;Get SYS0/EQU
+*GET	LDOS60/EQU:2		;<631>
+*GET	SYS0/EQU:2		;Xref of lowcore/sysres
+*LIST	ON
+;
+	ORG	2400H
+;
+	IF	@BLD631
+SYSGEN	LD	(SAVESP+1),SP	;<631>Save the stack pointer
+	PUSH	HL		;<631>
+	LD	HL,SFLAG$	;<631>
+	LD	A,(HL)		;<631>
+	RES	5,(HL)		;<631>JCL is not active, even if it is
+	LD	(L256D),A	;<631>Save original state
+	POP	HL		;<631>
+	@@CKBRKC		;<631>Break key down?
+	JR	NZ,ABORT	;<631>abort
+	ELSE
+SYSGEN	@@CKBRKC		;Break key down?
+	JR	Z,BEGINA	;Ok if not
+	LD	HL,-1		;  else abort
+	RET
+;
+;	Save stack & call the sysgen routine
+;
+BEGINA	LD	(SAVESP+1),SP	;Save the stack pointer
+	ENDIF
+	CALL	SYSGEN1		;Do the SYSGEN
+EXIT	LD	HL,0		;Set for no error
+SAVESP	LD	SP,$-$		;P/u original SP
+	IF	@BLD631
+	CALL	L2568		;<631>
+	ENDIF
+	@@CKBRKC		;Clear pending <BREAK>
+	RET			;Back to DOS
+;
+;	I/O Error Handler
+;
+PRMERR	LD	A,PAR_ERR	;Parameter Error
+IOERR	LD	L,A		;Error # to HL
+	LD	H,0
+	OR	0C0H		;Abbrev, return
+	LD	C,A
+	@@ERROR			;Display error
+	JR	SAVESP		;Exit
+;
+;	Internal Error Message Handler
+;
+NOMDSK	LD	HL,NOMDSK$	;"Memdisk active
+	DB	0DDH
+NORTES	LD	HL,NORTES$	;"File routes active
+	DB	0DDH
+NOTFND	LD	HL,NOTFND$	;"No config found
+	DB	0DDH
+NOSPL	LD	HL,NOSPL$	;"Spooler active
+	DB	0DDH
+	IF	@BLD631
+ISWP:	LD	HL,ISWP$	;<631>Drive is write protected
+	ELSE
+NOINDO	LD	HL,NOINDO$	;"JCL active
+	ENDIF
+	DB	0DDH
+NOCANDO	LD	HL,NOCANDO$	;"Sysgen inhibit set
+	CALL	@LOGOT
+	IF	@BLD631
+ABORT
+	ENDIF
+	LD	HL,-1		;Set abort code
+	JR	SAVESP		;Exit
+;
+;	SYSGEN1 - Save the state of the system
+;
+SYSGEN1	LD	DE,PRMTBL$	;Check for user parameters
+	@@PARAM
+	JP	NZ,PRMERR	;Quit on parm error
+	@@FLAGS
+;
+;	Routine to process DRIVE parameter
+;
+DRIVE	LD	BC,0		;Drive parm response
+	LD	A,C
+	CP	8		;Drive in range?
+	JP	NC,PRMERR	;Go if > 7
+	OR	'0'		;Make it ASCII
+	LD	(CFGSPEC),A	;  & stuff drive spec
+	LD	(ATRSPEC),A
+	IF	@BLD631
+	@@CKDRV			;<631>
+	JP	C,ISWP		;<631>
+	ENDIF
+	CALL	NPARM		;Ck on yes or no entry
+	JP	Z,CFGOFF	;Jump if SYSGEN=OFF
+	IF	@BLD631
+	ELSE
+	BIT	5,(IY+'S'-'A')	;Can't sysgen during DO
+	JP	NZ,NOINDO
+	ENDIF
+	BIT	0,(IY+'D'-'A')	;Can't sysgen if spooler
+	JP	NZ,NOSPL	;  is active
+	BIT	4,(IY+'D'-'A')	;Can't sysgen if memdisk
+	JP	NZ,NOMDSK	;  is active
+	BIT	5,(IY+'C'-'A')	;CK user sysgen inhibit
+	JP	NZ,NOCANDO	;Quit if set
+	CALL	CKRTES		;Ck if any route to file
+	JP	NZ,NORTES	;Can't if so
+;
+;	Initialize a CONFIG file on disk 0, or user spec'ed drive
+;
+	LD	DE,GENDCB	;"CONFIG/SYS.CCC
+	LD	HL,GENBUF	;Config I/O buffer
+	LD	B,0		;Set LRL=256
+	@@INIT			;Create config file
+	JP	NZ,IOERR	;Quit on init error
+;
+;	Generate the file header block
+;
+	LD	A,5		;Put file header
+	CALL	PUTOUT
+	LD	A,6		;Put header length
+	CALL	PUTOUT
+	LD	B,6		;Put header name
+	LD	HL,CFGNAM$	;"CONFIG"
+WRNAM	LD	A,(HL)		;Write name to
+	INC	HL		;  config file header
+	CALL	PUTOUT
+	DJNZ	WRNAM
+;
+;	Generate disabling of all interrupts
+;
+	LD	B,1		;Set block length
+	LD	DE,@RST38	;Set load address
+	LD	HL,C9FLD	;Point to block (X'C9')
+	CALL	WRBLCK		;Write the block
+;
+;	Dump memory from (DVRHI$) to DVREND$
+;
+	LD	HL,(DVRHI$)	;Point to max memory
+	LD	DE,DVREND$	;Point to start
+	XOR	A
+	SBC	HL,DE		;How much to save
+	LD	B,H		;  into BC
+	LD	C,L
+	CALL	NZ,DUMP		;File DVREND$ to top
+;
+;	Dump memory from HIGH$ to top-of-memory FIRST
+;
+	LD	DE,(PHIGH$)	;Point to max memory
+	LD	HL,0		;Set up to get current
+	LD	B,L		;  HIGH$
+	@@HIGH$
+	EX	DE,HL		;HIGH$ to DE,
+	XOR	A		;  PHIGH to HL
+	SBC	HL,DE		;How much to save?
+	LD	B,H
+	LD	C,L
+	INC	DE		;First byte in use
+	CALL	NZ,DUMP		;File HIGH$+1 to top
+;
+;	Generate all data from address table
+;
+	LD	HL,ADRTBL$	;Point to grab table
+WRTBL	LD	C,(HL)		;P/u lo order length
+	INC	HL
+	LD	B,(HL)		;P/u hi order length
+	INC	HL
+	LD	A,B
+	OR	C
+	JR	Z,GENDCT	;Exit on zero length
+	LD	E,(HL)		;P/u lo order address
+	INC	HL
+	LD	D,(HL)		;P/u hi order address
+	INC	HL
+	PUSH	HL		;Save table pointer
+	CALL	DUMP		;P/u the code & file it
+	POP	HL		;Restore table pointer
+	JR	WRTBL
+;
+;	Generate the DCT$ (offset)
+;
+GENDCT	LD	B,80		;Table is 80 bytes
+	LD	DE,MOD3BUF	;Place to stuff DCT$
+	LD	C,0
+	@@GTDCT			;Write out the DCTs
+	PUSH	IY		;  handled by SYS0
+	POP	HL
+	CALL	WRBLCK
+;
+;	Generate the original interrupt vector JP
+;
+INTVEC	LD	B,1		;File the interrupt
+	LD	DE,@RST38	;  vector address
+	LD	HL,JPINST	;  with a JP
+	CALL	WRBLCK		;Write the block
+;
+;	Generate the transfer address
+;
+	LD	A,2		;Transfer address
+	CALL	PUTOUT
+	LD	A,2
+	CALL	PUTOUT
+	XOR	A		;Xfer address is 0000
+	CALL	PUTOUT
+	XOR	A
+	CALL	PUTOUT
+	@@CLOSE			;Close config file
+	JP	NZ,IOERR	;Quit on close error
+;
+;	Let the config sector know there's a CONFIG/SYS
+;
+	IF	@MOD2
+;
+	LD	A,(DRIVE+1)	;Drive #
+	LD	C,A		;Pass drive #
+	LD	HL,SBUFF$	;I/O buffer
+	@@GTDCT			;Fetch DCT
+;
+	LD	A,(IY+3)	;Get DCT data
+	AND	28H		;Bit 5/3
+	CP	20H		;8" floppy?
+	JR	NZ,SETSYS1	;Go if not
+	LD	A,(IY+4)	;Get DCT data
+	AND	50H		;Bit 6/4
+	CP	40H		;DD and not alien?
+	JR	NZ,SETSYS1	;Go if not
+;
+	LD	D,(IY+9)	;Get GAT address
+	LD	E,0		;DE=>gat
+	@@RDSEC			;Read sector
+	CP	6		;Directory?
+	JP	NZ,IOERR	;Go on disk error
+	LD	A,(SBUFF$+0CDH)	;Get gat data byte
+	BIT	7,A		;Data disk?
+SETSYS1	LD	D,0		;Init sys info sector
+	JR	NZ,$+3		;Go if not 8" floppy sys
+	INC	D		;  else sysinfo on cyl 1
+	LD	E,2		;Sysinfo sector
+;
+	ENDIF
+;
+	LD	HL,SBUFF$	;Use this as disk buffer
+;
+	IF	@MOD4
+	LD	DE,0<8+2	;Trk 0, sect 2 (SIS)
+	ENDIF
+;
+	LD	A,(DRIVE+1)	;P/u logical drive #
+	LD	C,A		;  of drive (DRIVE)
+	@@RDSEC			;Read System Info Sector
+	JP	NZ,IOERR	;Quit on read error
+	XOR	A		;Turn on standard config
+	LD	(SBUFF$+1),A
+	@@WRSEC			;Write it back
+	JP	NZ,IOERR	;Quit on write error
+	LD	L,0C0H		;Pt to SYS/DATA byte
+	OR	(HL)		;Check if System disk
+	LD	HL,WARN$	;  and inform in not
+	JR	NZ,$+5
+	@@LOGOT
+;
+;	Let user know it's done
+;
+	@@LOGOT	CFGBLT		;Log completion
+	IF	@BLD631
+	CALL	L2568		;<631>
+	ENDIF
+	LD	HL,ATRBIT	;Make CONFIG invisible
+	LD	A,24		;Init for CMNDI
+	JP	RST28		;  & execute
+	@@CMNDI
+	IF	@BLD631
+L2568:	PUSH	HL		;<631>Restore previous SFLAG$
+	LD	HL,SFLAG$	;<631>setting, including
+L256D:	EQU	$+1		;<631>turning JCL back on if
+	LD	(HL),0		;<631>it was on before.
+	POP	HL		;<631>
+	RET			;<631>
+	ENDIF
+;
+;	Routine to DUMP core
+;
+DUMP	EX	DE,HL		;Load address to HL
+	LD	DE,GENDCB	;Config/sys FCB
+DUMP1	PUSH	HL
+	PUSH	BC		;Save block length
+	LD	H,B		;Length of this block
+	LD	L,C		;  to HL
+	LD	BC,254		;Write block in groups
+	XOR	A		;Of 254 bytes max
+	SBC	HL,BC		;Sub blk len fm dump len
+	JR	NC,DUMP2	;Go if write len > 254
+	POP	BC		;Recover block len
+	LD	HL,0		;Show block written
+	JR	DUMP3
+DUMP2	POP	AF		;Remove old len from stack
+DUMP3	EX	(SP),HL		;Xchg len w/address
+	LD	B,C
+	LD	A,1		;Start of block
+	CALL	PUTOUT
+	LD	A,B
+	ADD	A,2		;Add for address
+	CALL	PUTOUT		;Write block length
+	LD	A,L
+	CALL	PUTOUT		;Write lo order address
+	LD	A,H
+	CALL	PUTOUT		;Write hi order address
+DUMP4	LD	A,(HL)
+	INC	HL
+	CALL	PUTOUT		;Write the block
+	DJNZ	DUMP4
+	POP	BC		;Get remaining length
+	LD	A,B
+	OR	C
+	JR	NZ,DUMP1	;Loop if block not done
+C9FLD	RET			;  else go back
+;
+;	Routine to write an offset block
+;
+JPINST	DB	0C3H		;JP instruction
+WRBLCK	PUSH	HL		;Save real load address
+	LD	H,D		;HL = offset address
+	LD	L,E
+	LD	DE,GENDCB	;Config/sys FCB
+	LD	A,1		;Start of block
+	CALL	PUTOUT
+	LD	A,B
+	ADD	A,2		;Adj for address
+	CALL	PUTOUT		;Write block length
+	LD	A,L
+	CALL	PUTOUT		;Write lo order load
+	LD	A,H
+	CALL	PUTOUT		;Write hi order load
+	POP	HL		;Recover real address
+WRBLK1	LD	A,(HL)		;  and p/u data from there
+	INC	HL
+	CALL	PUTOUT		;Write the block
+	DJNZ	WRBLK1
+	RET
+;
+;	Perform SYSGEN OFF
+;
+CFGOFF	LD	HL,SBUFF$	;Set disk I/O buffer
+;
+	IF	@MOD2
+;
+	LD	A,(DRIVE+1)	;Get drive
+	LD	C,A		;Pass to C
+	@@GTDCT			;Fetch DCT
+	LD	D,(IY+9)	;Dir cylinder
+;
+	LD	A,(IY+3)	;Get dct data
+	AND	28H		;Bit 5/3
+	CP	20H		;8" floppy?
+	JR	NZ,SETSYS2	;Go if not
+	LD	A,(IY+4)	;Get data
+	AND	50H		;Bit 6/4
+	CP	40H		;DD not alien?
+	JR	NZ,SETSYS2	;Go if not
+;
+	LD	E,0		;GAT table
+	@@RDSEC			;Read sector
+	CP	6		;Directory read?
+	JP	NZ,IOERR	;Go if not
+	LD	A,(SBUFF$+0CDH)	;Get gat data byte
+	BIT	7,A		;System disk?
+SETSYS2	LD	D,0		;Cyl 0 if not
+	JR	NZ,$+3		;Go if not
+	INC	D		;Else on cyl 1
+	LD	E,2		;Sysinfo sector
+;
+	ENDIF
+;
+	IF	@MOD4
+	LD	DE,0<8+2	;Trk 0, sect 2 (SIS)
+	ENDIF
+;
+	LD	A,(DRIVE+1)	;P/u drive number
+	LD	C,A		;  & note
+	@@RDSEC			;  that no config is
+	JP	NZ,IOERR	;  on the disk
+	LD	A,0C9H
+	LD	(SBUFF$+1),A	;A X'C9' indicates
+	@@WRSEC			;  no config
+	JP	NZ,IOERR	;Quit if write error
+;
+;	Now that none is shown, kill the CONFIG/SYS
+;
+	LD	DE,GENDCB	;Pt to FCB
+	LD	B,0
+	@@OPEN			;Try to open the config
+	JP	NZ,NOTFND	;Jump if not there
+	@@REMOV			;Kill the config/sys
+	JP	NZ,IOERR	;Quit if can't be killed
+	@@LOGOT	CFGDEL$		;"config deleted..
+	RET			;Done - return
+;
+;	Parameter parsing of yes/no
+;
+NPARM	LD	BC,0		;P/u "no" parm entry
+	LD	A,B
+	OR	C		;If NO, make Z
+	XOR	0FFH
+	RET
+YPARM	DW	0
+;
+;	Any devices routed to files?
+;
+CKRTES	LD	DE,'IK'		;Point to begin of area
+	@@GTDCB
+CKRT0	PUSH	HL		;Save pointer
+CKRT1	BIT	4,(HL)		;Routed device?
+	JR	Z,CKRT2		;Jump if not
+	INC	L		;Bypass TYPE code
+	LD	A,(HL)		;P/u route vector
+	INC	L		;  lo-order
+	LD	H,(HL)		;P/u vector hi-order
+	LD	L,A
+	BIT	7,(HL)		;Routed to a file?
+	JR	Z,CKRT1		;Ck further route if not
+	POP	HL		;  else exit with NZ
+	RET
+;
+;	Point to next device
+;
+CKRT2	POP	HL		;Recover DCB pointer
+	LD	A,L		;Advance to next DCB area
+	ADD	A,8		;Loop through all
+	LD	L,A		;  devices while checking
+	JR	NZ,CKRT0	;Loop until table end
+	RET
+;
+PUTOUT	LD	C,A		;Byte into C
+	@@PUT			;Do the put
+	RET	Z		;Back if good
+	JP	IOERR		;  else abort
+;
+GENDCB	DB	'CONFIG/SYS.CCC:0',0
+CFGSPEC	EQU	$-2
+	DS	32-$+GENDCB
+CFGNAM$	DB	'CONFIG'
+CFGBLT	DB	'User configuration built',CR
+ATRBIT	DB	'Attrib CONFIG/SYS.CCC:d (I)',CR
+ATRSPEC	EQU	$-6
+CFGDEL$	DB	'User configuration deleted',CR
+NOTFND$	DB	'No user configuration found',CR
+WARN$	DB	'Warning: Target drive contains no system',CR
+	IF	@BLD631
+ISWP$	DB	'Specified drive is write protected',CR
+	ELSE
+NOINDO$	DB	'Command invalid during <DO> processing',CR
+	ENDIF
+NOCANDO$	DB	'** SYSGEN inhibited at this time **',CR
+NOSPL$	DB	'Can''t while SPOOL is active',CR
+NOMDSK$	DB	'Can''t while MEMDISK is active',CR
+NORTES$	DB	'Can''t while route-to-file is active',CR
+;
+PRMTBL$	DB	80H,42H,'ON',0
+	DW	YPARM
+	DB	43H,'OFF',0
+	DW	NPARM+1
+	DB	53H,'YES',0
+	DW	YPARM
+	DB	52H,'NO',0
+	DW	NPARM+1
+	DB	95H,'DRIVE',0
+	DW	DRIVE+1
+	NOP
+;
+;	Table of regions to sysgen
+;
+ADRTBL$	DW	2,HIGH$		;Save HIGH$
+	DW	2,LOW$		;Lowest user address
+	DW	1,TIMSL$	;Time slice
+	DW	250,DVRHI$	;Save primary DCBs
+	DW	3,EXTDBG$	;Ext DEBUG vector & DBGHK
+	DW	50,INTIM$	;Table & TCBs
+	DW	34,FLGTAB$	;Flag table & assorted
+	DW	2,75*2+SVCTAB$	;Save WRITE vector
+	DW	3,HKRES$	;Sys overlay hook
+	DW	2,KIDATA$+2
+	DW	1,DODATA$
+	DW	2,DODATA$+3
+	DW	16,240+SVCTAB$	;SVCs 120 - 127
+	DW	16,@RST08	;RST zones 8 and 10
+	DW	1,HERTZ$	;Hertz rate for timer
+	IF	@BLD631
+	DW	1,@PRTIMO	;<631>Printer time-out patch addr
+	ENDIF
+;
+	IF	@MOD2
+	DW	3,$CRSCHAR	;Cursor char + column siz
+	ENDIF
+	IF	@MOD4
+	DW	0,0
+	ENDIF
+;
+	DW	0,0
+	DW	0,0
+	DW	0,0
+	DW	0,0
+	DW	0,0
+	DW	0,0
+	DW	0,0
+	DW	0		;End of table
+	DC	20,0		;Patch space
+;
+	ORG	$<-8+1<+8
+GENBUF	EQU	$
+;
+	END	SYSGEN
+

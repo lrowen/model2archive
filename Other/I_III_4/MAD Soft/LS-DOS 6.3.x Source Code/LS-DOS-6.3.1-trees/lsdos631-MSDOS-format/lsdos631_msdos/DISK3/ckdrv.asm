@@ -1,0 +1,23 @@
+	CALL	@RSLCT		;wait until not busy
+	LD	A,32		;Init illegal drive
+	RET	NZ		;Not there can't use
+	BIT	3,(IY+3)	;If hard drive, bypass
+	JR	NZ,SAWBLK
+	BIT	4,(IY+4)	;If "ALIEN" by pass
+	JR	NZ,SAWBLK
+;*****
+;	test for diskette in drive (no index)
+;*****
+	LD	B,30H		;set up count (short)
+BLACK	CALL	@RSLCT		;Check for index pulse
+	BIT	1,A		;test index
+	JR	Z,SAWBLK	;Saw black, seems OK
+	DJNZ	BLACK
+	LD	A,32		;Init Illegal Drive
+	OR	A		;Set NZ
+	RET
+;*****
+;	diskette is there, lets continue
+;*****
+SAWBLK
+

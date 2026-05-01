@@ -1,0 +1,36 @@
+Drive :6  SRC631D2   40 Cyl, DDEN, Free =    9.00K /   360.00K,  Date 25-May-98
+Filespec    MOD Attr   Prot  LRL  #Recs  EOF  File Size  Ext  Mod Date   Time
+-------------------------------------------------------------------------------
+LBATTRIB/ASM           FULL   256    58  252     15.00K    1  19-Apr-98  11:00p
+LBAUTO/ASM             FULL   256    19  112      6.00K    1  26-Apr-98  11:12p
+LBBUILD/ASM            FULL   256    30   39      7.50K    1  26-Apr-98  11:17p
+LBCOPY/ASM             FULL   256     2   68      1.50K    1  13-Apr-98  11:47p
+LBCREATE/ASM           FULL   256    25  223      7.50K    1  26-Apr-98  11:06p
+LBDATE/ASM             FULL   256    50   21     13.50K    1  19-Apr-98  10:45p
+LBDEVICE/ASM           FULL   256    56  102     15.00K    1  17-Apr-98  11:41p
+LBDIRA/ASM             FULL   256    62  203     16.50K    1  25-May-98   2:59p
+LBDIRB/ASM             FULL   256    57  129     15.00K    1  19-May-98  11:49p
+LBDIRC/ASM             FULL   256    84    8     21.00K    1  19-May-98  11:38p
+LBDO/ASM               FULL   256    81  208     21.00K    1  25-May-98   3:42p
+LBDUMP/ASM             FULL   256    20  145      6.00K    1   1-Jul-87  12:00a
+LBFORMS/ASM            FULL   256    74  233     19.50K    1   1-Jul-87  12:00a
+LBFREE/ASM             FULL   256    74  144     19.50K    1  19-Apr-98  10:02p
+LBLIB/ASM              FULL   256    15    8      4.50K    1  14-Apr-98   9:20p
+LBLINK/ASM             FULL   256    10  175      3.00K    1   1-Jul-87  12:00a
+LBLOAD/ASM             FULL   256    16  162      4.50K    1   1-Jul-87  12:00a
+LBMEMORY/ASM           FULL   256    64  194     16.50K    1  25-May-98   3:11p
+LBPURGE/ASM            FULL   256    65  239     16.50K    1  20-Apr-98  12:11a
+LBREMOVE/ASM           FULL   256    22   87      6.00K    1  14-Apr-98  10:39p
+LBRENAME/ASM           FULL   256    28   38      7.50K    1  14-Apr-98  10:30p
+LBRESET/ASM            FULL   256    23  207      6.00K    1  19-Apr-98  10:00p
+LBROUTE/ASM            FULL   256    22  215      6.00K    1   1-Jul-87  12:00a
+LBSET/ASM              FULL   256    20    5      6.00K    1   1-Jul-87  12:00a
+LBSETCOM/ASM           FULL   256    79  162     21.00K    1   1-Jul-87  12:00a
+LBSETKI/ASM            FULL   256    27   32      7.50K    1  19-May-98   9:57p
+LBSPOOL/ASM            FULL   256     1   99      1.50K    1   1-Jul-87  12:00a
+LBSPOOLA/ASM           FULL   256    79   14     21.00K    2  25-May-98   3:54p
+LBSYSASM/ASM           FULL   256     1   29      1.50K    1   2-Apr-98  12:21a
+LBSYSTEM/ASM           FULL   256   106   66     27.00K    1  29-Apr-98  12:01a
+===============================================================================
+                    30 files of  32 selected,   340.50K
+

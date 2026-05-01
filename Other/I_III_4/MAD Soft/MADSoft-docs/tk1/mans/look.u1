@@ -1,0 +1,396 @@
+
+
+
+     LLLLOOOOOOOOKKKK((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              LLLLOOOOOOOOKKKK((((UUUU1111))))
+
+
+
+     NNNNaaaammmmeeee
+          LOOK - Determines the format of alien-format diskettes and
+          displays the position of files on LS-DOS, LDOS or TRSDOS 6
+          disks.
+
+     SSSSyyyynnnnttttaaaaxxxx
+          llllooooooookkkk [ ----aaaammmmppppqqqqttttuuuu!!!!????hhhh ] [[::::]_d_r_i_v_e] [ ----ffff _f_i_l_e_n_a_m_e::::_d_r_i_v_e ]
+          [ ----cccc _c_y_l_i_n_d_e_r [ ----gggg _g_r_a_n_u_l_e | ----ssss _s_e_c_t_o_r ]]
+          [ >>>>[>>>>] _f_i_l_e | _d_e_v_i_c_e ] [ ; _n_e_x_t _c_o_m_m_a_n_d ]
+
+     DDDDeeeessssccccrrrriiiippppttttiiiioooonnnn
+          _L_o_o_k analyzes a diskette and determines how it is formatted.
+          Diskettes formatted by numerous other computers can be
+          identified.  _L_o_o_k is also able to tell the difference
+          between an unformatted diskette and a formatted one, even if
+          _l_o_o_k doesn't know what format the diskette is in.
+
+          _L_o_o_k will also recognize selected system formats that are
+          recorded in the high-density formats that are commonly used
+          today.  These include MS/PC-DOS HD, Tandy 16/6000 XENIX, and
+          Tandy Model II/12/16 TRSDOS II.  (Although _l_o_o_k can
+          recognize these formats, the data on these diskettes cannot
+          be read by a Model III/4 system due to limitations in the
+          hardware.)
+
+          If the disk being examined is recorded in LS-DOS, LDOS or
+          TRSDOS 6 format, _l_o_o_k can display the locations of the files
+          on the disk.  This information can be used to help recover
+          data on corrupted disks, disks with read errors, or to
+          examine fragmentation of files.
+
+          Depending on the parameters, _l_o_o_k will display information
+          on all files located on a disk, or information on one
+          specific file.  You can also specify a location on the disk
+          and _l_o_o_k will tell you what file resides there.
+
+          When a full display is used, each line shows the files that
+          are stored in a given cylinder.  If a cylinder has more than
+          four granules, the information is displayed on two lines.
+
+          _L_o_o_k accepts several options.  Options are specified by
+          single characters, and they may be entered in upper or
+          lowercase.  Options are always preceded by a hyphen (a "-").
+          If you are specifying multiple options, you can specify the
+          options in any of these formats:
+                -a -b -c   or   -abc   or   -a -bc   or  -ab -c
+
+          The options are:
+
+          ----aaaa   The summary of the media type and its organization will
+               not be displayed.  This option is the opposite of ----tttt
+               and only works on LS-DOS, LDOS and TRSDOS 6 disks.
+
+
+
+     Page 1                                             May 15th, 1993
+
+
+
+
+
+
+     LLLLOOOOOOOOKKKK((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              LLLLOOOOOOOOKKKK((((UUUU1111))))
+
+
+
+          ----mmmm or ----pppp
+               This option routes the output of _l_o_o_k through the
+               _m_o_r_e(U1) utility.  The screen will pause once 23 lines
+               of text have been displayed.  The _m_o_r_e(U1) prompt
+               ("--More--") allows you to advance or search through
+               the remainder of the display.  See the _m_o_r_e(U1) command
+               for information on the options that _m_o_r_e(U1) provides.
+               The ----pppp and ----mmmm options are ignored if the output is
+               redirected.
+
+          ----qqqq   The headers and other general information are not
+               displayed.
+
+          ----tttt   The summary on the media type and its organization is
+               displayed but no allocation map is produced.  This
+               command is the opposite of ----aaaa and only works on LS-DOS,
+               LDOS and TRSDOS 6 disks.
+
+          ----uuuu   Cylinders that are completely unassigned are not
+               displayed in the allocation map.  This option is
+               ignored if ----ffff or ----cccc are used.  This command only works
+               on LS-DOS, LDOS and TRSDOS 6 disks.
+
+          ----!!!!   Causes _l_o_o_k to ignore any default settings that are
+               specified in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file.  _L_o_o_k will also
+               ignore any options that are specified to the left of
+               the ----!!!! option.  Note that the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file is
+               accessed even if the ----!!!! option is specified.
+
+          ----???? oooorrrr ----hhhh
+               Displays the help message.
+
+          [:]_d_r_i_v_e
+               Specifies the logical drive that contains the disk to
+               analyze.  The logical drive number can be a diskette,
+               hard disk, or _D_i_s_k_D_i_s_k(M).  A drive number must be
+               specified unless the ----ffff option is used.
+
+          ----ffff _f_i_l_e_n_a_m_e::::_d_r_i_v_e
+               Locates the granules that the specified file occupies.
+               This command only works on LS-DOS, LDOS and TRSDOS 6
+               disks.  The _d_r_i_v_e number must be specified.
+
+          ----cccc _c_y_l_i_n_d_e_r
+               By specifying a particular _c_y_l_i_n_d_e_r and a _s_e_c_t_o_r or a
+               _g_r_a_n_u_l_e, _l_o_o_k will determine which file is assigned to
+               that location on the disk.  The _c_y_l_i_n_d_e_r number can be
+               specified in decimal, or in hexadecimal by preceding
+               the number with 0000xxxx, such as 0x14.
+
+               When ----cccc is specified, ----gggg or ----ssss must also be specified.
+               The ----cccc option cannot be used with the ----ffff option.
+
+
+
+     Page 2                                             May 15th, 1993
+
+
+
+
+
+
+     LLLLOOOOOOOOKKKK((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              LLLLOOOOOOOOKKKK((((UUUU1111))))
+
+
+
+          ----gggg _g_r_a_n_u_l_e
+               Used with the ----cccc option.  ----gggg is used to specify the
+               _g_r_a_n_u_l_e to analyze.   ----gggg cannot be used with ----ssss or ----ffff.
+
+          ----ssss _s_e_c_t_o_r
+               Used with the ----cccc option.  ----ssss is used to specify the
+               _s_e_c_t_o_r to analyze.   ----ssss cannot be used with ----gggg or ----ffff.
+
+          >>>>[>>>>] _f_i_l_e | _d_e_v_i_c_e
+               By specifying a file or device, the output is sent to
+               the specified file or device instead of the display.
+               This is known as _r_e_d_i_r_e_c_t_e_d _o_u_t_p_u_t.  For example, the
+               command llllooooooookkkk ::::1111 >>>> ttttyyyyppppeeee::::0000 stores the output of _l_o_o_k in
+               the file TTTTYYYYPPPPEEEE::::0000.  If >>>>>>>> is used, _l_o_o_k will append the
+               output of _l_o_o_k to the existing contents of the
+               specified file or device.  _F_i_l_e_s_p_e_c_s for redirection
+               may not specify a password.
+
+          ; _n_e_x_t _c_o_m_m_a_n_d
+               After _l_o_o_k completes, the remainder of the command line
+               is executed as a second command.  The command llllooooooookkkk
+               ::::5555;;;;ttttiiiimmmmeeee will report on the disk in drive 5, and then
+               the time will be displayed.
+
+          <SHIFT>@
+               When pressed during output to the display, the output
+               will pause.  Pressing any other key resumes output.
+               Pressing this key is ignored when output is redirected.
+
+
+     FFFFiiiilllleeeessss
+          _L_o_o_k reads the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file and uses any default
+          options that are specified there.  For example, if you
+          wanted _l_o_o_k to omit the headers by default, the following
+          entry in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file would do this:
+                      LOOK -Q
+          Options in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file are ignored if the ----!!!!
+          option is specified on the command line.
+
+          It is important that the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file be present on a
+          logical drive with a number lllloooowwwweeeerrrr than the floppy drives you
+          may use to test alien diskettes.  _L_o_o_k will search for the
+          DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file until it is found or all disk drives have
+          been checked.  Some alien diskettes formats can confuse LS-
+          DOS/TRSDOS 6 and may hang the operating system if this
+          search tries to examine an alien diskette.  (MS-DOS
+          diskettes will do this.)  By placing DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD on a drive
+          with a logical number lower than the test floppy drive you
+          use, you can prevent LS-DOS/TRSDOS 6 from accidentally
+          trying to read an alien diskette.  The best performance can
+          be obtained by placing the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file on drive 0.
+
+
+
+
+     Page 3                                             May 15th, 1993
+
+
+
+
+
+
+     LLLLOOOOOOOOKKKK((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              LLLLOOOOOOOOKKKK((((UUUU1111))))
+
+
+
+          _L_o_o_k uses the LLLLOOOOOOOOKKKK////IIIINNNNIIII file to identify disks made by
+          operating systems other than LS-DOS, LDOS or TRSDOS 6.  The
+          LLLLOOOOOOOOKKKK////IIIINNNNIIII file contains ssssiiiiggggnnnnaaaattttuuuurrrreeeessss that are compared against
+          the diskette being tested.  When a match is made, the
+          description from the LLLLOOOOOOOOKKKK////IIIINNNNIIII file is displayed.
+
+          The LLLLOOOOOOOOKKKK////IIIINNNNIIII file that is included with _l_o_o_k(U1) contains
+          signatures so that _l_o_o_k can recognize these alien formats:
+                TRSDOS 1.1, 1.3, 2.3, 2.7DD   NEWDOS 2.0, 2.5
+                MULTIDOS 1.6, 1.7             MS/PC-DOS (low cap)
+                MODEL 100/200                 Various CP/M formats
+                Color Computer                Datasoft
+
+          Additional entries can be added to the LLLLOOOOOOOOKKKK////IIIINNNNIIII file so that
+          more formats can be recognized.  This file can be modified
+          with almost any editor.
+
+          Each entry in LLLLOOOOOOOOKKKK////IIIINNNNIIII starts at the beginning of a line and
+          has the following format:
+
+                sssseeeeccccttttoooorrrr ssssiiiizzzzeeee,,,, ccccyyyylllliiiinnnnddddeeeerrrr,,,, sssseeeeccccttttoooorrrr,,,, ooooffffffffsssseeeetttt,,,, ccccoooouuuunnnntttt
+                ppppaaaatttttttteeeerrrrnnnn  """"ssssttttrrrriiiinnnngggg""""
+
+          Here is an example of an entry in the LLLLOOOOOOOOKKKK////IIIINNNNIIII file:
+                1,0,1,0,6  0x01,0x00,0x00,0x4e,0x58,0x5a  "TRSDOS 2.3"
+          Each parameter is described below.
+
+          The sssseeeeccccttttoooorrrr ssssiiiizzzzeeee is a number and must be one of the
+          following:
+                0     for 128 byte sectors (3740 format)
+                1     for 256 byte sectors (most Model III/4 formats)
+                2     for 512 byte sectors (some CP/M and all MS-DOS
+                      formats)
+                3     for 1024 byte sectors (no known examples)
+
+          The ccccyyyylllliiiinnnnddddeeeerrrr field specifies which cylinder is to be
+          examined to test for this format.  The ccccyyyylllliiiinnnnddddeeeerrrr number is a
+          value from 00 to 79.  You should avoid using a cylinder
+          above 39 as part of your signature as these locations cannot
+          be reached on a 40 cylinder drive, and could damage the
+          drive.
+
+          The sssseeeeccccttttoooorrrr field specifies which sector is to be read to
+          test for this format.  Note that _l_o_o_k will run faster if you
+          keep all the entries that specify the same sssseeeeccccttttoooorrrr ssssiiiizzzzeeee,
+          ccccyyyylllliiiinnnnddddeeeerrrr and sssseeeeccccttttoooorrrr number together.  The sector will only
+          have to be read from the diskette a single time if you do
+          this.
+
+
+
+
+
+
+
+     Page 4                                             May 15th, 1993
+
+
+
+
+
+
+     LLLLOOOOOOOOKKKK((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              LLLLOOOOOOOOKKKK((((UUUU1111))))
+
+
+
+          The ooooffffffffsssseeeetttt field specifies where in the sector to start
+          comparing for the pattern that is to be tested.  In most
+          cases, this value will be zero.
+
+          The ccccoooouuuunnnntttt field indicates how many bytes are specified in
+          the ppppaaaatttttttteeeerrrrnnnn field.  Note that this is the count of bytes
+          specified, and this includes any escape characters.  The
+          ccccoooouuuunnnntttt and ppppaaaatttttttteeeerrrrnnnn fields are separated by one or more
+          spaces.
+
+          The ppppaaaatttttttteeeerrrrnnnn consists of one or more bytes (as specified by
+          ccccoooouuuunnnntttt) that are compared against the data read from the
+          diskette.  If the pattern completely matches the data on the
+          diskette, the format has been found.
+
+          _L_o_o_k recognizes two escape sequences in the ppppaaaatttttttteeeerrrrnnnn field.
+          The sequence 0xff 0x00 will match any character in this
+          position on the diskette being tested.  This is used to skip
+          a byte that changes on diskettes of the same format.  A good
+          example of the use of the "wildcard" sequence would be on a
+          LDOS, LS-DOS or TRSDOS 6 diskette, as these systems place
+          the number of the directory cylinder in the boot sector.
+          The remaining bytes at the start of the boot sector never
+          change in these operating systems, so by telling _l_o_o_k to
+          skip the one byte, a single entry in the LLLLOOOOOOOOKKKK////IIIINNNNIIII file can
+          be used to identify all of these formats.
+
+          The other escape sequence is 0xff 0xff, which is treated as
+          a single occurrence of 0xff.  If an 0xff appears in the
+          sector on the diskette you want to test, you must use 0xff
+          0xff in the pattern to match it.
+
+          Finally, the ssssttttrrrriiiinnnngggg field contains the description that _l_o_o_k
+          will display when a match is found in the LLLLOOOOOOOOKKKK////IIIINNNNIIII file.
+          The string must be enclosed in double-quotes and will be
+          displayed exactly as it appears.  The description must be
+          completely on one line.  Disk formats that have a directory
+          structure identical to LDOS, LS-DOS or TRSDOS 6 should place
+          a plus ("+") as the first character of the ssssttttrrrriiiinnnngggg field.
+          This informs _l_o_o_k that the file allocation maps can be
+          computed and displayed for this disk.  (Using this character
+          on incompatible formats will have unpredictable results.)
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 5                                             May 15th, 1993
+
+
+
+
+
+
+     LLLLOOOOOOOOKKKK((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              LLLLOOOOOOOOKKKK((((UUUU1111))))
+
+
+
+          Entries in the LLLLOOOOOOOOKKKK////IIIINNNNIIII can be broken across one or more
+          lines by using the back-slash character ("\") at the end of
+          the line being split.  You must split the line between
+          entries, and you cannot split the ssssttttrrrriiiinnnngggg field across two or
+          more lines.  For example:
+                2,0,1,0,12 0xeb,0x3c,0x90,0x49,0x42,0x4d,0x20,0x20 \
+                            0x35,0x2e,0x30,0x00 \
+                            "MS-DOS 5.0"
+          Note that the comma between fields is implied when a line is
+          split, and must not be included.  Extra spaces between
+          fields are ignored.
+
+          In most cases, any new entries should follow the entries for
+          that sssseeeeccccttttoooorrrr ssssiiiizzzzeeee and ccccyyyylllliiiinnnnddddeeeerrrr/sssseeeeccccttttoooorrrr numbers that are
+          already in the file.
+
+          Finally, you can place comments in the LLLLOOOOOOOOKKKK////IIIINNNNIIII file.  Lines
+          that start with a #### are ignored.  Try to keep comments to a
+          minimum, as the presence of large numbers of comments will
+          affect the speed of _l_o_o_k.
+
+
+          If you need more information on _l_o_o_k(U1) or if you want to
+          obtain the LDOS 5.3 version, please write to M.A.D.
+          Software, P.O. Box 331323, Ft. Worth Texas, 76163.  Please
+          include a Self-Addressed-Stamped-Envelope when requesting
+          information.
+          ------
+          305151
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 6                                             May 15th, 1993
+
+
+

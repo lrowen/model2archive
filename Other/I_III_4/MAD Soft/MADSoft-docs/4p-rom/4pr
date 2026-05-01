@@ -1,0 +1,842 @@
+\"Updated 9-Jul-90
+.lg 0
+.de bx
+.ds B \(br\|\s-2\fB\\$1\fP\s+2\|\(br
+.nr X 0-\w'\\*B'
+\&\\*B\l'\\nXu\(rn'\l'\\nXu\(ul'\c
+.rr X
+.rm B
+..
+.de en
+\\$1\c
+\fB\s-2\(br\|BREAK\|\(br\l'|0\(rn'\l'|0\(ul'\s+2\fR 
+..
+.sp .5i
+.ps 16p
+.vs 18p
+.ce
+ENHANCED MODEL 4P BOOT ROM (4P-ROM)
+.br
+.ps 13p
+.vs 14p
+.ce
+Installation Instructions
+.br
+.ce
+Copyright 1990, M. A. D. Software, All Rights Reserved.
+.sp
+.ps 10p
+.vs 11p
+
+\s+2What you should know before starting the installation\s-2
+
+There are several versions of the 4P-ROM.  Each one is configured to
+work with a particular type of disk controller.  The label on the
+package and any accompanying diskette will indicate which one you have.
+If this is not
+the correct part for your computer, do not open the package and it can
+be exchanged for the correct part.
+
+Installing the 4P-ROM requires that you disassemble your computer.
+When you do this, the "warranty seal" will be broken.  The strictest reading
+of the Radio Shack repair policy is that any remaining warranty (original
+or a repair warranty) will be void if the seal is broken, and if the computer 
+is ever repaired again by Radio Shack, the technicians may remove or replace
+any "alien" components to restore the unit to its original state.
+
+However, in 1982 Ed Juge (the Press Officer of Radio Shack/Tandy)
+clarified how "alien" modifications are handled by
+Radio Shack Service Centers.  In "TRS-80 Microcomputer News", July/August
+1982, and in "80-US", May 1982, Mr. Juge states that Radio Shack will
+service a computer with a modification and will ignore it if doesn't seem
+to be hurting anything.  If the modification prevents the technician
+from properly testing the unit, they may ask you for permission to remove
+it. 
+
+It is also possible
+that some future repair may require the CPU board be exchanged and the
+technician may not notice that you have a different boot ROM
+in your
+computer and may fail to move it to the replacement
+board.  To avoid this, be sure to tell the technician that you have the
+new boot ROM installed.  Be sure this
+gets written down on the repair ticket in case a different person ends up
+working on your computer. 
+
+
+\s+2Installation\s-2
+
+As discussed above, installing the 4P-ROM requires your computer
+to be disassembled.  The entire job can be done in about 30 minutes. 
+Read through the following steps and if the procedure seems beyond your
+capabilities, seek help from a local computer shop, TV repair store or
+local college.
+
+The installation instructions are written for the person who has never
+disassembled a Model 4P before, but is able to perform repairs
+on the car or the toaster.   If you have installed a battery-powered
+clock in your computer or changed a disk drive, the instructions need
+only be skimmed.  Otherwise, read each step entirely and then perform
+the action.  It is suggested that you place a check mark next to
+each step as it is completed so that you won't skip anything.
+
+
+\s+2Installing the 4P-ROM\s-2
+
+.in .5i
+.ti -.5i
+1.	You will need a medium-sized Phillips screwdriver, a small
+flat-blade screwdriver (1/4" wide tip or smaller), a large
+towel (or towels) that will cover a 3' x 3' area, and a
+table or workbench with at least 3' x 3' of space.  A flashlight or
+other light source may be helpful.
+
+.ti -.5i
+2.	Place the cloth or towel over the area that is to be used.
+This will protect the surface of the table and the case of
+computer during disassembly.
+
+.ti -.5i
+3.	Unplug the power cord and disconnect all other cables attached
+to the computer.
+
+.ti -.5i
+4.	Remove the screen cover and set it aside.  
+
+.ti -.5i
+5.	Pull the keyboard out and place it on the right-hand side of
+the 4P.  Move it as far away as the cable will allow.
+
+.ti -.5i
+6.	Place the 4P face-down on the table so that the handle is on top.
+
+.ti -.5i
+7.	Remove the four white screws (two on either side) of the case.
+These are painted screws, so be sure to use the proper-sized screwdriver
+to avoid scraping the paint.
+
+
+.in 0i
+.ce
+Page  1
+.bp
+.sp .5i
+.in .5i
+
+.ti -.5i
+8.	Lift the handle and completely loosen (but don't remove) the two
+screws that are located under the handle.  This is somewhat awkward to do,
+but can be accomplished
+by tilting the handle so that each screw can be accessed easier.  When
+both screws are loose, remove the handle.  The screws will stay in
+the handle-assembly unless you remove them.
+
+.ti -.5i
+9.	Open the cable access door, and remove the computer housing 
+by reaching under the edge of the cable access door, and lifting the
+plastic housing with your fingers while pressing down on
+the black metal plate with your thumb.  If the cover sticks, it may be
+the warranty seal that is holding things down.  Cut the seal and try again.
+Once the housing is loose, lift it off the computer and set it aside.
+\fBNever\fR lift the computer off the table and shake it to loosen the housing.
+If the computer drops suddenly, it could break the CRT.
+
+.ti -.5i
+10.	Set the computer on its side, so that the screen is facing to
+your right and the floppy drives are on top.
+
+.ti -.5i
+11.	Remove the two unpainted \fBPhillips\fR screws located between the
+fan and the rear plate.  (This area is behind the floppy drives, and
+may be partially hidden by the cables for the floppy drives.)
+The screws are holding a gold-colored bracket in place.  Do not remove
+the other screws in this area.
+Be careful not to drop the screws into the fan opening.
+
+.ti -.5i
+12.	Now lay the computer upside-down with the rear facing you. 
+Remove the two unpainted Phillips screws on the left end of the gold-colored
+bracket.  Remove the bracket and set it aside.
+
+.ti -.5i
+13.	Along the sides of the case are eight screws, four on each side.
+Remove three from each side, and loosen but do not remove the
+two screws (one on each side) at the front.   One of the screws you remove
+probably has a grounding cable attached to it.  This screw may be longer
+than the others, so remember where it came from. 
+
+\fBNote:\fR On the floppy drive side of the case there is an additional
+screw holding
+a bracket in place.  This is located near the connector for the keyboard
+cable.  You do not need to remove this screw.
+   
+.ti -.5i
+14.	Remove the three black screws along the top edge of the rear of
+the chassis.  These are located on either side of the data connectors.
+
+.ti -.5i
+15.	Gently pull the rear metal plate (painted black) away and lift the
+CPU pan (the surface currently facing up) so that the edge connectors are
+sticking out above the back plate.  
+
+.ti -.5i
+16.	Set the computer on its side so that the screen faces away from you
+and the floppy drives are on top.  Remove the ribbon cable from the floppy
+drives (not at the CPU board) so that the CPU pan can swing open wider.
+
+.ti -.5i
+17.	Swing open the CPU pan about six inches. 
+Avoid opening the CPU pan wider than this, as it can cause some hard-to-reach
+cables to become disconnected.
+
+.ti -.5i
+18.	Locate the existing boot ROM or EPROM.  Two different types of CPU
+boards were built for the Model 4P, but the boot ROM is in the same place.
+Look for a 24 pin part labeled U70 or U69, located roughly in the center
+of the board. 
+
+.ti -.5i
+19.	If the ROM has small wires jumpered to it, don't worry.  Your
+computer is an early model and the wires are not needed once the new
+part is installed.  Although there may be two or three wires, only one
+connects to the CPU board.  Cut that wire in half and place some tape
+over the end so that it does not make contact with anything.  The other
+wires do not require any action.
+
+.ti -.5i
+20.	On one end of the ROM, there will be a notch, indentation or small
+"divot".  This indicates which end of the chip has pin 1.  It is
+extremely important to remember which way the chip goes in so that
+the new boot ROM can be installed correctly.   Although the CPU board
+may also have a "1" marked on it indicating where pin 1 is, CPU
+boards have been known to be incorrectly marked.  
+
+
+
+
+
+
+
+
+
+.in 0i
+.ce
+Page  2
+.bp
+.sp .5i
+.in .5i
+
+
+.ti -.5i
+21.	Remove the old ROM from the socket.
+If you know how to remove the part, do so and skip to Step 22.   
+
+If you don't know how to remove the chip, here is one way to do it
+with the tools you have.   Using the blade of a flat-blade 
+screwdriver, slip the end between the chip and the socket on either
+end of the chip.  (DO NOT try to do this between the pins on a
+side.)  Insert the
+screwdriver only a quarter of an inch, or less.  Now rotate the
+screwdriver VERY GENTLY so that the chip lifts away from the socket.
+If you can't do this, then use the screwdriver as a lever and pry
+the chip up NO MORE than 1/8 of an inch.  DO NOT try to pry the chip
+out of its socket with a single motion or you could bend or break
+the pins, or even crack the chip.
+
+Now that you have one end of the chip lifted slightly, insert
+the screwdriver further under the chip (about 3/4 of an inch, or
+as far as it will go without forcing), and repeat the process.
+This will lift the chip out of its socket without bending the pins.
+You may have to insert and turn the screwdriver one more time to completely
+lift the chip.
+
+If the chip has not fallen out, you should be able to grasp it on
+each end with a finger and pull it straight out.  If it is too tight
+to be removed using two fingers, repeat the screwdriver maneuver.
+
+.ti -.5i
+22.	Remove the new boot ROM from the foam or tube.  If the chip
+was packaged in foam, check between the pins for any small pieces
+of the foam that may have stuck to the pins or to the chip.
+Remove these particles.
+
+.ti -.5i
+23.	Insert the old boot ROM into the foam or the tube.  This will
+protect the part from static electricity.
+
+.ti -.5i
+24.	Insert the new boot ROM into the socket that the 
+old part came from.  Make
+sure the notch, indention or "divot" on the chip is facing the
+same way as the part you removed.   This is most important, as 
+improper insertion will ruin the boot ROM.
+
+Line the chip up so that its legs are sitting in the sockets.
+You may have to bend one or more pins ever so slightly to get them
+all started into the socket.   When everything appears to be
+lined up, press the chip into the socket part-way by pressing it
+with your thumb.  Confirm that all the pins are still going into
+the socket and that none are going outside the socket or are
+bending under the chip.  (The top of a pin usually bows out
+if the bottom of the pin is bending under the chip.)  A flashlight
+or desk lamp is useful in checking this.  If one
+or more pins are out of line, remove the ROM using the
+screwdriver method, and straighten the pins out that are not
+inserting properly.  Then try again.  It may take a few tries
+to get all the pins going into the socket.
+
+If the pins are still going into the socket after you have pushed
+it halfway into place, push it down until it feels firmly seated.
+There is usually about 1/8 to 1/16 of an inch between the bottom
+of the chip and the socket when it is inserted properly.
+
+Do not try to force the chip flush with the socket.  Some sockets
+are designed to prevent you from doing this and the excessive
+force could crack the CPU board.
+
+Now run your finger along the pins on either side.  If a pin feels like
+it is out of line, examine it carefully, as it may have folded under
+the chip despite your efforts.  If you have a flashlight, examine
+the pins by looking under the chip from one end.  If a leg is bent,
+carefully remove the chip and straighten the leg by bending it very slowly
+and try
+again.  A chip leg can usually be straightened twice without breaking, 
+but that is all.
+
+.ti -.5i
+25.	Close the CPU pan into its normal operating position
+and push the ribbon cable for the floppy drives back through the
+hole it goes through.
+
+
+.ti -.5i
+26.	Plug the floppy cable back into the two drives and make sure it and
+the other wires in the area are not touching the fan.
+
+.ti -.5i
+27.	Install and tighten the three black screws in the back cover.
+
+
+
+
+
+.in 0i
+.ce
+Page  3
+.bp
+.sp .5i
+.in .5i
+.ti -.5i
+Before the computer is assembled further, test the installation
+by following these steps.
+
+.ti -.5i
+28.	Turn the computer around so you can see the screen, but keep it
+on end, with the floppy drives on top.  Make sure there are no floppies
+in the disk drives.
+
+.ti -.5i
+29.	Plug the power cable into the jack on the back of the computer 
+and into a wall outlet.
+
+.ti -.5i
+30.	Turn the computer on.  After a few seconds, the light on floppy
+drive 0 should come on and stay on for a few seconds.  Then the light
+should go out and the message \fLThe floppy disk drive is not ready\fR
+should appear on the screen.  If this didn't happen to you, read the
+following items and take the corrective action that is suggested.
+
+.in 1.0i
+.ti -.5i
+A.	If no message appeared on the screen, adjust the brightness
+and contrast to the maximum settings.  If you see random characters
+on the screen, unplug the computer immediately.  The ROM is probably not
+installed correctly.  Remove the three screws from the back, open
+the CPU pan and check the ROM for improper insertion or bent pins.
+
+.ti -.5i
+B.	If the screen has a raster (the pattern of lines) but no
+text, then the cable to the power supply or video section got disconnected
+when the CPU pan was open.  This can happen when the pan is opened too wide.
+Turn the power off and see the instructions for "Loose Video/Power/Reset
+Cables".
+
+.ti -.5i
+C.	If the light on drive 1 came on instead of drive 0, the cable
+going to the floppy drives is wired improperly.  Unplug the power and
+plug the ribbon connector that was plugged into drive 1 into drive 0
+and vice versa.  Re-run the test.
+
+.ti -.5i
+D.	If both floppy drive lights came on and stayed on, the ribbon
+cable is plugged into the two drives upside down.  Unplug the
+power cable and correct the cabling.  Then run this test again.
+
+.ti -.5i
+E.	If the neither drive light came on, and the message said
+"The floppy disk drive is not available", the ribbon cable
+to the floppy drives (or their power cables) is not connected.  Turn
+the power off, check this out and try again.
+
+.in .5i
+.ti -.5i
+31.	If that worked correctly, press the RESET button and then
+press F1 within three seconds.  After a moment, you should see the
+message \fLThe hard disk drive is not available\fR.  Again, if this didn't
+work right, check the following items.
+
+.in 1.0i
+.ti -.5i
+F.	If nothing happened when you pressed RESET (the screen did not
+clear), the reset cable has probably come loose from the CPU board and must
+be reattached.  See the instructions for "Loose Video/Power/Reset Cables".
+
+.ti -.5i
+G.	If instead of an error message about the hard disk drive, you got an
+error message about the \fIfloppy\fR drive, the keyboard cable is
+probably loose.  Unplug the power cord and reseat the cable from the
+keyboard firmly
+into its connector.  This can be done without opening the CPU pan by
+using the side of a flathead screwdriver.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.in 0i
+.ce
+Page  4
+.bp
+.sp .5i
+.in .5i
+
+.in 0i
+If the above tests worked correctly, unplug the power cord
+from the wall and the computer and proceed with the reassembly instructions.
+
+.in .5i
+.ti -.5i
+32.	Turn the computer around so the front is away from you.
+Reinstall the gold-colored bracket by installing the screws
+next to the fan first and then install the screws on the other end.
+These four screws hold the computer to the carrying-handle, so make sure
+they are tight.
+
+.ti -.5i
+33.	Place the computer with the screen facing down, with the
+keyboard on the left and the excess keyboard cable laying 
+against the CPU pan.
+
+.ti -.5i
+34.	Install and tighten all eight screws (four per side) that are on
+the sides of the CPU pan.  Remember to tighten the two at the front and
+to reattach the grounding strap (if it was present.)
+
+.ti -.5i
+35.	Place the plastic housing over the chassis.  Make sure the housing is
+oriented so that the data connectors are visible through the access
+door.  Check the four holes that hold the white screws to ensure
+that the case is lined-up properly.
+
+.ti -.5i
+36.	Install the handle so that the writing will be face-up when the
+computer is in its up-right position.  Carefully tighten the two
+screws that hold the handle in place.  Make sure these do not
+get cross-threaded, and make sure they are tight.
+
+.ti -.5i
+37.	Install the four white screws.  
+
+.in 0i
+This completes the installation procedure.
+
+
+\s+2Loose Video/Power/Reset Cables\s-2
+
+
+Near the front of the CPU pan are three rust-colored connectors that
+connect the CPU to the reset switch, video monitor, and the power supply.
+When the CPU pan is open, it is possible for one or more of these connectors
+to become disconnected.
+
+Depending on how much slack is available, you may be able to reach the loose
+connector with your fingers or with needle-nose pliers, and reseat it on the
+appropriate connector.
+
+If you are unable to do this, remove the last two screws that hold the CPU
+pan in place.  Once this is done, get all three connectors firmly back in
+position, then close the pan and reinstall four or more screws.  Once you
+think you have the pan back in operating position, go back and repeat
+the tests that start at Step 28.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.in 0i
+.ce
+Page  5
+.bp
+.sp .5i
+\s+2License Agreement and Warranty\s-2
+
+The 4P-ROM firmware and this documentation are copyrighted with all
+rights reserved.  The user is granted a license to use the ROM or
+EPROM (hereafter called ROM) which contains the 4P-ROM firmware
+on a single Model 4P computer system.
+
+This product contains serial numbers and other traceable markings.
+The user of this product may not duplicate the ROM for any purpose.
+
+Companies or individuals with multiple systems must obtain multiple copies
+of the firmware.    
+
+M. A. D. Software warrants the ROM which contains the 4P-ROM firmware
+to be free from defects under normal use for a period of 90 days from the
+date of original purchase.  If during this 90 day period a defect in the ROM
+makes the firmware unusable, you may return it to M. A. D. Software for
+replacement without charge.   The user does pay the cost of delivering
+the ROM to M. A. D. Software.
+
+
+This warranty does not cover damage to the ROM (or the firmware within)
+caused by improper handling, bent or broken pins, improper insertion
+(including backwards insertion) or damage caused by any malfunction in
+the computer system.   It also does not cover damage caused by fire,
+flood or other acts of God.
+
+M.A.D. Software makes no commitment to provide any upgrade.  However, if
+one is produced, the following upgrade policy will apply:
+
+.in .5i
+If an upgrade ROM becomes available during the 90 day warranty period,
+the user will be advised to return the ROM to M. A. D. Software 
+for replacement without charge.
+
+After 90 days, any upgrade ROM that is made available will be provided
+at a nominal charge when the user returns the original, working
+ROM.
+
+.in 0i
+Any ROM that is returned due to a defect for an in-warranty exchange or
+for an upgrade (in or out of warranty) that has a defaced or invalid
+registration number will not be accepted.
+
+Except as provided for above, M. A. D. Software and the author make no
+warranties, either expressed or implied, with respect to this firmware
+or its fitness for any purpose.  This firmware is provided "as-is".  Although
+significant testing has been performed to insure that this product will
+work with the systems listed, this firmware cannot be expected to work
+in systems other than those listed and on versions of operating systems
+other than the ones specified.  Non-standard versions of 
+software, hardware or firmware can also prevent this product from
+functioning as intended.  Should the firmware provided prove defective or
+incompatible,
+the buyer assumes the entire cost of all necessary servicing, repair, or
+correction and any incidental or consequential damages.  M. A. D. Software
+and the author 
+assume no liability for direct, indirect, incidental or
+consequential damages resulting from any use of or any defects in the
+firmware.
+
+
+\s+2For Your Records:
+
+
+ROM Model #	|
+
+
+ROM Serial #		|
+
+
+
+Date Purchased:   ___________________________________________
+
+
+
+Model 4P Serial # _________________________________________\s-2
+
+
+
+
+
+
+
+.ce
+Page  6
+.bp
+.sp .5i
+
+
+\s+2Operation\s-2
+
+The 4P-ROM commands are the same as those available on the original
+4P boot ROM, plus a few new options.
+
+When RESET is pressed, the keyboard is monitored for about three
+seconds.  If no keys are pressed, the 4P-ROM will attempt to boot the
+system using these devices in this order:
+
+.in .5i
+1.	Attempt to boot over a Network 4 network. (Diskless)
+.br
+2.	Attempt to boot from a hard disk drive.
+.br
+3.	Attempt to boot from a floppy disk drive.
+.br
+4.	Attempt to boot using Model III image in RAM.
+.br
+
+.in 0i
+When all four attempts have been made, an error message will be displayed.
+The following keys may be pressed to override the normal
+boot sequence.  (Unlike the Model 4/4D, you do not have to hold the key
+down, just press it.)
+
+.in 1.5i
+.ti -1.5i
+.bx F1
+\ or
+.bx 1
+		Load the operating system from the hard disk drive only.
+
+.ti -1.5i
+.bx F2
+\ or
+.bx 2
+		Load the operating system from the floppy disk drive only.
+
+.ti -1.5i
+.bx F3
+\ or
+.bx 3
+		Load the operating system from the floppy disk drive and
+configure the computer for Model III mode.  This is done
+by loading the file MODEL%/III into low memory and
+write-protecting that memory.  Once done, the Model 4P
+looks like a Model III.
+
+The MODEL%/III file may be loaded
+from a LDOS 5.x, TRSDOS 6.x, or LS-DOS 6.x format diskette,
+single or double-sided.  The file may also be loaded from a
+TRSDOS 1.3 format diskette.
+
+.ti -1.5i
+.bx P
+		        Prompts you when the Model III ROM-image has been loaded
+into RAM.  This gives you the chance to swap disks
+before attempting to boot a Model III operating system.
+This ie meant for use when booting a Model III operating system other
+than LS-DOS, LDOS or TRSDOS.  This is also used with the self-booting
+game disks that run in Model III mode.
+(If you want to run Model III ROM BASIC, use
+.bx F3
+\ and
+.bx P
+\ to load the Model III ROM-image.  Then at the prompt, press 
+.bx BREAK
+\&.)
+.br
+(This option has no effect on network, hard disk and
+Model 4 mode booting.)
+
+.ti -1.5i
+.bx L
+		        Forces the 4P-ROM to load the Model III ROM-image even
+though the diskette in drive 0 does not appear to need a
+Model III mode environment.
+
+.ti -1.5i
+.bx N
+		        Forces the 4P-ROM to \fInot\fR load the Model III
+ROM-image even though the diskette in drive 0 appears
+to be a Model III mode operating system that would need
+the ROM-image.  
+
+.ti -1.5i
+.bx O
+		        Tells the 4P-ROM to not boot from an attached
+Network 4 network.  If the hardware is not present, this
+command is not needed, but if the hardware is present and you want to boot your
+system from a floppy or hard disk drive, this
+command will prevent the 4P from booting over the network.
+
+.ti -1.5i
+.bx RIGHT-SHIFT
+	    This option allows diagnostics and other programs to be loaded
+into the Model 4P via the RS-232 port.  This is used
+by Radio Shack technicians and has been maintained
+for compatibility reasons.
+
+.ti -1.5i
+.bx V
+		       Causes the 4P-ROM to display its version code.  If
+your 4P-ROM is customized, your message will also be
+displayed.
+
+.ti -1.5i
+.bx A
+.bx B
+.bx C
+.bx D
+.bx E
+.bx F
+\ or
+.bx G
+     Specifies which MODEL%/III file is to be loaded.
+By default, the first one found in the directory (non-alphabetic search)
+is used.  To date, only three
+MODEL%/III files have been produced:
+.br
+.in 2.0i
+MODELA/III	American keyboard driver
+.br
+MODELD/III	German keyboard driver
+.br
+MODELF/III	French keyboard driver
+.br
+
+
+
+.in 0i
+.ce
+Page  7
+.bp
+.sp .5i
+
+.in 1.5i
+.ti -1.5i
+.bx ENTER
+		\|Tells the 4P-ROM to boot now, rather than waiting the
+full three seconds.  This can be used by itself or after
+any of the other keys.  This is known as the "hurry-up"
+key.  If you pressed
+.bx ENTER
+\ as part of a command that
+rebooted the system, you must release it before rebooting
+commences.  You may then press
+.bx ENTER
+\ again to speed things up.
+
+.ti -1.5i
+.bx \.
+		        Run the diagnostics that are available in the 4P-ROM.
+Unlike the other keys, this key must be held down while
+RESET is being pressed.
+
+
+.in 0i
+When diagnostics are invoked, you can either run a 64K memory test
+(the original ROM only tested the upper 48K), display a series of
+video alignment patterns for 64 x 16 and 80 x 24, or exercise any
+floppy disk drive.
+
+The memory test runs until errors are encountered.
+It displays the number of solid and intermittent failures it detected,
+and more importantly, which bit rows were failing.  This can be translated
+directly into a specific RAM chip.  The memory test does require that
+the video RAM (a separate part) be working properly.
+
+The video test offers one test display after another until RESET is
+pressed.  To advance to the next display, press the 
+.bx SPACE
+\ key.  The first 64K of memory does not have to be present for this test
+to work.
+
+The disk drive test prompts for a drive number (0, 1, 2 or 3) and
+exercises that drive until RESET is pressed.  The test expects a
+LDOS 5, TRSDOS 6 or LS-DOS 6 format floppy to be in the drive.
+The heads are positioned and one sector is read.  Then the heads are
+moved to another track and a different sector is read.  A series of
+incremental and variable travel tests are performed.  No retries are
+performed on the sector reads and any errors detected are reported.
+This test only uses side 0 of the floppy drive under test and requires
+that the first 64K of memory be working.
+
+
+Incompatibilities
+
+To prevent the 4P-ROM from attempting to boot from a hard disk that
+does not have a proper boot track, a hard disk will not be booted from
+unless the last byte (0xff) of the boot sector contains the value (0xfd).
+This means that you do not have to press the 
+.bx F2
+\ key to get a system with a hard disk to boot from a floppy properly.
+Hard disk boot modifications from vendors other than M. A. D. Software
+will probably have to be modified to allow hard disk booting.
+
+Some of the internal functions documented in the \fIModel 4P Technical
+Reference\fR
+have changed their entry parameters.  This was done to accomodate
+SCSI-based hard disks and other features of the 4P-ROM.  These are rarely
+used (since they are only available while the system is booting),
+so this should not
+cause any difficulty.   If you need details of these changes, please
+contact M. A. D. Software.
+
+
+
+007022
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.in 0i
+.ce
+Page  8
+.br
+

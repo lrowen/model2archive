@@ -1,0 +1,16 @@
+. FIX631F/JCL - 07/16/90 - Corrects three minor problems in 6.3.1F
+. //KEYIN of JCL now accepts 79 cpl + CR instead of 79 cpl including CR
+. DIR now displays header of disk formatted when DATE was not set
+. DO * now finds a SYSTEM/JCL file on a drive other than 90
+. Apply via, DO FIX631F (D=d) where "d" is drive to patch
+//if -d
+//. Must enter drive to patch!
+//quit
+//end
+PATCH SYS11/SYS.SYSTEM6:#D# (D01,2A=50:F01,2A=4F)
+PATCH SYS11/SYS.SYSTEM6:#D# (D01,CE=50:F01,CE=4F)
+PATCH SYS6/SYS.SYSTEM6:#D#  (D07,F3=7A:F07,F3=3C)
+PATCH SYS6/SYS.SYSTEM6:#D#  USING DO1/FIX:3
+PATCH BOOT/SYS.SYSTEM6:#D# (D02,1F=47:F02,1F=46)
+//exit
+

@@ -1,0 +1,1 @@
+;LBSPOOL/ASM - Spool command	TITLE	<SPOOL - LS-DOS 6.2>;*GET	LBSPOOLA:3;	SUBTTL	<>	END	SPOOL

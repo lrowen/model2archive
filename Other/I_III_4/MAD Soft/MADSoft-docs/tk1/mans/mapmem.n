@@ -1,0 +1,207 @@
+.if t  .po 1.0i
+.ds ]W May 15th, 1993\"
+.TH MAPMEM U1 "" "LS-DOS 6 - Utilities 1"
+.ig
+MAPMEM troff documentation \- Version 1(1) 15\-May\-93
+Copyright 1993 M. A. D. Software, All Rights Reserved.
+  	 Copyright 1992,1993 M. A. D. Software, All Rights Reserved.
+..
+.SH \fBName\fR
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+.de IN
+.if t  .in +0.5i
+.if n  .in +0.6i
+..
+.de OU
+.if t  .in -0.5i
+.if n  .in -0.6i
+..
+.de TI
+.if t  .ti -0.5i
+.if n  .ti -0.6i
+..
+.de IX
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 1.0i 1.5i 2.5i 3.5i 4.5i 5.5i
+.if t  .in +0.5i
+.if n  .in +1.0i
+..
+.de OX
+.if t  .in -0.5i
+.if n  .in -1.0i
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+..
+.de TX
+.if t  .ti -0.5i
+.if n  .ti -1.0i
+..
+.br
+MAPMEM \- Displays memory module information
+.SH \fBSyntax\fR
+.br
+.B mapmem 
+[
+.BI \-demprst!?h
+] [
+.BI >\fR[\fB>]
+.I file\ |\ device
+]
+.if n  .br
+[
+.I ;\ next\ command
+]
+.SH Description
+.br
+
+.I Mapmem
+displays one or more tables describing the drivers and other memory modules
+that are present in memory.  These modules are identified by function and
+are displayed in one of three categories: disk drivers, character drivers or
+filters, and other modules.
+
+By default, \fImapmem\fR displays four sections of information.  The first is
+a summary indicating how much low and high
+RAM is available and how much low RAM was available when the system booted.
+The next section shows the drivers that are used for each enabled logical drive.
+The third section displays the drivers and filters that are connected to
+each character device. 
+
+The final section displays memory modules that are not directly accessed as
+a logical drive or character device.  These modules may contain patches to
+the system, or contain code shared by one or more of the other drives.  There
+are other possible uses for these memory modules.
+
+When a memory module is displayed,
+the following information is displayed:
+.IN
+.TI
+1.	The starting address of the memory module in hexadecimal.
+.br
+.TI
+2.	The ending address of the memory module in hexadecimal.
+.br
+.TI
+3.	The length of the memory module (in hexadecimal or decimal).
+.br
+.TI
+4.	The name of the memory module.
+.br
+.TI
+5.	A short description of the purpose of the memory module.
+.br
+.OU
+
+\fIMapmem\fR accepts several options.  Options are specified by single characters,
+and they may be entered in upper or lowercase.  Options are always preceded by
+a hyphen (a "\-").  If you are specifying multiple options, you can specify
+the options in any of these formats:
+.br
+	\-a \-b \-c   or   \-abc   or   \-a \-bc   or  \-ab \-c
+
+The options are:
+.IP \fB\-d\fR 5
+The length of memory modules is displayed in decimal.  By default the
+value is displayed in hexadecimal.
+.IP \fB\-e\fR 5
+Displays only the memory modules that are used with character devices.  This
+includes character drivers like *PR and *KI, as well as character filters.
+.IP \fB\-m\ or\ \-s\fR
+Displays the memory summary only.
+.IP \fB\-p\fR
+The output is routed through the \fImore\fR(U1) utility.  If the output of
+\fImapmem\fR exceeds one screen, the screen will pause once every 23 lines.
+See the \fImore\fR(U1) command for additional information on the options that
+\fImore\fR(U1) provides.  The \fB-p\fR option is ignored if the output is
+redirected.
+.IP \fB\-r\fR
+Displays only the memory modules that are used for disk access.  This 
+includes floppy, hard disk and RAM logical drives.
+(Ignored if \fB\-l\fR or \fB\-x\fR is specified.)
+.IP \fB\-t\fR
+The headers that are normally displayed are omitted from output.
+.IP \fB\-!\fR
+Causes \fImapmem\fR to ignore any default settings that are specified in
+the \fBDEFAULTS/MAD\fR file.  \fIMapmem\fR will also ignore any options that are
+specified to the left of the \fB\-!\fR option.  Note that the \fBDEFAULTS/MAD\fR
+file is accessed even if the \fB\-!\fR option is specified.
+.IP \fB\-?\ or\ \-h\fR
+Displays the help message.
+.IP \fB>\fR[\fB>\fR]\ \fIfile\ \fR|\ \fIdevice\fR 5
+By specifying a file or device, the
+output is sent to the specified file or device instead of the
+display.  This is known as \fIredirected output\fR.
+For example, the command \fBmapmem > state:0\fR stores the output
+of \fImapmem\fR in the file \fBSTATE:0\fR.  If \fB>>\fR is used, \fImapmem\fR
+will append the output of \fImapmem\fR to the existing contents of
+the specified file or device.
+\fIFilespecs\fR for redirection may not specify a password.
+.IP \fI;\ next\ command\fR
+After \fImapmem\fR completes, the remainder of the command line is executed
+as a second command.  The command \fBmapmem;time\fR will display memory 
+information, and then the time will be displayed.  
+.IP <SHIFT>@
+When pressed during output to the display, the output will pause.
+Pressing any other key resumes output.  Pressing
+this key is ignored when output is redirected.
+
+.SH \fBNotes\fR
+Memory modules that \fImapmem\fR displays in the "other" category may actually
+be one of the parts of a disk or character driver.  This is often done
+to share code that is used in other drivers.  The \fIDiskDisk\fR product
+creates one small memory module for each logical drive and a single, larger
+memory module that contains code that is shared by all the DiskDisk logical
+drives.
+
+\fIMapmem\fR relies on the headers of the various memory modules that
+are present on the system to be formatted correctly.  If these are corrupted,
+\fImapmem\fR may display warnings or display incorrect information.
+
+.SH \fBFiles\fR
+\fIMapmem\fR reads the \fBMAPMEM/INI\fR file to provide the descriptions
+of the memory modules that are displayed.  The user may add additional
+descriptions to this file if needed.  A maximum of 50 entries may be
+placed in the \fBMAPMEM/INI\fR file.  The descriptions are limited to
+35 characters. See the \fBMAPMEM/INI\fR file for formatting details.
+
+\fIMapmem\fR also examines the \fBDEFAULTS/MAD\fR file and uses any default
+options that are specified there.  For example, if you wanted \fImapmem\fR
+to omit the headers by default, 
+the following entry in the \fBDEFAULTS/MAD\fR file would do this:
+.IN
+.IN
+MAPMEM \-T
+.br
+.OU
+.OU
+Options in the \fBDEFAULTS/MAD\fR file are ignored if the \fB\-!\fR option
+is specified on the command line.
+
+You may make copies of \fImapmem\fR with different names.  When examining the
+\fBDEFAULTS/MAD\fR file, the name used to invoke the program will be used to
+locate the default entries.  For example, if you made copies of \fBMAPMEM/CMD\fR
+and named them \fBDRIVES/CMD\fR and \fBRAM/CMD\fR, you could add the following
+lines to the \fBDEFAULTS/MAD\fR file:
+.IN
+.IN
+DRIVES \-R
+.br
+RAM \-S
+.br
+.OU
+.OU
+When \fIdrives\fR is run, information on active logical drives would be
+displayed and nothing else.  When \fIram\fR is run, the information on RAM
+availability would be displayed and nothing else.
+
+
+If you need more information on \fImapmem\fR(U1) or if you want to obtain
+the LDOS 5.3
+version, please write to M.A.D. Software, P.O. Box 331323, Ft. Worth Texas,
+76163.  Please include a Self\-Addressed\-Stamped\-Envelope when requesting
+information.
+.br
+\-\-\-\-\-\-
+.br
+305151

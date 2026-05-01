@@ -1,0 +1,131 @@
+How to build LS-DOS 6.3.1 in several easy steps
+-----------------------------------------------
+
+This version dated May 25th, 1998, revised May 29, 2000, by Frank Durda IV
+Copyright 1998, 2000, all rights reserved.  No part of this document may be
+redistributed in any form, including placing it in a location where it can
+be retrieved by others.  This material may not be placed on web or FTP sites.
+
+------------------------------------------------------------------------------
+
+First, set up two empty partitions on your hard disk, drive 3 and drive 2.
+Drive 3 will contain the source files, JCL and some tools.  Depending
+on the granule size, you will need around 2.7Megabytes for drive 3.
+
+Drive 2 will be the target, and things work a lot better if there isn't
+anything else on this logical drive.  Depending on your granule size,
+you will need about 800K.  Don't try to do the build with drive 2 being
+a floppy.  It will take forever and won't fit.  Don't try to alter the scripts
+to use a single drive for source and destination.  You are likely to end up
+with garbage.
+
+(Note to floppy-only readers:   It is possible to build the system using
+ three or four floppy drives, but it will be very difficult and 100% manual.
+ I suggest printing out the various /JCL files mentioned below and follow
+ their steps manually, constantly checking for sufficient free space on the
+ target floppy drive.  After building the core OS, copy the needed /REF and
+ /EQU files that were generated to a fresh floppy and use that to build the
+ libraries.  A third blank floppy with the /EQU and /REF files can build the
+ utilities and other bits of the system.  Then the results of those three
+ floppies can be recombined into a finished boot floppy.   Doing this all
+ by hand will be very very slow work, so if there is any way possible, locate
+ and use a hard disk drive.  If you only have three real floppy drives, use
+ the SYSTEM (DRIVE command to change drive 1 to be logical drive 2 and real
+ drive 2 to be logical drive 3.)
+
+A lot of intermediate files get generated during the build and these also end
+up on drive 2.  Since you are only allowed a few hundred files at most on a
+given drive, be sure to monitor how many free file slots you have left before
+starting a lengthy build process.
+
+Copy the source files and related stuff to drive 3.  Drive 2 should be
+empty, remember?
+
+You can write-protect drive 0 and 1 while doing the build.  I do.
+Supposedly Drive 3 can also be write-protected if you want.  I didn't bother
+with this precaution.
+
+Now, make sure you don't have any drivers, filters, or what-nots loaded
+in high memory.  A MEMORY command should show HIGH at 0XFFFF or within
+200 bytes or so.  If anything strange happens during the build, such as
+the message "Symbol table overflow", get rid of more junk in high memory.
+EDAS and the library generating tools use lots of memory and don't handle
+shortages very well.
+
+Ok, decide what version you want to build and visit the BUILDVER/ASM
+file and set the appropriate switches.   There are also switches in
+LOWCORE/ASM that you may want to set as well, if you are really brave.
+(If you change anything in LOWCORE/ASM, be sure to reassemble EVERYTHING!)
+
+Ready?  So do the main build with the command:
+	DO LSDOS63
+and you will be presented with a menu.  If this is your first time to do
+this, select 7 (build EVERYTHING).  Now, go away for an hour or so.
+(Your times will be faster if you aren't running at 4MHz.)
+On your return, you would like to see a message saying something about
+"Enhancements installed successfully" and a prompt.  If you see
+"Job Aborted", then you broke something.  The most likely cause is that you
+didn't free enough high memory or you ran out of disk space or free directory
+slots somewhere.  Again, things work best if drive 2 is empty when you start.
+
+The LSDOS63/JCL script didn't really build everything.  It built all the
+utilities, all the library modules and all the SYS files except SYS6, 7 and 8.
+It also didn't build the DOS/HLP file.
+
+The instructions on how to build the SYS6, 7 and 8 scrolled off the screen
+about halfway through the LSDOS63/JCL file, but don't panic.  If the
+build was successful (BE SURE THAT IT WAS), type
+	DO GENLIB
+
+and this will generate the standard libraries SYS6, SYS7 and SYS8.  There
+is also a JCL file that generates the Small libraries, as in the old
+SMALL-DOS.  I have no idea if this works on 6.3.1, since I haven't seen 
+small libraries used since LDOS 5, so stick to the main script for now.
+
+Now you will have SYS0/CMD through SYS13/CMD.  These are simply renamed
+into /SYS files when copied to the master disk, and there is yet-another
+JCL file that will do this for you and set the extra directory file flags.
+You can do this later on.
+
+Also note the file LOWCORE/CIM, which is the equivalent of BOOT/SYS on
+bootable media.  The non-bootable BOOT/SYS is generated by the FORMAT
+program.
+
+To build the DOS/HLP, there is no JCL, so you have to do it yourself:
+	HELPG60
+when it asks for the source file, type   HELPM4F/TXT:3
+when it asks for the destination, type   DOS/HLP:2
+If a copy already exists, it will ask if it is OK to destroy.  Say "Y".
+
+You now have all the files needed to create a distribution diskette.
+The files that are not on drive 2 (MODELA/III and BASIC/OV1) are on
+drive 3 and can be copied directly to the distribution diskette.
+
+The JCLs OPT63/JCL and COPY63/JCL both build a distribution diskette,
+with OPT63/JCL trying to place the files more optimally.  COPY63/JCL
+just copies them.
+
+A few other files of interest LDOS/EQU:2 and SYS0/EQU:2 contain equates
+other programs may need to interface to things in resident memory.
+These used to be distributed with the assembly language development
+packages, so don't just toss these.  You may need them.
+
+Also, be sure you always specify drive 2 when getting files, since
+many of the files also exist on drive 0, and you probably didn't
+want those.
+
+
+Important note about PATCH USING files.  PATCH refuses to accept a patch
+file that contains 0x1A, which some editors insert as an EOF.  The ALDS
+ALEDIT is one such program, and files moved back and forth between MS-DOS
+and LS-DOS 6 can also pick up this character.  The editor LED62 on
+drive 3 can delete this character from the bottom of such files.  LED62 
+is also one of the few editors that can edit the HELPM4F/TXT file, that 
+uses CONTROL-L characters as formatting flags.
+
+That's about all you will need, so good luck!
+
+
+				Frank Durda IV, May 25th, 1998/May 29th, 2000
+
+

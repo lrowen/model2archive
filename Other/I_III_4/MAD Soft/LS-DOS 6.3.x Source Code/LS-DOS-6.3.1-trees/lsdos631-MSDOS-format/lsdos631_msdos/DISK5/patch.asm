@@ -1,0 +1,503 @@
+;PATCH/ASM
+	TITLE	<PATCH - LS-DOS 6.2>
+;
+ETX	EQU	3
+LF	EQU	10
+CR	EQU	13
+FLAG	EQU	01000000B
+ABB	EQU	00010000B
+;
+*GET	SVCMAC:3		;SVC Macro equivalents
+*GET	COPYCOM:3		;Copyright message
+;
+	ORG	2600H
+;
+BEGIN
+	@@CKBRKC		;Check if Break hit
+	JR	Z,BEGINA	;Continue if no break
+	LD	HL,-1		;  else abort
+	RET
+;
+BEGINA
+	LD	(STACK),SP	;Save original stack
+	PUSH	HL		;Save ptr to CMD buffer
+	@@FLAGS			;Set up IY
+	LD	HL,HELLO$
+	CALL	$DSPLY		;Display the signon msg
+;
+;	Get /CMD file off command line
+;
+	POP	HL		;P/u cmd line ptr
+	LD	DE,PGMDCB	;Set up for OPEN
+	@@FSPEC			;Fetch program filespec
+	JP	NZ,PGMREQ	;Quit if illegal name
+	LD	A,(DE)
+	CP	'*'		;Test for device spec
+	JP	Z,PGMREQ	;Abort if not a filespec
+	PUSH	HL		;Save posn on command line
+	LD	HL,CMDEXT
+	@@FEXT			;Default ext to /CMD
+	PUSH	DE		;Save ptr to FCB
+	EX	DE,HL		;Pt HL at current name
+	LD	DE,FNM$		;Store the name away
+	@@FSPEC			;  in case of a later error
+	POP	DE		;Recover FCB
+	LD	HL,PGMBUF	;Buffer for /CMD file I/O
+	LD	B,0		;Set lrl=256
+	CALL	$OPEN		;Open the file to fix
+;
+;	Get /FIX file (if any)
+;
+	POP	HL		;Get command line posn
+	LD	DE,FIXDCB	;FCB used for /FIX file
+	@@FSPEC			;See if a filespec is there
+	JP	NZ,CKLIN	;If error, ck for parms there
+	PUSH	HL		;Save command line posn
+	LD	HL,FIXEXT
+	@@FEXT			;Use default ext of /FIX
+	LD	HL,FIXDCB	;Pt HL to start of fix filespec
+	LD	DE,NAMFIX$	;Buffer to hold filename only
+	LD	B,0		;Init char count to 0
+;
+;	Save patch file name for X header
+;
+FXNAM	LD	A,(HL)		;P/u a char of the filespec
+	INC	HL
+	CP	'/'		;Found the /FIX ext?
+	JR	Z,FXNAM2	;Quit if so
+	CP	':'		;Colon yet?
+	JR	C,FXNAM1	;If less, must be number
+	CP	'A'		;A-Z?
+	JR	C,FXNAM2	;If less, done
+	CP	'Z'+1		;If not alpha, done
+	JR	NC,FXNAM2
+FXNAM1	LD	(DE),A		;Store the name char
+	INC	DE		;Inc storage ptr
+	INC	B		;Inc count of name chars
+	JR	FXNAM		;Loop for more
+FXNAM2	LD	A,B		;Store the length of
+	LD	(NAMLEN$),A	;  the /FIX patch file
+	POP	HL		;Recover command line posn
+CKLIN	LD	A,(HL)		;Test command line
+	CP	CR		;  for end
+	JR	Z,RDFIX		;Go if found
+	INC	HL
+	CP	20H
+	JR	Z,CKLIN		;Ignore spaces
+	CP	'('		;Beginning of parm?
+	JP	NZ,PRMERR	;Anything else is a parm error
+;
+;	Test for REMOVE or special Option parameters
+;	Ignore @@PARAM errors, as the parameters may actually
+;	 be a command line patch.
+;
+	LD	DE,PTBL$	;Parameter table
+	PUSH	HL		;Save command line ptr
+	DEC	HL		;Back up to '('
+	@@PARAM
+	POP	HL		;Restore cmd line ptr
+	LD	BC,$-$		;"Remove" parm response
+RPARM1	EQU	$-2
+	LD	A,C
+	LD	(RPARM),A	;Set Remove parm
+	LD	BC,-1		;O parm - bypass need for
+OPARM1	EQU	$-2		;  Frr,nn line if OFF
+	LD	A,C
+	LD	(OPARM),A	;Set find flag
+	JP	Z,RDFIX		;If @PARAM was good, there is
+				;  no cmd line patch code
+;
+;	Check for command line patch code (CLP)
+;
+	LD	BC,FIXDATA	;Space allocated for /FIX data
+CKLIN1	LD	A,(HL)		;Get char from cmd line
+	CP	CR
+	JP	Z,CKLIN3	;Show end of CLP
+	CP	')'
+	JR	Z,CKLIN3	;End of CLP if so
+	INC	HL		;Bump buffer ptr
+	CP	':'		;Separator between patches?
+	JR	NZ,CKLIN2	;If not, store char
+	LD	A,CR		;  else show end of this CLP
+CKLIN2	LD	(BC),A		;Put byte into fix data buff
+	INC	BC		;Bump buff ptr
+	JR	CKLIN1		;Loop til end of cmd line
+;
+CKLIN3	LD	A,CR		;Put CR into
+	LD	(BC),A		;  CLP buffer
+	INC	BC
+	LD	A,ETX		;End buffer with ETX
+	LD	(BC),A
+	JR	DOFIX		;Start patching...
+;
+;	P/u the fix info from the FIX file, rather than
+;	 the command line.
+;
+RDFIX	LD	A,(NAMLEN$)	;P/u len of /FIX filename
+	OR	A
+	JP	Z,PGMREQ	;If none used, abort
+	SET	0,(IY+'S'-'A')	;Set open inhibit bit
+	LD	DE,FIXDCB	;Set up & open /FIX file
+	LD	HL,FIXBUF
+	LD	B,0
+	CALL	$OPEN
+	LD	HL,PGMDATA	;Pt HL to highest byte avail
+	DEC	HL		;  for fix data
+	LD	BC,FIXDATA	;Start of /FIX data storage
+RDFIX1	CALL	$GET1		;Get a char fm /FIX file
+	JR	NZ,RDFIX2	;Jump on error
+	AND	7FH		;Strip bit 7
+	JR	Z,RDFIX3	;Take 0 as EOF also
+	LD	(BC),A		;Save fix data char
+	INC	BC		;Advance buffer
+	PUSH	HL		;Save HL tempy
+	SBC	HL,BC		;Room in fixdata buffer?
+	POP	HL
+	JP	C,TOOBIG	;Abort if patch data too large
+	JR	RDFIX1		;  else loop til EOF
+;
+RDFIX2	CP	1CH		;End of file?
+	JP	NZ,IOERR	;Abort if not
+RDFIX3	LD	A,ETX		;Mark the end of the fix data
+	LD	(BC),A
+;
+;	Start patching the target file
+;
+DOFIX	LD	HL,FIXDATA	;Pt to start of fix data
+;
+DOFIX1	PUSH	HL
+	LD	HL,RDGINP$	;"reading input...
+	CALL	$DSPLY
+	POP	HL
+	LD	(SETMSG+1),HL	;Used if error in line
+	LD	A,$-$
+PASS2	EQU	$-1		;Zero if 1st pass thru data
+	OR	A
+	LD	A,(HL)		;P/U a character
+	JP	Z,PASS1		;Go if 1st pass
+	LD	A,(HL)
+	CP	ETX		;End of patch?
+	JR	Z,PCHDUN
+	CP	'.'		;Comment?
+	JP	Z,COMMENT
+	RES	5,A		;Make upper case
+	CP	'F'		;FIND line?
+	JP	Z,COMMENT	;Skip on 2nd pass or if O=N
+	CP	'D'		;Start of D line?
+	JP	Z,DVERB
+	CP	'Y'		;Yank previous patch?
+	JP	Z,YANK
+	CP	'L'		;Library overlay?
+	JP	Z,LVERB
+	CP	'R'		;Remove parm ?
+	JP	Z,REMOVE
+	CP	'O'		;O parm ?
+	JP	Z,OVERB
+	CP	'X'		;Start of X line?
+	JP	NZ,PCHERR	;Error if none of above
+;
+;	Verb = 'X' -> patch by hex load address
+;
+	LD	DE,PGMDCB	;Rewind the program to 0
+	LD	BC,0		;Use POSN so EOF
+	CALL	$POSN		;  is not changed
+	CALL	POSFIL		;Posn to end of prgfile
+;
+	PUSH	AF		;Save regs fm display routine
+	PUSH	HL
+	PUSH	DE
+	LD	HL,INSPCH$	;"installing patch...
+	CALL	$DSPLY
+	POP	DE
+	POP	HL
+	POP	AF
+;
+	CP	2		;Be sure type byte = 2
+	JP	NZ,FILERR	;Load file format error
+	LD	A,1		;Tempy set LRL to 1
+	LD	(PGMDCB+9),A	;  & backspace the file
+	CALL	$BKSP		;  to overwrite old xfer addr
+	XOR	A		;Reset LRL to 256
+	LD	(PGMDCB+9),A
+;
+;	Install the X patch at the end of the prgfile
+;
+	CALL	STUFNM		;Generate the patch
+	LD	A,(HL)		;HL => ending posn in fix data
+	CP	ETX		;Did it go til the end?
+	JP	NZ,PCHERR	;"Patch format error...
+;
+;	Patch/operation complete - close the file
+;
+PCHDUN	LD	A,CR		;Move cursor to next line
+	CALL	$DSP
+	LD	DE,PGMDCB	;Close the program file
+	@@CLOSE
+	JP	NZ,IOERR
+	LD	HL,YANKMSG	;Set up in case Yank was done
+	LD	A,(YNKFLG)	;Was it a Yank?
+	OR	A
+	JR	NZ,EXLOG	;Yes, log out
+	LD	HL,SUCCES$	;"function completed.."
+	@@LOGOT
+	LD	HL,(LINCNT)	;P/u # of D & X lines
+	LD	A,H
+	OR	L		;Any?
+	JR	Z,NOCHG		;No D or X verbs
+	PUSH	HL		;Save line count
+	LD	DE,1		;Exactly 1 line?
+	SBC	HL,DE
+	POP	HL
+	JR	NZ,NTONE	;Go if more than 1
+	LD	A,' '		;  else remove "s" from message
+	LD	(PLURAL),A
+NTONE	LD	DE,LINMSG$	;Put line count into message
+	@@HEXDEC		;  as decimal ASCII
+NOCHG	LD	HL,LINMSG$
+EXLOG	@@LOGOT			;Show how many lines done
+;
+	LD	HL,0		;Init no error
+$QUIT	PUSH	HL
+	LD	HL,PGMDCB
+	BIT	7,(HL)		;Was file left open?
+	EX	DE,HL		;DE=>DCB possible close
+	CALL	NZ,FLOPN	;Warn user
+	LD	A,14		;Cursor on
+	CALL	$DSP
+	POP	HL
+	LD	SP,$-$		;P/u original stack
+STACK	EQU	$-2
+	@@CKBRKC		;Clear break
+	RET			;Done with the patching
+;
+;	Verb = '.' => comment line
+;	HL = start of line in fix data
+;	Bypass all chars until a terminator is found
+;
+COMMENT	LD	A,(HL)		;Look for some terminator
+	CP	ETX		;End of the fix data?
+	JP	Z,DOFIX1	;Back if so
+	INC	HL		;  else bump buffer ptr
+	CP	';'		;Logical EOL?
+	JR	Z,EOL1		;Back if so
+	CP	CR		;Physical EOL?
+	JR	NZ,COMMENT	;Do next char if not
+EOL1	JP	DOFIX1		;Back to the caller
+;
+;	Verb = 'D' -> disk record patch
+;
+DVERB	CALL	CNTLIN		;Bump line counter
+	CALL	DPOSN		;Posn prgfile to Drr,bb
+	CALL	DLINE		;Put or check the patch line
+				;  depending on which pass
+	JP	DOFIX1		;Do next line
+;
+DPOSN	INC	HL		;Bump fix data buffer ptr
+	CALL	PRSFIX		;Get char or hex pair
+	LD	B,0		;Put disk record #
+	LD	C,A		;  into BC
+	LD	A,(HL)		;If no comma, then
+	CP	','		; get 3rd & 4th digits
+	JR	Z,DVERB1	;  in case user put in
+	CALL	PRSFIX		;  a 4 byte record #
+	LD	C,A
+DVERB1	LD	DE,PGMDCB	;Position file to record
+	CALL	$POSN
+	LD	A,(HL)		;Check for ',' separator
+	CP	','		;  between record and offset
+	JP	NZ,PCHERR	;Abort if not found
+	INC	HL		;Pt to offset bytes
+	CALL	$READ		;Read the sector
+	CALL	PRSFIX		;Make offset binary in A
+	LD	(PGMDCB+5),A	;Set byte offset in FCB
+	RET
+;
+;	Dual purpose routine that checks a Drr,bb line
+;	or installs it into the program file
+;
+DLINE	LD	A,(HL)		;Next byte in line must
+	CP	'='		;  be '='
+	JP	NZ,PCHERR	;Abort if missing
+DVERB2	INC	HL		;Pt to start of patch data
+DVERB3	CALL	PRSFX1		;Get patch byte as binary in A
+	CALL	PUTORCHK	;Either write it or check it
+	LD	A,(HL)		;P/u next char
+	CP	CR		;Go on CR
+	JR	Z,DVERB4A
+	CP	';'		;End of logical line?
+	JR	Z,DVERB4
+	CP	'"'		;Closing dbl-quote?
+	JR	Z,DVERB4
+	LD	A,(STRFLG+1)	;If in quote string,
+	OR	A		;  do not bump HL past
+	JR	Z,DVERB2	;  the non-existant space
+	JR	DVERB3		;No special, do next byte
+;
+DVERB4	LD	A,(HL)		;Ignore rest of line
+DVERB4A	INC	HL
+	CP	CR
+	JR	NZ,DVERB4	;Loop til physical EOL
+	LD	A,(PASS2)	;Patching or checking?
+	OR	A		;If patching, need to
+	CALL	NZ,$RWRIT	;  re-write the sector
+	RET			;Done w/line
+;
+;	Verb = 'R' -> set flag to yank D patch
+;	This routine is needed to check the R parm
+;	 when doing a CLP, in case the parm was entered
+;	 after the fix data
+;
+REMOVE	LD	A,-1		;Set Reomve parm true and
+	LD	(RPARM),A	;  then ignore all until the
+	JP	COMMENT		;  next logical line
+;
+;	Verb = 'Y' -> yanks patch with same name
+;
+YANK	LD	A,(HL)		;Ignore all chars until
+	INC	HL		;  the physical EOL
+	CP	CR
+	JR	NZ,YANK
+;
+	PUSH	HL		;Save fix data posn
+	LD	HL,YNKPCH$	;"yanking patch...
+	CALL	$DSPLY
+	LD	BC,0		;Rewind the file
+	LD	DE,PGMDCB
+	CALL	$POSN
+YANK1	CALL	$GET1		;Get a "type" byte
+	JP	NZ,YANK9	;If error, ck for EOF
+	CP	7		;Found a patch?
+	JR	Z,YANK4		;If so, check name
+	LD	(TYPCOD+1),A	;Stuff type for testing
+	CALL	$GET		;Get a block length
+	LD	B,A		;Set loop counter
+TYPCOD	LD	A,0		;Test type
+	DEC	A		;Ck for type 1 (code block)
+	JR	NZ,YANK2	;Length ok if not
+;
+;	Adjust length for 255 & 256 byte code blocks
+;
+	CALL	$GET		;Read 1st two bytes
+	DEC	B		;  in case the block was
+	CALL	$GET		;  255+2 or 256+2
+	DEC	B
+YANK2	CALL	$GET		;Read rest of block
+YANK3	DJNZ	YANK2
+	JR	YANK1
+;
+;	Found patch code area, is this the one?
+;
+YANK4	CALL	$GET		;Get name len fm file
+	LD	B,A		;Save len in B
+	LD	A,(NAMLEN$)	;P/u fix file name length
+	CP	B		;If no match, not fix
+	JR	NZ,YANK2	;  to Yank
+	LD	HL,NAMFIX$	;Pt to yank file name
+YANK5	CALL	$GET1		;Ck for match of yank
+	JP	NZ,YANK2	;  file name with prog
+	CP	(HL)		;  patch name
+	INC	HL
+	JR	NZ,YANK3	;Back if no match
+	DJNZ	YANK5
+;
+;	Found this fix patch - let's yank it
+;
+YANK6	CALL	$GET		;Get type code
+	CP	1		;Ignore block if
+	JP	NZ,YANK8	;  type <> 1 (code block)
+	LD	A,1		;Set LRL=1 & backspace
+	LD	(PGMDCB+9),A	;  to overwrite the type byte
+	CALL	$BKSP
+	XOR	A		;Set LRL back to 256
+	LD	(PGMDCB+9),A
+	LD	A,10H		;Change type=1 to =16
+	CALL	$PUT		;  and write to prgfile
+	CALL	$RWRIT		;Force re-write
+	CALL	$GET		;Get length byte
+	LD	B,A		;  of patch code block
+YANK7	CALL	$GET
+	DJNZ	YANK7		;Posn past the code block
+	JR	YANK6		;Loop through patch blocks
+;
+YANK8	POP	HL		;Not type 1, done with yank
+	LD	A,0FFH		;Set Yank flag for
+	LD	(YNKFLG),A	;  exit message dsply
+	JP	PCHDUN
+;
+YANK9	CP	1CH		;Got $GET error, was EOF?
+	JP	NZ,IOERR	;Abort if not, else
+	LD	HL,NOYANK$	;  "can't yank, not in file
+	JP	ERREXIT
+;
+;	Verb = 'O' -> turn FIND on/off
+;	Check special O parameter, determine ON or OFF
+;
+OVERB	INC	HL		;Move past O
+	LD	A,(HL)
+	CP	'='		;Next char must be '='
+	JR	NZ,WHATIS	;  or is an error
+	INC	HL		;Bypass the '='
+	LD	A,(HL)
+	CP	CR		;Was it CR or ')'?
+	JR	Z,OISOFF	;O=<enter> is OFF
+	RES	5,A		;Make Upper case
+	CP	'N'
+	JR	Z,OISOFF	;O=N,NO etc.
+	CP	'Y'		;Y=yes
+	JR	Z,OISON
+	CP	'O'
+	JR	NZ,WHATIS	;Not Y/N/ON/OFF!
+	CALL	GETNXT		;Get nxt, already UC
+	CP	'F'
+	JR	Z,OISOFF	;OFF
+	CP	'N'
+WHATIS	JP	NZ,PCHERR	;Quit if no acceptable flag
+;
+OISON	DB	3EH		;LD A,0AFH
+OISOFF	XOR	A
+	LD	(OPARM),A	;Set parm on or off
+	DEC	HL
+	JP	COMMENT		;Ignore rest til logical EOL
+;
+;	Verb = 'L' -> indicate patch to library file
+;
+LVERB	INC	HL		;Bypass the 'L'
+	CALL	PRSFIX		;Get a hex digit pair
+	LD	C,A		;Stuff for later
+	LD	(OVRLY+1),A
+	LD	A,(HL)		;Ck for end of line
+	INC	HL
+	CP	CR
+	JP	NZ,PCHERR	;Error if not
+	CALL	FISAM		;Get isam overlay ptrs
+	PUSH	AF		;Save byte offset
+	LD	A,(PGMDCB+1)
+	RES	7,A		;Sector operations only
+	LD	(PGMDCB+1),A
+	LD	DE,PGMDCB	;Position the file to
+	CALL	$POSN		;Overlay requested
+	CALL	$READ		;Read in the sector
+	POP	AF
+	LD	(PGMDCB+5),A	;Stuff byte offset in FCB
+	CALL	POSFIL		;Adv "positioning...
+	CP	4		;End of ISAM overlay?
+	JP	NZ,FILERR	;If not, "load format er.
+	LD	A,1		;Set LRL=1
+	LD	(PGMDCB+9),A
+	CALL	$BKSP		;Backspace over the 4
+	XOR	A		;Now set LRL back to 256
+	LD	(PGMDCB+9),A
+	CALL	STUFNM		;Do the patch
+	PUSH	HL
+	LD	HL,BLDMAP$	;"rebuilding library map.
+	CALL	$DSPLY
+	CALL	RPRMAP		;Rebuild the map
+	POP	HL
+	JP	DOFIX1		;Loop
+;
+;	Include the rest of Patch/Cmd
+;
+*GET	PATCHA:3
+;
+	END	BEGIN
+

@@ -1,0 +1,262 @@
+;LDOSDCT/ASM - Floppy Disk DCT
+	TITLE	<FLOPPY/DCT - LS-DOS 6.2>
+;
+;	Program installs a standard DCT into a logical
+;	drive slot as specified by:
+;	 SYSTEM (DRIVE=d,DRIVER="LDOS")
+;	The default DCT is taken from slot 0 of the
+;	System Information Sector (70H-79H).
+;
+CR	EQU	13
+LF	EQU	10
+;
+*GET	SVCMAC:3		;SVC Macro equivalents
+*GET	COPYCOM:3		;Copyright message
+;
+	IF	@BLD631
+	ORG	2400H		;<631>
+	ELSE
+	ORG	2C00H
+	ENDIF
+;
+BEGIN
+	@@CKBRKC
+	JR	Z,BEGINA	;Continue if no break
+	LD	HL,-1		; else abort
+	RET
+;
+BEGINA	PUSH	DE		;Save the DCT location
+	@@DSPLY	HELLO$		;Display the signon
+	POP	DE
+LDOS	LD	A,D		;Make sure that a
+	OR	E		;  drive # was entered
+	JP	Z,NODRV		;Go if no drive
+;
+;	Check if entry from SET command
+;
+	@@FLAGS
+	BIT	3,(IY+'C'-'A')	;System request?
+	JP	Z,VIASET	;Exit if not
+	LD	A,(DE)
+	CP	0C9H		;Is drive disabled?
+	JP	NZ,ACTIVE	;Must be disabled
+	PUSH	DE		;Save DCT address
+	LD	DE,FDCNAM$	;Pt to module name
+	@@GTMOD			;Be sure floppy driver here
+	JP	NZ,NODVR	;Go if not
+	LD	(DVRADR),HL	;Save floppy dvr addr
+	CALL	GETCFG		;Load sysinfo sector
+	JP	NZ,IOERR	;Quit on read error
+	BIT	4,(IY+'L'-'A')	;Suppress 8" queries?
+	JR	NZ,LDOS3	;NZ=suppress
+;
+;	Query as to 5" or 8" floppy
+;
+DRVTYP	LD	HL,DRVTYP$	;"Enter drive code...
+	@@DSPLY
+	LD	HL,BUF		;Pt to buffer
+	LD	BC,1<8		;Allow 1 char only
+	@@KEYIN			;Get response
+	JP	C,BREAK		;Quit on Break
+	LD	A,(HL)		;P/u char response
+	SUB	'0'		;Adjust to binary
+	CP	2		;Make sure requested
+	JR	NC,DRVTYP	;  type is supported
+	LD	(LX805+1),A
+;
+;	Prompt user for physical drive address
+;
+LDOS3	@@DSPLY	DRVADR$		;"Enter physical...
+	LD	HL,BUF		;Input buffer
+	LD	BC,1<8		;Allow 1 char only
+	@@KEYIN			;Get response
+	JP	C,BREAK		;Quit on Break
+	LD	A,(HL)		;P/u the response
+	SUB	'1'		;Adjust to binary
+	CP	3+1		;Be sure in range
+	JR	NC,LDOS3	;Redo if not
+;
+;	Convert drive address to select code
+;
+	CP	3		;Convert 3 to 4
+	CCF
+	ADC	A,0
+	CP	1		;Convert <0,1,2,4>
+	RLA			;  to <1, 2, 4, 8>
+	LD	B,A		;Hang on to request
+;
+;	Index the default drive code table
+;
+LX805	EQU	$
+	IF	@MOD2
+	LD	A,1		;8"
+	ENDIF
+	IF	@MOD4
+	LD	A,0		;5"
+	ENDIF
+	LD	C,A
+	ADD	A,A		;Times 2
+	ADD	A,C		;Times 3
+	ADD	A,A		;Times 6
+	ADD	A,C		;Times 7
+	LD	HL,DRVTAB$	;Index into 5" or 8"
+	ADD	A,L		;  default table
+	LD	L,A
+	ADC	A,H
+	SUB	L
+	LD	H,A
+	INC	HL
+	LD	A,(HL)		;P/u default DCT+4
+	AND	0F0H		;Remove drive select
+	OR	B		;Merge in new one
+	LD	(HL),A		;Update the DCT
+	DEC	HL
+	LD	BC,7		;Init for 7-byte move
+	POP	DE		;DE => DCT$
+	PUSH	DE		;Save DCT$ pointer
+	INC	DE
+	INC	DE
+	INC	DE		;Index to DCT+3
+	LDIR
+	POP	DE
+	PUSH	DE		;Save start again
+	LD	A,0C3H		;Enabled drive
+	LD	(DE),A
+	INC	DE
+	LD	HL,$-$		;Driver addr
+DVRADR	EQU	$-2
+	EX	DE,HL
+	LD	(HL),E
+	INC	HL
+	LD	(HL),D
+	POP	DE
+;
+;	Compute the actual drive number used
+;
+	LD	C,0
+	@@GTDCT			;Get drive 0
+	PUSH	IY		;Pass to HL for sub
+	POP	HL		;HL => start DCT's
+	EX	DE,HL		;DE=start, HL=current
+	OR	A		;Clear carry
+	SBC	HL,DE		;HL = offset from start
+	LD	C,10		;DCT length
+	@@DIV16			;HL+A = HL/C
+	LD	C,L		;Result = drive #
+	@@RSTOR			;Restore drive
+	LD	HL,0		;Set no error return
+	RET			;Init complete
+;
+;	Routines to read/write the config sector
+;
+GETCFG	LD	HL,BUFFER	;Use buffer for I/O
+;
+	IF	@MOD2
+	LD	C,L		;Pass drive #
+	PUSH	IY		;Save IY
+	@@GTDCT			;Fetch DCT
+	LD	A,(IY+3)	;Get data
+	AND	28H		;Bit 5/3
+	CP	20H		;8" floppy?
+	JR	NZ,SETSYS1	;Go if not
+	LD	A,(IY+4)	;Fetch data
+	AND	50H		;Bit 6/4
+	CP	40H		;DD not alien?
+	JR	NZ,SETSYS1	;Go if not
+	LD	D,(IY+9)	;Get dir cyl
+	LD	E,L		;Sector 0
+	@@RDSEC			;Read sector
+	CP	6		;Directory?
+	JR	NZ,SETSYS2	;Nope, error
+	LD	A,(BUFFER+0CDH)	;Get GAT data
+	BIT	7,A		;System disk?
+SETSYS1	LD	DE,0<8+2	;Normal sysinfo sector
+	JR	NZ,$+3		;Go if data disk
+	INC	D		;  else sysinfo on 1
+	XOR	A		;Set Z for no error
+SETSYS2	POP	IY		;Restore DCT
+	RET	NZ		;Go if error
+	ENDIF
+;
+	IF	@MOD4
+	LD	DE,0<8+2	;Get Config sector
+	ENDIF
+	LD	C,L		;  of system drive
+	@@RDSEC			;Read it into core
+	RET
+;
+IOERR	LD	L,A		;Error # to HL
+	LD	H,0
+	OR	0C0H		;Abbrev, return
+	LD	C,A
+	@@ERROR			;Display the error
+	@@CKBRKC		;Clear any Break
+	RET
+;
+;	Internal error display routine
+;
+VIASET	LD	HL,VIASET$	;"Install with SYSTEM
+	DB	0DDH
+ACTIVE	LD	HL,ACTIVE$	;"Drive in use
+	DB	0DDH
+BREAK	LD	HL,BREAK$	;"Command aborted
+	DB	0DDH
+NODRV	LD	HL,NODRV$	;"Need a drive #
+	DB	0DDH
+NODVR	LD	HL,NODVR$	;"Missing $FD...
+	@@LOGOT
+	LD	HL,-1		;Set abort code
+	@@CKBRKC		;Clear any break
+	RET
+;
+HELLO$	DB	LF,'FLOPPY Setup'
+*GET	CLIENT:3
+;
+VIASET$	DB	'Must install via SYSTEM (DRIVER=',CR
+ACTIVE$	DB	'Drive slot is already enabled',CR
+NODRV$	DB	'Logical drive number required',CR
+NODVR$	DB	'Floppy driver not present in memory',CR
+BREAK$	DB	'Command aborted',CR
+FDCNAM$	DB	'$FD',0
+DRVTYP$	DB	'   Enter drive code (0=5", 1=8") > ',3
+DRVADR$	DB	'   Enter drive I/O address <1-4> > ',3
+DRVTAB$
+;
+;	5" drive table
+;
+	DB	01000100B	;5", 6ms, delay=n
+	DB	01000000B	;DDEN
+	DB	0FFH		;Start cylinder
+	DB	40-1		;40 track drive
+	DB	18-1		;18 sec per cyl
+	DB	3-1<5+6-1	;6 sec/gran, 3 gran/cyl
+	DB	40/2		;Directory track
+;
+;	8" table
+;
+	IF	@MOD4
+	DB	00100001B	;8", 6ms step
+	DB	01000000B	;DDEN
+	DB	0FFH		;Start cylinder
+	DB	77-1		;77 track drive
+	DB	16-1		;16 sec per cyl
+	DB	2-1<5+8-1	;8 sec/gran, 2 gran/cyl
+	DB	77/2		;Directory track
+	ENDIF
+;
+	IF	@MOD2
+	DB	01100010B	;+3 - 8", DD, 10ms, delay
+	DB	01000000B	;+4 - DDen capable
+	DB	4CH		;+5 - current cyl
+	DB	77-1		;+6 - high cylinder
+	DB	0<5+29		;+7 - sides + high sec
+	DB	2<5+9		;+8 - grans/cyl + sec/grn
+	DB	77/2		;+9 - dir cylinder
+	ENDIF
+;
+BUF	DS	2
+	ORG	$<-8+1<+8
+BUFFER	DS	256
+;
+	END	BEGIN
+

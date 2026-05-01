@@ -1,0 +1,330 @@
+
+
+
+     WWWWCCCC((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                WWWWCCCC((((UUUU1111))))
+
+
+
+     NNNNaaaammmmeeee
+          WC - Counts the characters, words and lines in a file.
+
+     SSSSyyyynnnnttttaaaaxxxx
+          wwwwcccc [ ----ccccwwwwllllpppp!!!!????hhhh ] [ _w_i_l_d_s_p_e_c ][ :_d_r_i_v_e_s_p_e_c ]...
+          [<<<< _f_i_l_e | _d_e_v_i_c_e ] [>>>>[>>>>] _f_i_l_e | _d_e_v_i_c_e ] [ ; _n_e_x_t _c_o_m_m_a_n_d ]
+
+     DDDDeeeessssccccrrrriiiippppttttiiiioooonnnn
+          _W_c reads the contents of the specified files and reports on
+          the number of characters, words and lines that each file
+          contains.  When more than one file is examined, a total is
+          also displayed.
+
+          _W_c accepts several options.  Options are specified by single
+          characters, and they may be entered in upper or lowercase.
+          Options are always preceded by a hyphen (a "-").  If you are
+          specifying multiple options, you can specify the options in
+          any of these formats:
+                -a -b -c   or   -abc   or   -a -bc   or  -ab -c
+
+          The options are:
+
+          ----cccc   Displays the number of characters present in the file.
+
+          ----wwww   Displays the number of words present in the file.
+               Words are considered to be blank- or carriage-control-
+               separated groups of characters.
+
+          ----llll   Displays the number of lines present in the file.  _W_c
+               counts the sequence 0x0d 0x0a (CR/LF) as a single line,
+               but all other combinations of 0x0d and/or 0x0a are
+               counted as two lines.
+
+          ----pppp   Output of _w_c is routed through the _m_o_r_e(U1) utility.
+               The screen will pause once 23 lines of text have been
+               displayed.  The _m_o_r_e(U1) prompt ("--More--") allows you
+               to advance or search through the remainder of the
+               output.  See the _m_o_r_e(U1) command for additional
+               information on the options that _m_o_r_e(U1) provides.  The
+               ----pppp option is ignored if the output is redirected.
+
+          ----!!!!   Causes _w_c to ignore any default settings that are
+               specified in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file.  _W_c will also
+               ignore any options that are specified to the left of
+               the ----!!!! option.  Note that the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file is
+               accessed even if the ----!!!! option is specified.
+
+          ----???? oooorrrr ----hhhh
+               Displays the help message.
+
+
+
+
+
+
+     Page 1                                             May 15th, 1993
+
+
+
+
+
+
+     WWWWCCCC((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                WWWWCCCC((((UUUU1111))))
+
+
+
+          _w_i_l_d_s_p_e_c
+               A _w_i_l_d_s_p_e_c specifies none or more files that are to be
+               examined in alphabetical order.  A _w_i_l_d_s_p_e_c may contain
+               none or more of the following wildcard characters:
+
+               *     The * matches zero or more characters in the
+                     specified position.  For example, the _w_i_l_d_s_p_e_c
+                     A*Z will match any of the following filenames:
+                                      AZ          ABZ
+                                    ABCDEFGZ    ABC/XYZ
+                     Note that unlike a LS-DOS/TRSDOS 6 _p_a_r_t_s_p_e_c(L),
+                     the filename and extension are treated as a
+                     single unit.  A single * will match files with
+                     and without extensions.
+
+               %     The % matches exactly one character.  So A%C
+                     matches:
+                                      ABC         AXC
+                     The file AC will not match the A%C pattern.
+
+               [ ]   Ranges specify multiple characters that may
+                     appear in a given position in the filenames being
+                     tested.  There are two formats that can be
+                     combined:
+                     [abc]     These specific characters are
+                               acceptable in this position in the
+                               filename.  So A[BC5]D would match:
+                               ABD            ACD                 A5D
+                     [b-e]     The characters in this ASCII range are
+                               acceptable in this position in the
+                               filename.  A[E-J]X matches:
+                               AEX            AFX                 AGX
+                               AHX            AIX                 AJX
+                               Numbers can also be included in ranges,
+                               but the first value of the range must
+                               always have a lower ASCII value than
+                               the second value.
+                     [!...]    The ! excludes all files that match
+                               characters in this position.  So
+                               A[!DKP]D will match all filenames that
+                               start with an "A", end with a "D", and
+                               the second character is any character
+                               except "D", "K", or "P".
+
+                     Combinations of ranges are also allowed.
+                     A[1-3ABD]X would allow these filenames:
+                                A1X         A2X         A3X
+                                AAX         ABX         ADX
+
+               Any lowercase characters in the _w_i_l_d_s_p_e_c are converted
+               to uppercase before the comparison is performed.
+
+
+
+
+     Page 2                                             May 15th, 1993
+
+
+
+
+
+
+     WWWWCCCC((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                WWWWCCCC((((UUUU1111))))
+
+
+
+          :_d_r_i_v_e_s_p_e_c
+               The _d_r_i_v_e_s_p_e_c specifies one or more logical drives that
+               should be scanned for files that match the file
+               _w_i_l_d_s_p_e_c.  The % and * will examine all enabled drives.
+               A range can also be used.  For example, :[2-47] will
+               search for files on drives 2, 3, 4 and 7.
+
+               If the _d_r_i_v_e_s_p_e_c is not specified and a _w_i_l_d_s_p_e_c is,
+               all drives are searched for files that match the file
+               _w_i_l_d_s_p_e_c and all files that match will be displayed.
+               So if the command wwwwcccc ssssaaaammmmpppplllleeee////ttttxxxxtttt is used and the file
+               SAMPLE/TXT exists on four different logical drives, all
+               four files will be examined.
+
+
+          <<<< _f_i_l_e | _d_e_v_i_c_e
+               If a file or device is specified, _w_c will read the data
+               from the file or device until the end-of-file is
+               detected or an error occurs.  This is known as
+               _r_e_d_i_r_e_c_t_e_d _i_n_p_u_t.  For example, if you specify <<<< ****KKKKIIII,
+               characters will be read from the keyboard until <BREAK>
+               is pressed.  These characters will not be echoed.
+
+               Redirected input will override any wildspecs that are
+               specified.
+
+
+          >>>>[>>>>] _f_i_l_e | _d_e_v_i_c_e
+               By specifying a file or device, the output is sent to
+               the specified file or device instead of the display.
+               This is known as _r_e_d_i_r_e_c_t_e_d _o_u_t_p_u_t.  For example, the
+               command wwwwcccc aaaa****::::5555 >>>> ccccoooouuuunnnntttt::::0000 places the size information
+               for a list of files from logical drive 5 with names
+               that start with the letter 'a' in the file CCCCOOOOUUUUNNNNTTTT::::0000.  If
+               >> is used, the output will be appended to any existing
+               contents of the file.  _F_i_l_e_s_p_e_c_s for redirection may
+               not specify a password.
+
+
+          ; _n_e_x_t _c_o_m_m_a_n_d
+               After _w_c completes, the remainder of the command line
+               is executed as a second command.  The command wwwwcccc
+               xxxx::::1111;;;;ddddaaaatttteeee will display the size information for the
+               specified file, and then the date will be displayed.
+
+
+          <SHIFT>@
+               When pressed during output to the display, the output
+               will pause.  Pressing any other key resumes output.
+               Pressing this key is ignored when output is redirected.
+
+
+
+
+
+     Page 3                                             May 15th, 1993
+
+
+
+
+
+
+     WWWWCCCC((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                WWWWCCCC((((UUUU1111))))
+
+
+
+     NNNNooootttteeeessss
+          When the ----llll, ----wwww, and ----cccc options are used, they are position
+          dependent.  The first option specified will have its value
+          displayed first.  For example, if you specified ----llllcccc, the
+          number of lines would be the first item displayed, followed
+          by the number of characters.
+
+          If the same option appears more than once, that information
+          is displayed as many times as the option is specified, in
+          the order that the options were specified.
+
+          If the ----llll, ----wwww, and ----cccc options are not specified at all, the
+          default options ----llllwwwwcccc is used automatically.
+
+          If _w_c is not able to read a file because it is password
+          protected, only the character total will be displayed.  The
+          fields for line and width will be marked with a "-", and an
+          error message will be displayed after the filename to
+          indicate what the problem was.
+
+          _W_c accepts filespecs using the "/" or "." to separate the
+          filename extension.  Because of this, files with passwords
+          cannot be specified.
+
+          _W_c can be run on executable and other non-ASCII files.  The
+          character count will always be correct, but the word and
+          line count will probably have no relevance.
+
+
+     FFFFiiiilllleeeessss
+          _W_c reads the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file and uses any default options
+          that are specified there.  For example, if you wanted _W_c to
+          display only the word count, the following entry in the
+          DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file would do this:
+                      WC -W
+          Options in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file are ignored if the ----!!!!
+          option is specified on the command line.
+
+          You may make copies of _w_c with different names.  When
+          examining the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file, the name used to invoke the
+          program will be used to locate the default entries.  For
+          example, if you made copies of WWWWCCCC////CCCCMMMMDDDD and named them
+          WWWWOOOORRRRDDDDSSSS////CCCCMMMMDDDD and LLLLIIIINNNNEEEESSSS////CCCCMMMMDDDD, you could add the following lines
+          to the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file:
+                      WORDS -W
+                      LINES -L
+          Now, when _w_o_r_d_s is run, only the number of words in the file
+          will be displayed, and when _l_i_n_e_s is run, it would just
+          display the number of lines in the file.
+
+
+
+
+
+
+     Page 4                                             May 15th, 1993
+
+
+
+
+
+
+     WWWWCCCC((((UUUU1111))))               LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111                WWWWCCCC((((UUUU1111))))
+
+
+
+          If you need more information on _w_c(U1) or if you want to
+          obtain the LDOS 5.3 version, please write to M.A.D.
+          Software, P.O. Box 331323, Ft. Worth Texas, 76163.  Please
+          include a Self-Addressed-Stamped-Envelope when requesting
+          information.
+          ------
+          305151
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 5                                             May 15th, 1993
+
+
+

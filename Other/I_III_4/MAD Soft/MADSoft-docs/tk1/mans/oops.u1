@@ -1,0 +1,264 @@
+
+
+
+     OOOOOOOOPPPPSSSS((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              OOOOOOOOPPPPSSSS((((UUUU1111))))
+
+
+
+     NNNNaaaammmmeeee
+          OOPS - Allows a previously-typed DOS command to be edited.
+
+     SSSSyyyynnnnttttaaaaxxxx
+          ooooooooppppssss
+
+     DDDDeeeessssccccrrrriiiippppttttiiiioooonnnn
+          _O_o_p_s provides a convenient method of correcting a mistyped
+          command without retyping the entire command.  This is also
+          useful when performing repeated operations where only a
+          small part of a command changes, such as a filename.  _O_o_p_s
+          allows you to edit any line that is still on the screen.
+
+          When _o_o_p_s is invoked, the <UP-ARROW> and <DOWN-ARROW> keys
+          allow you to move the cursor to the line that is to be
+          edited.  When the cursor is over the desired line, press
+          <ENTER>, <F3> or <.>.  (<ENTER> clears the screen below the
+          selected line while <F3> and <.> do not.)
+
+          Once a line has been selected, it may be edited. _O_o_p_s uses
+          the same editing commands that are available in the EDIT
+          command in BASIC.
+
+          Several of the commands accept an optional count.  By
+          entering a one or two digit number prior to the command,
+          that command will be performed the specified number of
+          times.  As the number is entered, it is displayed at the
+          bottom of the screen.  The commands that accept a count are
+          noted by [_n].
+
+
+          General commands:
+
+          <<<<EEEENNNNTTTTEEEERRRR>>>>
+               Signals that editing is complete and the command is
+               passed to the operating system command interpreter.
+
+          <<<<BBBBRRRREEEEAAAAKKKK>>>>
+               Exits _o_o_p_s without performing any operation.  If _o_o_p_s
+               is in a special mode, the first time the <BREAK> key is
+               pressed exits the special mode and the second <BREAK>
+               exits _o_o_p_s.  If _o_o_p_s is in a special mode, a message is
+               displayed at the bottom of the screen.  For example, if
+               the display shows the word "cccchhhhaaaannnnggggeeee", then _o_o_p_s is
+               currently in the cccchhhhaaaannnnggggeeee mode.
+
+          <<<<FFFF3333>>>> Exits any special mode _o_o_p_s may be in.  The current
+               special mode (if any) is displayed in the lower-right
+               cornet of the screen.  If _o_o_p_s is not in a special mode
+               and <<<<FFFF3333>>>> is pressed, the <<<<FFFF3333>>>> is ignored.
+
+
+
+
+
+     Page 1                                             May 15th, 1993
+
+
+
+
+
+
+     OOOOOOOOPPPPSSSS((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              OOOOOOOOPPPPSSSS((((UUUU1111))))
+
+
+
+          <<<<....>>>>  Allows one or both digits of the repeat value to be
+               erased.  This can be done until an eeeeddddiiiitttt command is
+               entered.  The last digit entered (the ones' digit) is
+               the first to be deleted.
+
+          <<<<UUUU>>>>  Aborts all changes made so far and restores the line to
+               its original state.  The cursor is positioned to the
+               first column.
+
+
+          Insert commands:
+
+          <<<<IIII>>>>  Enters iiiinnnnsssseeeerrrrtttt mode.  Characters will be inserted in
+               front of the character that is under the cursor.
+               Pressing <<<<EEEENNNNTTTTEEEERRRR>>>> submits the command to the operating
+               system.  Pressing <<<<FFFF3333>>>>, <<<<BBBBRRRREEEEAAAAKKKK>>>>, <<<<SSSSHHHHIIIIFFFFTTTT>>>><<<<UUUUPPPP----AAAARRRRRRRROOOOWWWW>>>> or
+               any other control character exits iiiinnnnsssseeeerrrrtttt mode.
+
+          <<<<XXXX>>>>  Enters iiiinnnnsssseeeerrrrtttt mode, but first the cursor is moved to
+               the end of the line.  See the <<<<IIII>>>> for information on
+               iiiinnnnsssseeeerrrrtttt mode.
+
+          <<<<HHHH>>>> or <<<<TTTT>>>>
+               Deletes all characters to the right of the cursor and
+               enters iiiinnnnsssseeeerrrrtttt mode.  See the <<<<IIII>>>> command.
+
+
+          Editing commands:
+
+          [_n]<<<<CCCC>>>>
+               Changes the character under the cursor to the next
+               character that is typed.  After the change the cursor
+               moves one position to the right.  Pressing <<<<BBBBRRRREEEEAAAAKKKK>>>> or
+               <<<<FFFF3333>>>> will exit the cccchhhhaaaannnnggggeeee mode.
+
+          [_n]<<<<DDDD>>>>
+               Deletes the character under the cursor and moves the
+               text on the right of the cursor to the left to fill the
+               hole.
+
+
+          Searching commands:
+
+          [_n]<<<<SSSS>>>>
+               _O_o_p_s reads the next character that is typed and
+               searches for that character on the current line.  If a
+               match is found, the cursor to that position.  If the
+               character that is entered is not found to the right of
+               the cursor, the cursor is moved to the end of the line.
+               The search is case-sensitive; in other words, if you
+               search for the letter 't', the uppercase letter 'T'
+               will not be found by the search.
+
+
+
+     Page 2                                             May 15th, 1993
+
+
+
+
+
+
+     OOOOOOOOPPPPSSSS((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              OOOOOOOOPPPPSSSS((((UUUU1111))))
+
+
+
+          [_n]<<<<KKKK>>>>
+               Searches for the next character that is typed and
+               deletes the characters between the current position and
+               the search-character.  If the character is not found,
+               no characters are deleted.  If the character to search
+               for is <<<<EEEENNNNTTTTEEEERRRR>>>>, all the characters to the right of the
+               cursor are deleted.  Like the <<<<SSSS>>>> command, the search
+               is case-sensitive.
+
+
+          Movement commands:
+
+          <<<<FFFF1111>>>> or <<<<LLLL>>>>
+               Moves the cursor to the first column.
+
+          <<<<FFFF2222>>>> Moves the cursor one column past the last character on
+               the line.
+
+          [_n]<<<<LLLLEEEEFFFFTTTT----AAAARRRRRRRROOOOWWWW>>>>
+               Moves the cursor one position to the left.
+
+          [_n]<<<<RRRRIIIIGGGGHHHHTTTT----AAAARRRRRRRROOOOWWWW>>>> or <<<<SSSSPPPPAAAACCCCEEEE>>>>
+               Moves the cursor one position to the right.
+
+     NNNNooootttteeeessss
+          The Model 4 version of _o_o_p_s runs in the library overlay area
+          and does not disturb memory below 0x2600 or above 0x2fff.
+          The Model III version loads at 0x5800.
+
+          Programs may invoke _o_o_p_s, but _o_o_p_s will not return control
+          to them.  The status of the display is not altered by _o_o_p_s;
+          therefore, if the cursor is off when _o_o_p_s is invoked, it
+          will be difficult to use.  Reverse video text cannot be
+          edited reliably, and may not be recognized by the operating
+          system command interpreter.
+
+          To install _o_o_p_s as the _I_m_m_e_d_i_a_t_e _E_x_e_c_u_t_i_o_n _P_r_o_g_r_a_m (IEP) in
+          LS-DOS, use the command:
+                COPY OOPS/CMD SYS13/SYS:0 (C=N)
+
+          Once done, _o_o_p_s can be invoked by typing:       * <ENTER>
+
+          _O_o_p_s uses the @VDCTL SVC in LS-DOS or a scan of video memory
+          in Model III operating systems to read the contents of the
+          screen, thus allowing it to edit commands other than the
+          last command entered.  The edited command is supplied to the
+          operating system via the @CMNDI call or SVC.
+
+
+     FFFFiiiilllleeeessss
+          No files are accessed by _o_o_p_s.
+
+
+
+
+     Page 3                                             May 15th, 1993
+
+
+
+
+
+
+     OOOOOOOOPPPPSSSS((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              OOOOOOOOPPPPSSSS((((UUUU1111))))
+
+
+
+          If you need more information on _o_o_p_s(U1) or if you want to
+          obtain the LDOS 5.3 version, please write to M.A.D.
+          Software, P.O. Box 331323, Ft. Worth Texas, 76163.  Please
+          include a Self-Addressed-Stamped-Envelope when requesting
+          information.
+          ------
+          305152
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 4                                             May 15th, 1993
+
+
+

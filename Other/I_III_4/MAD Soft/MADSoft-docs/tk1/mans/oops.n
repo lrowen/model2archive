@@ -1,0 +1,181 @@
+.if t  .po 1.0i
+.ds ]W May 15th, 1993\"
+.TH OOPS U1 "" "LS-DOS 6 - Utilities 1"
+.ig
+OOPS troff documentation \- Version 2(2) 15\-May\-93
+Copyright 1981-1993 M. A. D. Software, All Rights Reserved.
+..
+.SH \fBName\fR
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+.de IN
+.if t  .in +0.5i
+.if n  .in +0.6i
+..
+.de OU
+.if t  .in -0.5i
+.if n  .in -0.6i
+..
+.de TI
+.if t  .ti -0.5i
+.if n  .ti -0.6i
+..
+.de IX
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 1.0i 1.5i 2.5i 3.5i 4.5i 5.5i
+.if t  .in +0.5i
+.if n  .in +1.0i
+..
+.de OX
+.if t  .in -0.5i
+.if n  .in -1.0i
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+..
+.de TX
+.if t  .ti -0.5i
+.if n  .ti -1.0i
+..
+.br
+OOPS \- Allows a previously-typed DOS command to be edited.
+.SH \fBSyntax\fR
+.br
+.B oops
+.SH Description
+.br
+
+.I Oops
+provides a convenient method of correcting a mistyped command without
+retyping the entire command.  This is also useful when performing
+repeated operations where only a small part of a command changes, such
+as a filename.  \fIOops\fR allows you to edit any line
+that is still on the screen.
+
+When \fIoops\fR is invoked, the <UP-ARROW> and <DOWN-ARROW> keys 
+allow you to move the cursor to the line that is to be edited.
+When the cursor is over the desired line, press <ENTER>, <F3> or <.>.
+(<ENTER> clears the screen below the selected line while <F3> and <.>
+do not.)
+
+Once a line has been selected, it may be edited. \fIOops\fR uses the same
+editing commands that are available in the EDIT command in BASIC.
+
+Several of the commands accept an optional count.  By entering a
+one or two digit number prior to the command, that command will
+be performed the specified number of times.  As the number is entered,
+it is displayed at the bottom of the screen.  The commands that
+accept a count are noted by [\fIn\fR].
+
+.IP General\ commands:
+.IP \fB\<ENTER>\fR 5
+Signals that editing is complete and the command is passed to the
+operating system command interpreter.
+.IP \fB\<BREAK>\fR 5
+Exits \fIoops\fR without performing any operation.  If \fIoops\fR is in
+a special mode, the first time the <BREAK> key is pressed exits the
+special mode and the second <BREAK> exits \fIoops\fR.  If \fIoops\fR
+is in a special mode, a message is displayed at the bottom of the screen.
+For example, if the display shows the word "\fBchange\fR", then
+\fIoops\fR is currently in the \fBchange\fR mode.
+.IP \fB\<F3>\fR 5
+Exits any special mode \fIoops\fR may be in.  The current special mode
+(if any) is displayed in the lower-right cornet of the screen.  If
+\fIoops\fR is not in a special mode and \fB<F3>\fR is pressed, 
+the \fB<F3>\fR is ignored.
+.if n  .bp
+.IP \fB\<.>\fR 5
+Allows one or both digits of the repeat value to be erased.  This can be
+done until an \fBedit\fR command is entered.  The last digit entered
+(the ones' digit) is the first to be deleted.
+.IP \fB\<U>\fR 5
+Aborts all changes made so far and restores the line to its original state.
+The cursor is positioned to the first column.
+
+.IP Insert\ commands:
+.IP \fB\<I>\fR 5
+Enters \fBinsert\fR mode.  Characters will be inserted in front of
+the character that is under the cursor.  Pressing \fB<ENTER>\fR
+submits the command to the operating system.  Pressing \fB<F3>\fR,
+\fB<BREAK>\fR, \fB<SHIFT><UP-ARROW>\fR or any other control character
+exits \fBinsert\fR mode.
+.IP \fB\<X>\fR 5
+Enters \fBinsert\fR mode, but first the cursor is moved to the end
+of the line.  See the \fB<I>\fR for information on \fBinsert\fR mode.
+.IP \fB\<H>\ \fRor\fB\ <T>\fR 5
+Deletes all characters to the right of the cursor and enters \fBinsert\fR
+mode.  See the \fB<I>\fR command.
+
+.IP Editing\ commands:
+.IP [\fIn\fR]\fB\<C>\fR 5
+Changes the character under the cursor to the next character that is typed.
+After the change the cursor moves one position to the right.  Pressing
+\fB<BREAK>\fR or \fB<F3>\fR will exit the \fBchange\fR mode.
+.IP [\fIn\fR]\fB\<D>\fR 5
+Deletes the character under the cursor and moves the text on the right of
+the cursor to the left to fill the hole.
+
+.IP Searching\ commands:
+.IP [\fIn\fR]\fB\<S>\fR 5
+\fIOops\fR reads the next character that is typed and searches for
+that character on the current line.  If a match is found, the cursor to
+that position.  If the character that is entered is not found to the
+right of the cursor, the cursor is moved to the end of the line.
+The search is case-sensitive; in other words, if you search for the
+letter 't', the uppercase letter 'T' will not be found by the search.
+.if n  .bp
+.IP [\fIn\fR]\fB\<K>\fR 5
+Searches for the next character that is typed and deletes the characters
+between the current position and the search-character.  If the character
+is not found, no characters are deleted.  If the character to search for
+is \fB<ENTER>\fR, all the characters to the right of the cursor are
+deleted.  Like the \fB<S>\fR command, the search is case-sensitive.
+
+.IP Movement\ commands:
+.IP \fB\<F1>\ \fRor\fB\ <L>\fR 5
+Moves the cursor to the first column.
+.IP \fB\<F2>\fR 5
+Moves the cursor one column past the last character on the line.
+.IP [\fIn\fR]\fB\<LEFT-ARROW>\fR 5
+Moves the cursor one position to the left.
+.IP [\fIn\fR]\fB\<RIGHT-ARROW>\fR\ or\ \fB<SPACE>\fR 5
+Moves the cursor one position to the right.
+.SH \fBNotes\fR
+The Model 4 version of \fIoops\fR runs in the library overlay area and does
+not disturb memory below 0x2600 or above 0x2fff.  The Model III version
+loads at 0x5800.
+
+Programs may invoke \fIoops\fR, but \fIoops\fR will not return control
+to them.
+The status of the display is not altered by \fIoops\fR; therefore, if the
+cursor is off when \fIoops\fR is invoked, it will be difficult to use.
+Reverse video text cannot be edited reliably, and may not be recognized
+by the operating system command interpreter.
+
+To install \fIoops\fR as the \fIImmediate Execution Program\fR (IEP)
+in LS-DOS, use the command:
+.IN
+COPY OOPS/CMD SYS13/SYS:0 (C=N)
+.OU
+
+Once done, \fIoops\fR can be invoked by typing:		* <ENTER>
+
+\fIOops\fR uses the @VDCTL SVC in LS-DOS or a scan of video memory in
+Model III operating systems to read the contents of the screen, thus
+allowing it to edit commands other than the last command entered.
+The edited command is supplied to the operating system via the @CMNDI
+call or SVC.
+
+.SH \fBFiles\fR
+No files are accessed by \fIoops\fR.
+
+
+If you need more information on \fIoops\fR(U1) or if you want to obtain
+the LDOS 5.3
+version, please write to M.A.D. Software, P.O. Box 331323, Ft. Worth Texas,
+76163.  Please include a Self\-Addressed\-Stamped\-Envelope when requesting
+information.
+.br
+\-\-\-\-\-\-
+.br
+305152
+

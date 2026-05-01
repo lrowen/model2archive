@@ -1,0 +1,21 @@
+;LBCOPY/ASM - Copy/Append Commands
+	TITLE	<COPY/APPEND - LS-DOS 6.3>
+;
+*GET	BUILDVER:3
+*GET	SVCMAC:3
+*GET	VALUES:3
+;
+EL	EQU	30		;Erase Line
+BL	EQU	29		;Beginning of Line
+@INIT	EQU	58		;@INIT SVC #
+@OPEN	EQU	59		;@OPEN SVC #
+BREAK	EQU	80H		;BREAK character
+;
+	ORG	2400H
+;
+*GET	LBCOPYA:3
+*GET	LBCOPYB:3
+;
+	SUBTTL	<>
+	END	COPY
+

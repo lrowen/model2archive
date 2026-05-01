@@ -1,0 +1,456 @@
+;HDFORMX/ASM - LDOS 5.1 or 6.x - 04/29/83
+;*=*=*
+;       Change Log
+;Moved all system routines to end
+;For easier 5.1/6.x compatibility -LM
+;Put WD FORMAT code here instead of in driver
+;Update system DCT for DIR cyl when done-04/26/83
+;*=*=*
+	IF	RAM
+	ORG	2400H
+	ELSE
+	ORG	5400H
+BEGIN	EQU	$
+	ENDIF
+;*****
+;       FORMAT routine entry point
+;*****
+USER	PUSH	HL		;Save cmdline ptr
+	LD	HL,HELLO$	;Log on
+	CALL	@DSPLY		;Hello message
+	POP	HL		;Rcvr ptr to cmdline
+;*=*=*
+;       Grab any parameters
+;*=*=*
+	PUSH	HL		;Save again
+	DEC	HL
+FNDPRN	INC	HL
+	LD	A,(HL)
+	CP	CR+1		;End of line?
+	JR	C,FMT1		;No parms
+	CP	'('
+	JR	NZ,FNDPRN
+	LD	DE,PARMTBL	;Parse any parameters
+	CALL	@PARAM
+	JP	NZ,PRMERR	;Jump on parm error
+;*=*=*
+;       Scan for drivespec on command line
+;*=*=*
+FMT1	POP	HL		;Cmd line again
+	LD	A,(HL)		;Ignore spaces
+	INC	HL
+	CP	20H
+	JR	Z,FMT1
+	CP	':'		;Colon drive indicator?
+	JR	NZ,WHDRV
+	LD	A,(HL)		;P/u drive #
+	SUB	'0'		;Cvrt to ASCII
+	JP	C,PRMERR	;0 or larger
+	CP	8		;Make sure not > 7
+	JP	NC,PRMERR
+	LD	(DISKIO+1),A	;Stuff drive
+	JR	FMT2		;Don't ask
+;*****
+;       Drive not entered, prompt for it
+;*****
+WHDRV1	CALL	ABTJCL		;No reprompt if JCL
+WHDRV	LD	HL,WHDRV$	;"which drive...
+	CALL	GETARG		;Get one char
+	SUB	'0'		;Cvrt to binary
+	JP	C,WHDRV1	;Error if < 0
+	CP	8		;Error if > 7
+	JP	NC,WHDRV1
+	LD	(DISKIO+1),A	;Stuff drive
+;*=*=*
+;       Get the DCT of the requested drive
+;*=*=*
+FMT2	OR	A
+	JP	Z,NOTZER	;Can't do logical 0
+	LD	C,A		;Set in drive register
+	CALL	GETDCT@		;Find DCT pointer
+	PUSH	IY
+	POP	HL		;Put in HL
+	LD	A,(HL)		;Be sure enabled
+	CP	0C9H		; a RET?
+	JP	Z,ILLEG		;Quit if disabled
+	LD	(DCTPTR),HL	;Save for later
+	LD	DE,FMTDCT	;Move SYSTEM DCT into
+	PUSH	DE
+	LD	BC,10		;  FORMAT's buffer so we
+	LDIR			;  don't update the SYS
+	POP	IY		;Use for FORMAT
+;
+	IF	MTI!LSI!ARM!TRS!PDC
+;*=*=*
+;       This format only for hard drive - check it
+;*=*=*
+	BIT	3,(IY+3)	;Check if hard drive
+	ENDIF
+;
+	IF	LDI
+;*=*=*
+;       This format only for alien drive - check it
+;*=*=*
+	BIT	4,(IY+4)	;Check if alien drive
+	ENDIF
+;
+	JP	Z,NOTHARD	;Only HD format allowed
+	LD	L,(IY+1)	;Check if on HD driver
+	LD	H,(IY+2)	;  compatible with this
+	INC	HL		;  version of FORM...
+	INC	HL		;Bump to start of name
+	INC	HL
+	INC	HL
+	LD	DE,FORM$-1	;Pt to which version
+	LD	B,3		;Check 3 bytes
+CKVER	INC	HL
+	INC	DE
+	LD	A,(DE)		;Check if driver name
+	CP	(HL)		;  is this version's
+	JP	NZ,DIFDVR	;Go if wrong version
+	DJNZ	CKVER
+;*=*=*
+;       Check on Pack Name entry
+;*=*=*
+NPARM	LD	HL,0		;Test if user entered
+	LD	A,H		;  the NAME parameter
+	OR	L
+	JR	Z,DSKNAM	;Go if not
+	INC	A		;Was it just NAME?
+	JR	Z,DSKNAM	;Go if just NAME
+	LD	DE,GATBUF+0D0H	;Yes, move name to field
+	LD	B,8		;8-chars max
+MOVNAM	LD	A,(HL)		;P/u a char
+	CP	'"'		;Closing "
+	JR	Z,CKNAME	;Exit if end of parm
+	CP	20H		;Permit all but controls
+	JP	C,CKNAME
+	CP	'a'
+	JR	C,MOVNAM1
+	CP	'z'+1
+	JR	NC,MOVNAM1
+	XOR	20H		;Turn off lc
+MOVNAM1	LD	(DE),A
+	INC	HL
+	INC	DE
+	DJNZ	MOVNAM
+	JR	CKNAME
+;*****
+;       Prompt user for name parameter
+;*****
+DSKNAM1	CALL	ABTJCL
+DSKNAM	LD	HL,DSKNAM$	;"diskette name?
+	LD	B,8
+	CALL	GETARGX
+	JR	Z,DSKNAM1	;Reprompt if none entered
+	LD	C,B		;Only move to name field
+	LD	B,0		;  how many were entered
+	LD	DE,GATBUF+0D0H
+	LDIR
+CKNAME	LD	DE,GATBUF+0D0H
+	CALL	CKMPW0
+	JP	NZ,BADNAM
+;*=*=*
+;       Get today's date
+;*=*=*
+GETDAT	LD	HL,GATBUF+0D8H	;Get today's date & stuff
+	CALL	@DATE
+;*=*=*
+;       Check master password entry
+;*=*=*
+MPWPARM	LD	HL,0		;Did user enter the MPW?
+	LD	A,H
+	OR	L
+	JR	Z,MPW		;Go prompt if not
+	INC	A		;Test if just MPW
+	JR	Z,MPW		;Go if just MPW
+	LD	DE,MPWBUF	;Shift to pswd field
+	LD	B,8
+MOVMPW	LD	A,(HL)
+	CP	30H		;No spaces permitted
+	JR	C,PRSMPW	;End also on closing "
+	CP	'a'		;Need cvrt to UC?
+	JR	C,MOVMPW1
+	CP	'z'+1
+	JR	NC,MOVMPW1
+	RES	5,A		;Cvrt to UC
+MOVMPW1	LD	(DE),A
+	INC	DE
+	INC	HL
+	DJNZ	MOVMPW
+	JR	PRSMPW
+; ****
+;       Prompt for master password
+;*****
+MPW1	CALL	ABTJCL
+MPW	LD	HL,MPW$		;"master...
+	CALL	INPMPW
+	JR	Z,MPW1		;Re-prompt on no entry
+;*****
+;       Parse the password & stuff into GAT sector buf
+;*****
+PRSMPW	LD	DE,MPWBUF
+	CALL	CKMPW		;Check for valid MPW
+	JR	NZ,MPW1		;Invalid entry
+	LD	(GATBUF+0CEH),HL	;Stuff it
+;*****
+;       Routine to galculate the # of grans per logical
+;       cylinder so that the GAT byte can be constructed
+;*****
+CALCGPC	LD	A,(IY+8)	;P/u # of grans per cyl
+	RLCA			;Rotate to bits 0-2
+	RLCA
+	RLCA
+	AND	7		;Strip off other data
+	INC	A		;Adj for zero offset
+;*=*=*
+;       If double cylindering, double the count
+;*=*=*
+	BIT	5,(IY+4)	;Double?
+	JR	Z,$+3
+	ADD	A,A		;Count * 2
+	LD	BC,0FFFFH	;Init GAT byte to ones
+CGPC1	SLA	B		;Now keep removing low
+	DEC	A		;  order bits , 1 bit for
+	JR	NZ,CGPC1	;  each available granule
+	LD	A,B		;Save the default byte
+	LD	(CALC1+1),A	;  for dir test
+	LD	HL,GATBUF	;Pt to GAT buffer area
+	LD	A,(IY+6)	;P/u highest # cylinder
+CGPC2	LD	(HL),B		;Stuff the GAT byte into
+	INC	L		;  each position of the
+	CP	L		;  Gat, one byte per
+	JR	NC,CGPC2	;  cylinder
+;*=*=*
+;       Test if we are at 202 first by ignoring the
+;       first two instructions with LD DE,xxxx
+;*=*=*
+	LD	A,0CBH		;Continue to stuff GAT
+	DB	11H		;  until cyl 202
+CGPC3	LD	(HL),C
+	INC	L
+	CP	L
+	JR	NZ,CGPC3
+;*=*=*
+;       Check if this pack is already formatted
+;*=*=*
+PFMT3	PUSH	IY		;Xfer DCT ptr to HL
+	POP	HL		;  & move DCT again
+	LD	DE,TMPDCT
+	LD	BC,10
+	LDIR
+;*=*=*
+;       May be formatted, is there SYSTEM information?
+;*=*=*
+	LD	HL,$-$		;NOSTOP entered?
+NOSTOP	EQU	$-2		;Via param
+	LD	A,H
+	OR	L
+	JP	NZ,PFMT6	;No testing if set
+	LD	HL,HITBUF	;Pt to i/o buffer
+	LD	DE,0		;Init to cyl 0, sect 0
+	CALL	RDSEC		;Now try to read BOOT
+	JP	NZ,PFMT6	;Assume unformatted if err
+	LD	HL,HASDAT$	;Init "disk contains data
+	CALL	@LOGOT
+	LD	HL,NOFMT$	;Init "non-std format
+;*=*=*
+;       BOOT was read, is there a valid directory pointer
+;*=*=*
+	LD	A,(HITBUF+2)	;P/u dir cyl # (possible)
+	CP	(IY+6)		;Check against max cyl #
+	JR	NC,PFMT5	;Go if bigger (or =)
+;*=*=*
+;       Read the assummed GAT & test it
+;*=*=*
+	LD	HL,HITBUF
+	LD	E,L		;Tricky way to get a zero
+	LD	D,A		;Pt to assumed GAT sector
+	LD	HL,HITBUF	;Pt to buffer
+	CALL	RDSEC		;Read the sector
+	CP	6		;Dir errcod returned?
+	JR	Z,PFMT4		;Jump if yes & grab data
+	LD	HL,CANTRD$	;Init "unreadable dir...
+	JR	PFMT5
+PFMT4	LD	HL,NODIR$	;Init "non-init dir
+	LD	A,(HITBUF+0DAH)	;Check if date field
+	CP	'/'		;  is present
+	JR	NZ,PFMT5
+;*=*=*
+;       The directory is readable - request its MPW
+;*=*=*
+PFMT4A	LD	HL,HITBUF+0D0H
+	LD	DE,PACKID$+5	;Move name & date into
+	LD	BC,8		;Display message field
+	LDIR
+	LD	DE,PACKID$+14H
+	LD	C,8
+	LDIR
+	LD	HL,PACKID$
+	CALL	@LOGOT		;Log the id field
+	CALL	ABTJCL		;Abort if in JCL
+;*=*=*
+;       User must enter Current Pack's MPW to proceed
+;*=*=*
+OLDMPW	LD	HL,OLDMPW$	;"What's the old MPW?
+	CALL	INPMPW		;Grab user input to match
+	JR	Z,OLDMPW
+	LD	DE,MPWBUF
+	CALL	HASHMPW		;Hash user entry
+;*****
+;       Routine to test master password for match
+;*****
+	EX	DE,HL		;Xfer hashed MPW to DE
+	LD	HL,(HITBUF+0CEH)	;Else grab pack MPW
+	XOR	A		;Clear carry flag
+	SBC	HL,DE		;Did user enter pack MPW?
+	JP	NZ,BADMPW	;Abort if no match
+	JR	PFMT6
+;*=*=*
+;       The directory was not readable - req assurance
+;*=*=*
+PFMT5	CALL	@LOGOT		;Log "unreadable...
+	CALL	ABTJCL1		;Abort if JCL running
+	LD	HL,SURE?$	;"Are you sure?...
+	LD	B,3
+	CALL	GETARGX		;Give user chance to
+	LD	A,(HL)		;  proceed with format
+	CP	'Y'
+	JP	NZ,FMTABT
+;*=*=*
+;       OK to format - Shift DCT to work area
+;*=*=*
+PFMT6	PUSH	IY		;Move drive code table
+	POP	DE		;Back into place
+	LD	HL,TMPDCT
+	LD	BC,10
+	LDIR
+;*=*=*
+;       allow user to lock out tracks manually
+;*=*=*
+;
+	BIT	3,(IY+3)	;Hard drive?
+	JP	Z,NOLCT		;Go if floppy
+;Calc possible heads and adjust msg
+	LD	A,(IY+4)	;Starting head #
+	AND	00001111B	;Field
+	ADD	A,30H		;ASCII offset
+	NOP			;Possible DEC if hd # are
+	LD	E,A		;Given starting w/0
+	INC	A		;Make number
+	LD	D,A		;Save
+	LD	(PHYD1$),A	;1st possible head
+	LD	A,(IY+7)	;# of heads
+	RLCA
+	RLCA
+	RLCA
+	AND	7		;Field
+	INC	A		;Real #
+	LD	(HDNB),A	;Save
+HCLP	INC	E		;Start fm 1st hd # -1
+	DEC	A		;Get highest head #
+	JR	NZ,HCLP		;By counting
+	LD	A,E
+	LD	(PHYD2$),A	;
+	LD	(HDNBRS),DE	;Save valid range
+;
+;Set up trk number message
+	LD	H,0
+	LD	L,(IY+6)	;Trk count to BC
+	INC	HL		;Fix offset fm 0
+	BIT	5,(IY+4)	;Double?
+	JR	Z,ISREAL
+	ADD	HL,HL		;*2
+ISREAL	DEC	HL		;Back to offset fm 0
+	LD	(HTRK),HL
+	LD	DE,PHYT1$	;Posn for #
+	CALL	HEXDEC		;Stuff ASCII
+	JR	LCQUES
+;Ask question
+LCQUES1	CALL	ABTJCL
+LCQUES	LD	HL,LOCK$	;Lock out any...
+	CALL	GETARG
+	CP	'Y'
+	JR	Z,LCHD1		;Yes..
+	CP	'N'
+	JR	Z,NOLCT		;Skip if not wanted
+	JR	LCQUES1
+GTPHD	CALL	ABTJCL		;No errors allowed if JCL
+LCHD1	LD	HL,PHYHD$	;Which head...
+	CALL	GETARG
+	LD	HL,$-$		;Range
+HDNBRS	EQU	$-2
+	CP	H
+	JR	C,GTPHD		;Too low
+	INC	L
+	CP	L
+	JR	NC,GTPHD	;Too high
+	LD	(LCHD),A	;Save track
+	JR	LCTR1
+GTPHTR	CALL	ABTJCL
+LCTR1	LD	HL,PHYTR$	;Trk #..
+	LD	B,3
+	CALL	GETARGX
+	CALL	DECHEX		;Make binary in BC
+	LD	A,B
+	OR	C
+	JR	Z,GTPHTR	;Can't lock out 0
+	LD	HL,$-$
+HTRK	EQU	$-2		;Highest trk #
+	OR	A
+	SBC	HL,BC		;Entered >legal?
+	JR	C,GTPHTR	;Number was too high
+;
+;Convert physical numbers to logical GAT posn
+;
+	LD	A,(IY+8)
+	RLCA
+	RLCA
+	RLCA
+	AND	7
+	INC	A
+	LD	E,A		;E has grans/cyl (w/o double)
+	LD	A,$-$
+HDNB	EQU	$-1		;Number of heads
+	PUSH	BC
+	PUSH	DE		;Save grans/phys cyl
+	CALL	DIVEA@		;Grans/head
+	POP	DE	
+	LD	D,E		;Save grans/phys cyl
+	LD	E,A		;Keep grans/phys trk
+	POP	HL		;Trk # to HL
+	LD	A,(PHYD1$)
+	LD	C,A
+	LD	A,$-$		;Physical hd #
+LCHD	EQU	$-1		;Entered value
+	SUB	C		;Minus starting offset
+;A=trk offset fm logical start/D=grans/trk/HL=trk to lock
+	PUSH	DE
+	CALL	MULTEA@		;A=gran offset fm start
+	POP	DE
+	BIT	5,(IY+4)	;Double tracking?
+	JR	Z,N1
+	SRA	H
+	RR	L		;Div trk # by 2
+;HL=>logical trk c set if 1st of pair
+	JR	NC,N1		;1st cyl-go
+	ADD	A,D		;Else add in a cyls grans
+N1	LD	H,GATBUF<-8	;
+	LD	B,E		;#grans to lock
+	LD	E,(HL)		;Get alloc byte
+;A=grans before locked out trk
+	DEC	A		;Offset fm 0
+OFFS2	INC	A		;Set a bit for each gran
+	PUSH	AF
+	CALL	SETBIT		;Of the physical track
+	POP	AF
+	DJNZ	OFFS2
+	LD	(HL),E		;And put back GAT byte
+	JP	LCQUES		;Ask for more
+;
+NOLCT	LD	HL,DBL$
+	BIT	5,(IY+4)	;Double tracking
+	CALL	NZ,@DSPLY	;Notify user
+	PAGE
+;
+

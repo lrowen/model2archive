@@ -1,0 +1,203 @@
+;MEMDISKC/ASM - MemDISK Driver Code
+	SUBTTL	'<MEMDISKC - MemDISK Driver>'
+	PAGE
+;
+DRIVER	JR	INIT		;Jump around header
+OLDHIGH	DW	0		;Old HIDRV$
+	DB	3,'$MD'		;Header
+OLD_HI	DW	0		;Old HIGH$ (for bank 0)
+BANKIM	DB	00000000B	;Bank Image
+DRVLOW	DW	0		;What driver addr was
+MEMHIGH	DW	0		;HIGH$ after installed
+;
+	IF	@MOD2
+	DC	32,0		;Model 2 stack area
+;
+	ELSE
+	DC	16,0		;Driver Stack Area
+	ENDIF
+MYSTACK	EQU	$		;Start of Mystack
+;
+;	Reset SP to MYSTACK, and CALL driver
+;
+INIT	PUSH	HL		;Save Registers
+	PUSH	DE		;
+	PUSH	BC		;
+REL6	LD	(SAVESP+1),SP	;Save original SP
+	DI			;Interrupts off
+REL7	LD	SP,MYSTACK	;Memdisk SP
+REL9	LD	(BUFF+1),HL	;Save buffer addr request
+REL8	CALL	MEMDRIV		;Call the actual driver
+SAVESP	LD	SP,$-$		;P/u original SP
+	EI			;Back on
+	POP	BC		;Restore Registers
+	POP	DE
+	POP	HL
+	RET
+;
+MEMDRIV	LD	A,B		;Get operation byte
+;
+B9	CP	9		;Operation #9 ?
+	JR	NZ,B10		;No - Check for Verify
+;
+;	READ sector - Set Z if D = directory cyl
+;
+	DEC	D		;Set Z flag if Cyl = 1
+	PUSH	AF
+	INC	D		;Restore cyl #
+;
+;	Set up For transfer to temporary I/O buffer
+;
+	PUSH	HL		;Save User I/O buffer ptr
+REL1	CALL	GETADR		;HL => MemDISK Sector
+	JR	C,DOXFER	;High - use temporary buf
+;
+;	I/O buff is low - xfer MemDISK sector to it
+;
+	LDIR			;Xfer directly to buffer
+REL2A	CALL	GETOLD		;Get original bank
+	POP	HL		;HL => User I/O buffer
+	JR	CHKDIR2		;Check if directory cyl
+;
+;	Transfer MemDISK sector to Temporary Buffer
+;
+DOXFER	PUSH	DE		;DE => Temporary Buffer
+	LDIR			;Xfer to system area
+;
+;	Xfer data from temporary to User Buffer
+;
+REL2	CALL	GETOLD		;Get original bank
+	POP	HL		;HL => Temporary buffer
+	POP	DE		;DE => User I/O buffer
+	LD	BC,256		;BC = 256 bytes to xfer
+	LDIR			;Xfer to user buffer
+;
+;	Set A = Error #6 if Cylinder 1 (Directory)
+;
+CHKDIR2	POP	AF		;Get Z
+CHKDIR	JR	NZ,NOTDIR	;Not a directory read
+	LD	A,6		;Error Code = 6
+	OR	A		;NZ condition
+	RET			;And RETurn
+NOTDIR	XOR	A		;Set Z flag
+	RET			;And return
+;
+B10	CP	10		;Verify sector ?
+	JR	NZ,B13		;Check more if not
+;
+;	Verify a sector
+;
+	DEC	D		;Directory Cylinder
+	JR	CHKDIR		;Check if Directory cyl
+;
+B13	CP	13		;Write a sector?
+	JR	NZ,B14		;Check further if not
+;
+;	Write A Sector
+;
+WRITES	LD	A,WP		;WP error X'0F'
+	BIT	7,(IY+3)	;Software Write Protect?
+	RET	NZ		;Return with error
+;
+;	Set up for Tranfer to Temporary Buffer
+;
+	PUSH	DE		;Save Cyl/Sector
+REL8A	CALL	GETBUF		;Get buffer ptr
+	JR	NC,RECVDE	;Get back DE
+	LD	BC,256		;BC = 256 bytes to xfer
+	LDIR			;Xfer to temp buffer
+RECVDE	POP	DE		;DE = Cyl/sector
+;
+;	Get Sector from MemDISK & xfer to User buff
+;
+REL3	CALL	GETADR		;HL <= Mem, DE <= Buffer
+	EX	DE,HL
+	LDIR			;Xfer to user buffer
+REL4	CALL	GETOLD		;Get original back
+	XOR	A		;Set Z flag
+	RET
+;
+B14	CP	14		;Write system sector?
+	JR	Z,WRITES	;Go if so
+;
+	CP	12		;Format command?
+	JR	Z,B14A		;Go if so
+	CP	15		;Write Track ?
+	JR	NZ,EX1		;No - exit Z
+B14A	LD	A,8		;Yes - Exit NZ
+	OR	A		;Error = Device not avail
+	RET
+;
+EX1	XOR	A		;Zero A, set Z
+	RET			;Return with Z set
+;
+;	GETADR - Point HL to MemDISK area
+;        - Point DE to Temporary buffer
+;        - Set BC = 256 (bytes to xfer)
+;
+GETADR	LD	A,D		;P/u Cylinder #
+;
+;	Multiply cylinder # x 10 or 18 (sectors/cyl)
+;
+SDENA	ADD	A,A		;X 2 or NOP if Single Den
+	LD	D,A		;DDEN = x 2  SDEN = x 1
+	ADD	A,A		;DDEN = x 4  SDEN = x 2
+	ADD	A,A		;DDEN = x 8  SDEN = x 4
+SDENB	ADD	A,A		;DDEN = x 16  SDEN = x 5
+SDENC	ADD	A,D		;DDEN = x 18  SDEN = x 10
+;
+;	Add Sect offset (E) & add 80H if bank 2 active
+;
+	ADD	A,E		;Add sector offset
+OFFSET	ADD	A,$-$		;80H if 2 active
+;
+;	Set HL => sector, C = Default bank (0 or 1)
+;
+	LD	H,A		;Stuff msb in H
+	LD	L,0		;Land on page boundary
+DEFBANK	LD	C,$-$		;C = 0 or C = 1
+;
+;	Set C = Bank #2 if Address > X'7FFF'
+;
+	RLCA			;Address > X'7FFF' ?
+	JR	NC,GOTBANK	;No - got it
+	INC	C		;Yes - Set C = 2
+;
+;	Force address > X'7FFF' & Select Bank C
+;
+GOTBANK	SET	7,H		;Force Address > X'7FFF'
+STFRET	LD	B,L		;Bring in Bank C
+	@@BANK
+;
+;	Pick up Bank previously in use & Save
+;
+	LD	A,C		;P/u last bank
+	AND	7FH		;Ignore Hi-bit
+REL5	LD	(GETOLD+1),A	;  and stuff away
+;
+;	Set DE => Overlay Buffer, BC = 256
+;
+REL8B	CALL	GETBUF		;Get buffer ptr
+	LD	BC,256		;Set BC = 256
+	RET
+;
+;	OLDBNK - Get original Bank used
+;
+GETOLD	LD	BC,$-$		;B = 0, C = Bank #
+	@@BANK			;Get bank
+	RET
+;
+;	GETBUF - Get Buffer ptr to LDIR from or to
+;
+GETBUF	PUSH	HL		;Save source/dest ptr
+BUFF	LD	DE,$-$		;P/u requested I/O buffer
+	LD	HL,7F00H	;Use (BUFF+1) if < 7F00H
+	OR	A
+	SBC	HL,DE		;Past 7F00H ?
+	POP	HL		;Rcvr ptr
+	RET	NC		;No - use requested buff
+	LD	DE,BUFFER$	;Yes - use BUFFER$
+	RET
+;
+LENGTH	EQU	$-DRIVER	;Length of Driver
+

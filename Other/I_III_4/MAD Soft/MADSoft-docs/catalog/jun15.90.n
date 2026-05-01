@@ -1,0 +1,462 @@
+.sp .5i
+.ps 10p
+.vs 11p
+.fi
+.ps +4
+.nf
+.ce
+\fBModel 4 / 4D / 4P  Products From M.A.D. Software
+.ps -4
+											June 15, 1990
+
+\s+2\fBHBUILD6 - Boot your Model 4P, 4 or 4D directly from your Hard Disk\fR	\s-2
+
+.fi
+HBUILD6 allows the Model 4, 4D or 4P owner with a hard disk drive to boot
+directly into LS-DOS 6.3.x or TRSDOS 6 from the hard disk without 
+using a start-up floppy.  Completely transparent to the operating
+system and uses no additional
+program memory.  Certain Model 4P and all Model 4 and 4D systems require
+a new ROM, which is included.
+Detailed instructions assist you during the installation
+which usually takes less than 40 minutes and does not require soldering.
+HBUILD6 supports hard disk drivers in low or high memory.
+Also included are utilities to dynamically apply XLR8er accelerator
+patches (XLR8SET), to position disk drivers in low or high memory (FORCEHI), and to edit
+command line errors (OOPS).
+When ordering HBUILD6, use the following chart to determine which
+part number goes with your system.  
+(The same utilities are provided with all part numbers.)
+
+.nf
+.ta 1.0i 2.4i 3.8i 5.2i
+	Model 4*	Model 4* and 4D	Model 4P	Model 4P
+Disk Driver	non-gate-array	gate-array	all versions	all versions
+	(includes XROM**)	(includes XDROM**)	(includes disk only)	(includes 4P-ROM**)
+
+Radio Shack	4BHB650	4DHB670	4PHB630	4PHB640
+TRSHD6	$30.00	$35.00	$15.00	$35.00
+
+Misosys	4BHB652	4DHB672	4PHB632	4PHB642
+RSHARD6	$30.00	$35.00	$15.00	$35.00
+
+Misosys	4BHB655	4DHB675	N/A	4PHB645
+MSCSI6	$30.00	$35.00		$35.00	
+
+Powersoft	4BHB656	4DHB676	4PHB636	4PHB646
+Series RS	$30.00	$35.00	$15.00	$35.00
+
+Powersoft	4BHB657	4DHB677	N/A	4PHB647
+Series I	$30.00	$35.00		$35.00
+
+.ta .5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i 6.5i
+.fi
+.in 0.5i
+.ti -0.5i
+*	To determine if your Model 4 is a gate-array or non-gate-array
+system, locate the RS232 connector.  If it is on the bottom (faces
+downwards) of the Model 4, the system is a non-gate-array.  If the RS232
+connector is on the back of the machine, it is a gate-array system.
+The ROMs required for these systems are not interchangable.
+
+Note: Model 4's built in 1983 may also require a new "A" ROM to be able
+to use HBUILD6.  To test your machine, boot your system into ROM
+BASIC (hold down the BREAK key and press RESET.)  Once you are
+in BASIC, type the following statement and a single character will be
+displayed:
+.br
+\fL	PRINT CHR$(PEEK(1490))\fR
+.br
+If the character that was displayed is 'O', then you have the
+old "A" ROM and must replace
+it to be able to use HBUILD6.  The part number for the latest "A" ROM is
+listed on the next page.
+
+.ti -0.5i
+**	The XROM, XDROM and 4P-ROM provide other features in addition to 
+allowing you to boot from a hard disk drive.  They are described in detail
+elsewhere in this catalog.
+
+.in 0.0i
+.ps -2
+.vs -3
+Requirements:
+.fi
+.in 1.0i
+.ti -1.0i
+CPU		Model 4/4D/4P systems with a standard Z80A or any superset processor, 
+including the XLR8er adapter.
+.br
+.ti -1.0i
+Firmware		Model 4 systems with non-gate-array main logic boards
+must have XROM firmware installed, which is included.
+.br
+Model 4D or Model 4 systems with gate-array main logic boards must have 
+XDROM firmware installed, which is included.
+.br
+Model 4P systems with non-Radio Shack hard disk controllers must have
+new 4P-ROM firmware installed.  4P systems with Radio Shack hard disk
+controllers do not have to replace the firmware but can if they want to
+take advantage of the other features the 4P-ROM provides.  Use the appropriate
+part number (see above) to indicate if you desire a 4P-ROM or not.  (Look for a
+detailed description of the 4P-ROM elsewhere in this catalog.)
+.br
+.ti -1.0i
+Floppy Drive	A 5.25" SSDD or DSDD floppy drive is used during installation.
+.ti -1.0i
+Drive Controller	A Radio Shack hard disk controller or a programmable
+equivalent.
+.br
+.ti -.5i
+or	A MISOSYS host interface and a Xebec or Adaptec disk controller.
+.br
+.ti -.5i
+or	A Western Digital disk controller with the register file located
+at ports 0x78 - 0x7f.  This is compatible with the Powersoft Series I
+hard disk drivers.
+.br
+.ti -1.0i
+Hard Drive(s)	Any drives that are supported by the driver you system uses.
+.ti -1.0i
+Configuration	LS-DOS 6.3.x or TRSDOS 6 must
+be installed and a system drive must start on head 0, cylinder 0 of the primary drive.
+(Other operating systems that are stored on other parts of the drive or on
+secondary drives will not be disturbed.)
+.in 0i
+.br
+.ps +2
+.vs +3
+.nf
+.bp
+.sp .5i
+M. A. D. Software							June 15, 1990		Page  2
+
+.nf
+\s+2\fBXROM - Extended ROM\fR for non-gate-array Model 4 systems\s-2
+	With hard disk driver for Radio Shack WD1000 or TB1 controllers	Specify 4BXR650	$15.00
+	With hard disk driver for MISOSYS SCSI Host interface and
+	    Adaptec or XEBEC disk controller				Specify 4BXR655	$15.00
+	With hard disk driver for non-Radio Shack WD1000 controllers
+	    that are port-mapped at 0x78 - 0x7f				Specify 4BXR657	$15.00
+
+\s+2\fBXDROM - Extended ROM\fR for gate-array Model 4 and Model 4D systems\s-2
+	With hard disk driver for Radio Shack WD1000 or TB1 controllers	Specify 4DXR670	$25.00
+	With hard disk driver for MISOSYS SCSI Host interface and
+	    Adaptec or XEBEC disk controller				Specify 4DXR675	$25.00
+	With hard disk driver for non-Radio Shack WD1000 controllers
+	    that are port-mapped at 0x78 - 0x7f				Specify 4DXR677	$25.00
+
+.fi
+The XROM or XDROM improve performance when using any Model III operating system
+or ROM BASIC.  They also allow you to boot directly from a hard disk or
+Networks III or 4.  (This part is included when you order HBUILD6 for the
+Model 4 or 4D.)  These ROMs replace the "C" ROM or "D" ROM in your Model 4
+or 4D.  Detailed instructions assist you in removing the cover and installing
+the ROM in your system.  Installation takes less than 30 minutes.
+The new Model III-mode features include:
+
+.in .5i
+.ti -.5i
+\(bu	The keyboard produces all 128 ASCII characters and handles key-rollover,
+and performs "debouncing" correctly at 2 and 4 MHz.
+.ti -.5i
+\(bu	The keyboard repeat rate is adjustable.
+.ti -.5i
+\(bu	The time-of-day clock keeps correct time even when the system is 
+running at 4 MHz.  The cursor also blinks at the same rate regardless of the
+current CPU speed.
+.ti -.5i
+\(bu	A fully programmable 6845 CRT controller can be used in place of the
+68045.
+.ti -.5i
+\(bu	All documented calls into the "C" ROM, including those documented
+by LDOS and Radio Shack produce the same results as in the original part.
+.ti -.5i
+\(bu	Interrupt-driven software performs more reliably than in the original
+"C" ROM.
+
+.in 0i
+The XROM/XDROM comes with documentation on the new Model III-mode features.
+.br
+The XDROM includes built-in tests for memory, video, floppy drive, and printer
+(available via a factory-test hardware strap.)
+
+.vs -3p
+.ps -2p
+Requirements:
+.br
+.in 1.0i
+.ti -1.0i
+CPU		Model 4 non-gate-array systems should order "X" ROM. 
+.br
+Model 4 or 4D gate-array systems should order "XD" ROM.
+.ti -1.0i
+Processor		Z80A or a superset processor, including the XLR8er accelerator. *
+.ti -1.0i
+Floppy Drive	Any Radio Shack-compatible configuration including no drives.
+.ti -1.0i
+Hard Drive	Any Radio Shack-compatible configuration including no drives.
+.ti -1.0i
+Software		Operating Systems tested: LDOS 5, TRSDOS 6, LS-DOS 6, CP/M+,
+NEWDOS, TRSDOS 1.3/1.4.
+.ti -1.0i
+Firmware		Model 4 owners must make sure that they have the
+latest "A" ROM, Radio Shack part number 8048364A. **
+.br
+This part is available elsewhere in this catalog.  Model 4s built after 1983
+and Model 4Ds should have the correct part.
+.ti -1.0i
+Hardware		The XROM/XDROM may be used with a SmartWatch(TM) clock chip.
+(Model 4 owners must not have disabled wait-state generation for ROM accesses.)
+.in 0i
+.ps +2
+.vs +3
+
+.in 0.5i
+.ti -0.5i
+*	The XLR8er(TM) accelerator is supported provided that it worked
+with the system prior to the installation of the XROM or XDROM and your
+system has not been modified to defeat the wait-state generation for ROM
+accesses.  
+
+.ti -0.5i
+**	Model 4's built in 1983 may also require a new "A" ROM to be able
+to use the "X" ROM.  To test your machine, boot your system into ROM
+BASIC (hold down the BREAK key and press RESET.)  Once you are
+in BASIC, type the following statement and a single character will be
+displayed:
+.br
+\fL	PRINT CHR$(PEEK(1490))\fR
+.br
+If the character that was displayed is 'O', then you have the old "A" ROM and must replace
+it to be able to use the "X" ROM.  The new "A" ROM is listed below.
+
+
+
+.in 0.0i
+.nf
+\s+2\fBModel 4/4D "A" ROM - 8048364A - Checksum 8F46\fR\s-2		Specify 4GR64A0	$8.00
+.fi
+
+The latest "A" ROM, used in all Model 4 and 4D systems.  Replaces the obsolete
+8048364, which was used in early Model 4 production.  A 8048364A must be
+present in a Model 4/4D for HBUILD6 or the XROM/XDROM to work correctly.
+.nf
+.bp
+.sp .5i
+M. A. D. Software							June 15, 1990		Page  3
+
+.nf
+\s+2\fB4P-ROM - Enhanced ROM\fR for Model 4P systems\s-2
+	With hard disk driver for Radio Shack WD1000 or TB1 controllers	Specify 4PBR640	$25.00
+	With hard disk driver for MISOSYS SCSI Host interface and
+	    Adaptec or XEBEC disk controller				Specify 4PBR645	$25.00
+	With hard disk driver for non-Radio Shack WD1000 controllers
+	    that are port-mapped at 0x78 - 0x7f				Specify 4PBR647	$25.00
+
+.fi
+The 4P-ROM adds new features and improves performance on Model 4P systems.
+(When ordering HBUILD6 for the Model 4P, this part may be included.  See
+HBUILD6 for more information.)  The new features include:
+
+.in .5i
+.ti -.5i
+\(bu	The Model III-mode ROM-image loads from floppy in less than six seconds.
+.br
+.ti -.5i
+\(bu	Floppy booting (including ROM-image loading) is much more reliable.
+.br
+.ti -.5i
+\(bu	Built-in diagnostics include a full 64K RAM test, disk test and
+video diagnostics.
+.br
+.ti -.5i
+\(bu	New French and German error messages.
+.br
+.ti -.5i
+\(bu	Hard disk boot-interlock is provided.  The system will not try to boot
+from a hard disk unless the hard disk contains a valid boot track.
+No more holding the F2 key.
+.br
+.ti -.5i
+\(bu	Hard disk booting is available for several types of disk controllers
+and drivers.  (See the HBUILD6 product for more information.)
+.br
+.ti -.5i
+\(bu	Hard disk booting will wait for slower drives to come on-line.  This
+is useful if you expect your system to power-up unattended.
+.br
+.ti -.5i
+\(bu	A fully programmable 6845 CRT controller can be used in place of
+the 68045.
+.br
+.ti -.5i
+\(bu	Handles gate-array and non-gate-array systems properly.  The original
+Radio Shack ROM does not handle the floppy disk controller on gate-array
+systems correctly.
+.br
+.in 0i
+Detailed instructions assist you during the installation
+of the 4P-ROM which can be done in about 25 minutes.  The ROM is a socketed
+part so no soldering is required.
+
+
+The 4P-ROM can also be customized with your name, address, drivers' license
+number, or other identifying information that is displayed 
+on demand or when a boot fails, (when there is no diskette in the drive.)
+
+This option is available when the 4P-ROM is ordered by itself or as part
+of HBUILD6.
+There is an additional $10 charge for customizing the ROM.  Specify 4PBRCU0
+in addition to the 4P-ROM or HBUILD6 part number.   
+
+To obtain customization, photocopy this page, follow the instructions and
+include this page with your order.
+
+.in .5i
+.ti -.5i
+1.	You are limited to 92 characters total.  Leading and trailing
+spaces do not count against the total number of characters, but
+embedded spaces do.
+
+.ti -.5i
+2.	You can use up to 4 lines on the screen.  The lines that will be used
+are at the bottom of the screen.  Each line with text on it subtracts two
+characters from the total number of characters you can display.
+For example, if you want to use three lines, you can only display
+86 characters total.
+Each line can have from zero to 64 characters displayed.
+
+.ti -.5i
+3.	Text will be centered on each line as best as possible 
+without adding spaces.  If you do not want your text centered,
+or you want to center it yourself, you \fBmust\fR check the box below.
+
+.ti -.5i
+4.	You may use ASCII characters plus the special characters on pages A-58 and A-59
+of the \fITRSDOS 6.2 Disk System Owners Manual\fR.  You
+cannot use the graphics characters (page A-57) or reverse video.
+
+.ti -.5i
+5.	We reserve the right to reject customizations that are in bad
+taste or could be considered illegal.  If you are placing an organizations'
+name in the message, your order must be on letterhead from that organization.
+
+.ti -.5i
+6.	Print each character clearly.   If your message has more text on a line
+than what will fit below, split the text across two sheets.
+.ti -.5i
+.in 0i
+
+.nf
+__ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+
+__ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+
+__ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+
+__ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+
+.fi
+[  ]  I do not want the text centered.  I want it to appear exactly as shown.
+.br
+.nf
+.bp
+.sp .5i
+M. A. D. Software							June 15, 1990		Page  4
+
+.fi
+.ps +2p
+.vs +3p
+\fBRadio Shack ROMs and PALs\fR
+.ps -2p
+.vs -3p
+
+.fi
+These ROMs and PALs were obtained from Radio Shack when they reduced their
+Model 4, 4D and 4P parts inventories.  We carry them for people who desire
+to make their own repairs or upgrades.  \fIUnless otherwise stated,
+documentation is not provided with these replacement parts.\fR
+
+.nf
+\fBUniversal Character Generator - used in all Model 4/4D/4P systems\fR	Specify 4GRCG00	$4.00
+
+.fi
+If your Model 4 was built before 1984, it may contain an obsolete
+character generator.  About that time, Radio Shack switched to a "universal"
+character generator which was used in all subsequent U.S. and international
+versions of the Model 4, 4P & 4D.  To check to see if you have the older
+part, go into Model 4 Disk BASIC and type:  \fL?CHR$(0);CHR$(26) <ENTER>\fR
+.br
+If a vertical line is displayed, then you have the newer part.  If you see the
+letter \fLa\fR or some other character, you should consider upgrading your
+machine.  Instructions for installation of this genuine Radio Shack part
+are included.  Documentation on the universal character set begins on page A-58 of the
+\fITRSDOS 6.2 Disk System Owners Manual.\fR
+.br
+
+.nf
+\fBModel 4 "B" ROM - 8040332 - Checksum 407C\fR				Specify 4BR3200	$8.00
+For non-gate-array (three-ROM) Model 4 and Model III systems.
+
+\fBModel 4 U4 PAL - Video clock generator - 8075268\fR			Specify 4PU4000		$6.00
+For non-gate-array Model 4 systems.
+
+\fBModel 4 U59 PAL - ROM/Video/Keyboard address decoder - 8075368\fR	Specify 4PU5900		$8.00
+For non-gate-array Model 4 systems.
+
+.fi
+\s+2\fBUpgrades\fR\s-2
+
+The third release of HBUILD6 software (version 2(13)) is now available in
+upgrade form.  (See HBUILD6 for a description of the software.)  If you
+purchased HBUILD6 before March 1, 1990, you may order the upgrade
+(4GHB601) for $5.00.  If you purchased HBUILD6 after March 1, 1990,
+there is no charge.  To obtain either upgrade, you must return the original
+distribution floppy, along with the upgrade charge (if any).
+You must pay the shipping charge (see Shipping Information) on all upgrades.
+
+A new version of the XROM / XDROM is available for systems using 
+the TRSHD6 or RSHARD6 drivers.  The ROM has been changed to wait longer
+for slow-starting drives after a power-up.  This change is important to
+users who expect the system to come up by itself after a power failure.
+The last two digits of the serial number on the ROM indicate the
+version.  If you have a version 31 or lower, you may want to consider
+this upgrade.  If you purchased the ROM by itself or as part of HBUILD6
+after March 1, 1990, you may upgrade at no charge.  If you obtained
+the ROM before March 1, 1990, the upgrade charge is $7.00.  To obtain
+either upgrade, order a new XROM / XDROM, selecting the type that is
+correct for your computer and hard disk system.  After
+receiving and installing the new part, return the old part and
+we will refund you the difference upon receipt of a reusable part.
+
+
+\s+2\fBOrdering information\fR\s-2
+
+.nf
+M.A.D. Software
+P.O. Box 331323
+Ft. Worth, Texas  76163
+.fi
+
+We accept checks and money orders in U. S. currency.  Sorry, but we
+do not accept credit cards.
+Prices are subject to change without notice.  Texas residents must add the
+current state sales tax (6% until June 30, then 6.25%).  (The rate for Texas
+residents of Tarrant County is 7.5% until June 30, then 7.75%.)
+
+Shipping for one or two items is $2 U.S.A., $3 Canada, $6 Foreign.  For each
+additional item, add $.50.  We may ship your order via U.P.S. unless you
+specify otherwise or if your address is a P.O. Box.
+
+When ordering more than two of the same item, you can request that the
+documentation not be included with the 3rd through nth copies.  You will
+receive a discount on these copies.  Please write for specific pricing
+on quantity orders.
+
+Please include a daytime phone number that we can use to reach you if there
+is a question about your order.  Most orders will be shipped within ten
+days.  If the order is delayed by more than three weeks, we will contact
+you and give you the option to cancel.
+.br
+

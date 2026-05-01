@@ -1,0 +1,29 @@
+;TRSFORM3/ASM - LDOS X.X - 04/15/83
+        TITLE   '<Winchester Format - LDOS 5.1 or 6.x>'
+;*=*=*
+;       Version equates
+; set only 1 drive model TRUE (-1)
+;*=*=*
+ARM     EQU     0
+MTI     EQU     0
+LDI     EQU     0
+LSI     EQU     0
+TRS     EQU     0
+PDC     EQU     0
+;*=*=*
+RAM     EQU     -1       ;true for 6.x LDOS
+RLS     EQU     51H     ;release version # for GAT
+;*=*=*
+;define FORM$ and HELLO$
+LOGON   MACRO
+FORM$   DB      'TRSH0'   ;must match DRIVER name
+HELLO$  DB      LF,'TRSFORM - 5.1.b - Copyright 1982/83 by '
+        DB      'Logical System, Inc.',0AH
+        DB      'All Rights reserved',0DH
+        ENDM
+        COM '<Copyright (C) 1983 by Logical Systems Inc.>'
+*GET    HDFMT1/ASM:3
+*GET	HDFMT2/ASM:3
+*GET	HDFMT3/ASM:3
+        END     BEGIN
+

@@ -1,0 +1,37 @@
+Drive :6  SRC631D6   40 Cyl, DDEN, Free =   63.00K /   360.00K,  Date 25-May-98
+Filespec    MOD Attr   Prot  LRL  #Recs  EOF  File Size  Ext  Mod Date   Time
+-------------------------------------------------------------------------------
+CLIENT/LSI             FULL   256     2  247      1.50K    1   1-Jul-87  12:00a
+CLIENT/TAN             FULL   256     2  248      1.50K    1   1-Jul-87  12:00a
+SERIAL0/ASM            FULL   256     5  121      1.50K    1   1-Jul-87  12:00a
+SERIAL1/ASM            FULL   256    64  198     16.50K    1   1-Jul-87  12:00a
+SERIAL3/ASM            FULL   256    36  222      9.00K    1   1-Jul-87  12:00a
+SETCOM/ASM             FULL   256    59  237     15.00K    1   1-Jul-87  12:00a
+SOUND/ASM              FULL   256    11  152      3.00K    1   1-Jul-87  12:00a
+SOUND2/ASM             FULL   256     8  251      3.00K    1   1-Jul-87  12:00a
+SVCMAC/ASM             FULL   256    15   72      4.50K    1   1-Jul-87  12:00a
+SYS11/ASM              FULL   256    49  202     13.50K    1  24-May-98   9:39p
+SYS12/ASM              FULL   256    61  149     16.50K    1  29-Mar-98   7:27p
+SYS13/ASM              FULL   256     3  186      1.50K    1  15-Mar-98   9:37p
+SYS2/ASM               FULL   256    81  235     21.00K    1  15-Mar-98  10:32p
+SYS5GET/ASM            FULL   256     1   20      1.50K    1   1-Jul-87  12:00a
+SYS9/ASM               FULL   256    36  194      9.00K    1  19-Mar-98  11:08p
+SYSINIT2/ASM           FULL   256    64  201     16.50K    1   1-Jul-87  12:00a
+SYSINIT4/ASM           FULL   256    51   68     13.50K    1  15-Mar-98   4:41p
+SYSRES/ASM             FULL   256    33  138      9.00K    1  15-Mar-98   4:26p
+SYSRES2/ASM            FULL   256    30  236      7.50K    1   1-Jul-87  12:00a
+TAPE100/ASM            FULL   256    36   50      9.00K    1   1-Jul-87  12:00a
+TAPE100A/ASM           FULL   256    40  164     10.50K    1   1-Jul-87  12:00a
+TAPE100B/ASM           FULL   256    24   56      6.00K    1   1-Jul-87  12:00a
+TASKER/ASM             FULL   256    17  194      4.50K    1   1-Jul-87  12:00a
+TASKER2/ASM            FULL   256    14   30      4.50K    1   1-Jul-87  12:00a
+TED/ASM                FULL   256    96   53     24.00K    1  11-May-98   1:07a
+TED2/ASM               FULL   256    33   23      9.00K    1  11-May-98   1:02a
+TRSFORM3/ASM           FULL   256     4    0      1.50K    1   1-Jul-87  12:00a
+TRSHD6/ASM             FULL   256     1   22      1.50K    1   1-Jul-87  12:00a
+VALUES/ASM             FULL   256     2  203      1.50K    1   1-Jul-87  12:00a
+WDDVR/ASM              FULL   256    99  219     25.50K    1   3-May-98   1:41p
+WDTRS3/ASM             FULL   256    94  136     24.00K    1   1-Jul-87  12:00a
+===============================================================================
+                    31 files of  33 selected,   286.50K
+

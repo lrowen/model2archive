@@ -1,0 +1,822 @@
+.ps 12
+.vs 13
+.sp .5i
+.lg 0
+.de bx
+.ds B \(br\|\s-2\fB\\$1\fP\s+2\|\(br
+.nr X 0-\w'\\*B'
+\&\\*B\l'\\nXu\(rn'\l'\\nXu\(ul'\c
+.rr X
+.rm B
+..
+.ce
+HBUILD6
+.ce
+Model 4/4D/4P Hard Disk Initialization System
+.ce
+Installation Instructions
+.ce
+Copyright 1990 M. A. D. Software, All Rights Reserved.
+.ce
+The original HBUILD6 system has been licensed by M. A. D. Software. 
+
+
+
+.ps 10
+.vs 11
+HBUILD6 allows the Model 4P user to start the system from a hard
+disk drive without using a start-up diskette.  This system is 
+compatible with LS-DOS 6.3.x operating systems and is
+invisible to application packages.
+
+The Model 4 and 4D owner may also use this product if the "C" or "D" ROM is
+replaced with the "X" or "XD" ROM which is capable of booting from a hard disk drive.
+
+
+\s+2Requirements\s-2
+
+HBUILD6 comes configured for one of the following hard disk drivers.  (The
+presence of a hard disk controller that works with this driver is assumed.)
+
+.in .5i
+.ti .-5i
+1.	TRSHD6 (Radio Shack) or RSHARD6 (Misosys) running on a WD 8x300
+controller board from Radio Shack with write-protect support, or a 
+Western Digital TB-1 controller board (1010/2010).
+
+.ti -.5i
+2.	MSCSI6 (Misosys) running on a XEBEC or ADAPTEC controller with a
+Misosys host-to-SCSI interface.
+
+.ti -.5i
+3.	Powersoft Series RS running on a WD 8x300 controller from Radio
+Shack with write-protect support.
+
+.ti -.5i
+4.	Powersoft Series I running on a WD100x series controller, port
+mapped at 0x7*, with no write-protect support.
+.br
+
+.in 0i
+HBUILD6 will display and the label on the HBUILD6 diskette indicate
+which version you have obtained.
+
+Other disk drivers may also work but cannot be supported at this time.
+
+HBUILD6 requires a LS-DOS 6.3.x logical drive to be on the first physical
+drive.   It must also be located on head 1 (ones-based) of the drive.  (This
+may not be
+the case if there is more than one operating system on your hard
+disks.) 
+This logical drive must contain the LS-DOS 6.3.x
+operating system and currently be defined as logical Drive 0.
+If you are using a hard disk driver that allows logical drives to start
+on cylinders
+other than 0, you must make sure that logical Drive 0 begins on cylinder 0.
+
+If your operating system has patches to support an XLR8er adapter or a
+Anitek extended memory adapter, the installation will not work without
+removing these patches first.  These patches add code to the
+low memory driver area, and HBUILD6 must utilize this area during the
+boot process.  Included on this disk is an utility to dynamically apply the
+XLR8er patches after the system boots.  To remove the patches that would
+interfere with HBUILD6, use the command BACKUP SYS0:s :0 (S,I)
+where :s is the logical number of a floppy containing an unpatched copy
+of LS-DOS.
+
+If you used the Radio Shack HARDGEN utility to initialize the hard disks
+and included the operating system on the hard disk, your system should
+be ready to be converted.
+
+If you did not install the operating system on the hard disk, you
+can convert one of the data drives to a system drive, or
+reinitialize the system. (See "Converting a Data drive to a
+System drive" for more information.)  If you decide to reinitialize the
+drives, be sure to save all of your files before starting
+the process.
+
+
+\s+2Installing the Hard Disk Boot Track\s-2
+
+.in .5i
+.ti -.5i
+1.	Start your system with the hard disk start-up diskette as you normally do.
+
+.ti -.5i
+2.	At the LS-DOS Ready prompt, remove the start-up diskette
+from floppy Drive 0.
+
+.ti -.5i
+3.	Insert the \fBHard Disk Boot Initialization\fR diskette into Drive 0
+and close the drive door.
+
+.ti -.5i
+4.	Make sure the write-protect light is off (if present) on the primary
+hard disk drive. 
+
+.ti -.5i
+5.	Type:
+	\fLHBUILD6 \fR 
+.bx "ENTER"
+.br
+
+.ti -.5i
+6.	After several seconds, HBUILD6 displays:
+
+		\fLHard Disk Boot Track Installed Successfully\fR
+
+(If HBUILD6 does not display this message, it displays an
+error message.  See "Error Messages" for information
+on how you should proceed.)
+
+.ti -.5i
+7.	If there were no errors, remove the diskette from Drive 0.
+
+.ti -.5i
+8.	Press RESET.  After a few seconds the system should prompt
+for the date, time or display the LS-DOS Ready prompt.  Note that the
+boot screen now appears all at once.  This is normal.
+.br
+
+.in 0i
+Your hard disk boot installation is complete.  Store the 
+\fBHard Disk Boot Initialization\fR
+diskette in a safe place.  You will need this diskette if you ever reformat
+your hard disks or upgrade the operating system.  To install a new operating
+system or reformat your hard disks you will need to repeat this procedure to
+restore the hard disk boot capability.
+
+
+.ce
+Page  1
+.bp
+.sp .5i
+\s+2Error Messages\s-2
+
+HBUILD6 performs several checks to make sure your system is configured so it
+can use a hard disk boot.  If it finds anything wrong, it displays
+the following messages.  If you receive any of these messages,
+HBUILD6 quits and does not modify 
+your hard disks.  
+Each error message listed has information on what to do to correct the
+problem.  After performing the action called for, run HBUILD6 again.
+HBUILD6 displays only one error per run.  If there is more than one problem,
+you will get the second error message when you rerun HBUILD6.
+
+There are two types of errors - fatal errors and warnings.  Fatal errors
+are preceded by a question mark (?).  Warnings are preceded
+by a percent sign (%).  When you receive a warning, HBUILD6 asks if you
+want to proceed with the installation.  If you receive a warning, proceed with
+installation, and the hard disk boot does not boot by itself,
+restart the machine using the start-up diskette and type:
+
+	\fLBACKUP SYS0/SYS:\fRs\fL :0 (S,I)\fR
+.bx "ENTER"
+.br
+
+at the LS-DOS Ready prompt.
+(:s is the logical drive number of the floppy drive.)  This
+command erases all of the
+changes made by HBUILD6 and restores your system to its original state.
+(It is possible to receive a warning and fatal error message.
+In that case, correct the error and try again.  You may find that
+correcting the fatal error corrects the warning as well.)
+
+.in .5i
+.ti -.5i
+Error:	\fL?Can't read boot track on hard disk.\fR
+
+.ti -.5i
+Cause:	This means that some or all of Track 0 is unreadable.  This
+area of the hard disk is not normally referenced and may have
+been unreadable for some time.  Possible causes are
+static or the age of the drive.
+
+.ti -.5i
+Cure:	Save all of the files on the primary hard disk to floppy disks or to
+a secondary drive and reformat the primary hard disk.  When formatting is
+complete, restore your files to the primary hard disk and rerun HBUILD6.
+
+
+.ti -.5i
+Error:	\fL%Drive 0 contains a SYSGEN file which may prevent
+ the hard disk boot from functioning properly.\fR
+
+.ti -.5i
+Cause:	A SYSGEN file is present on the hard disk drive.  Normally this file
+is unused because the system uses the SYSGEN file on the start-up
+diskette before switching control to the hard disk.  When the hard disk
+boot is installed, this SYSGEN
+file could be used and may conflict with some of the parameters that the
+hard disk boot sets up, particularly if it was created on an earlier
+version of the operating system.
+
+.ti -.5i
+Cure:	Remove the SYSGEN file by typing:	\fLSYSGEN (DRIVE=0,NO)\fR
+.bx "ENTER"
+.br
+Rerun HBUILD6.  After the hard disk boot is installed,
+you can boot on your hard disk and set up a new SYSGEN file.
+
+
+.ti -.5i
+Error:	\fL?Logical Drive 0 is not on the hard disk.\fR
+
+.ti -.5i
+Cause:	The system is currently using a floppy drive as
+the system drive (Drive 0).  To use HBUILD6
+the current system drive must be on the hard disk.  In addition,
+logical Drive 0 must be on physical Drive 1 (primary drive), Head 1
+(ones-based.)
+
+.ti -.5i
+Cure:	If you have a hard disk startup diskette that makes the hard disk
+the system drive, boot the system using that diskette.
+Rerun HBUILD6.  If you don't have a hard disk startup diskette,
+prepare one using the procedure
+described in the \fIHard Disk System Startup\fR manual (supplied with the
+\fITRSDOS Disk System Owner's Manual\fR), or use the instructions provided
+with your hard disk system.
+
+
+.ti -.5i
+Error:	\fL%This operating system may not be compatible with
+ this version of the hard disk boot.\fR
+
+.ti -.5i
+Cause:	The operating system that is running is not the
+same version that HBUILD6 was written for.  The
+hard disk boot may not work or may not install.
+
+.ti -.5i
+Cure:	Upgrade to LS-DOS 6.3.x.  In most cases, you should not have to
+reinitialize your hard disks, but it is a good idea to make a backup of
+your files before upgrading operating systems.
+
+You can try installing HBUILD6 on your current system despite the
+warning, and if it does not work,
+remove the hard disk boot from your system by following the steps
+in the "Removing the Hard Disk Boot".
+.in 0i
+
+.ce
+Page  2
+.bp
+.sp .5i
+.in .5i
+.ti -.5i
+Error:	\fL?The hard disk driver has not been installed on this system.
+ Install the driver. After the hard disk drives are initialized
+ and contain a system, rerun HBUILD6.\fR
+
+.ti -.5i
+Cause:	HBUILD6 cannot locate the hard disk driver in memory.  This message
+may also be caused by using an alien hard disk driver that HBUILD6 cannot
+recognize.  Different versions of HBUILD6 support different hard disk drivers.
+
+.ti -.5i
+Cure:	If you are running under hard disk control, press RESET
+and try again.  If not, start the system using the hard disk
+start-up diskette and rerun HBUILD6.  Make sure that the hard disk driver
+your system uses is the same as the driver your copy of HBUILD6 supports.
+
+
+.ti -.5i
+Error:	\fL?This program can only be used on a Model 4P, 4 or 4D system.\fR
+
+.ti -.5i
+Cause:	This program cannot be used on a Model II, 12 or 16.
+It can be used on a Model 4 or 4D only if the "X" or "XD" ROMs are installed.
+HBUILD6 makes a check for these ROMs.
+
+.ti -.5i
+Cure:	If you are using a Model 4, you must install a "X" ROM.
+If you are using a Model 4D, you must install a "XD" ROM.
+One of these ROMs should have come with the HBUILD6 software.
+If HBUILD6 displays this message on a Model 4P, reboot the system and rerun
+HBUILD6.  If it fails again, it may indicate a hardware problem.
+
+.ti -.5i
+Error:	\fL?The hard disk boot track is already installed on this disk.\fR
+
+.ti -.5i
+Cause:	It appears that HBUILD6 has already been run on this system.
+(This is determined by looking at a signature byte in the boot sector.)
+
+.ti -.5i
+Cure:	If you want to write a new copy of the hard disk boot to the system,
+remove the existing copy by using the instructions shown in \fIRemoving The
+Hard Disk Boot\fR.  Then you may re-run HBUILD6.
+
+
+.ti -.5i
+Error:	\fL?The hard disk was not the first driver or filter installed
+ in low memory, and it is not the first (highest) in high
+ memory on this system.  Restart your system and install the
+ hard disk driver and run HBUILD6 before you use any other
+ driver or filter.  If you have added a module or driver to
+ low RAM by patching BOOT/SYS or SYS0/SYS, remove the
+ patches.\fR
+
+.ti -.5i
+Cause:	The hard disk driver must be located in a particular position
+in memory for HBUILD6 to work properly.  It must be the first driver
+installed in low memory (lowest address), or the first driver installed
+in high memory (highest address).  If you have loaded a
+different filter or driver before you initialized your hard
+disks, the hard disk driver is probably not the first module
+in low or high memory.  Drivers and filters can be loaded by a SYSGEN file
+or using the SET or SYSTEM (DRIVER=) commands.
+Other drivers and filters include COM/DVR, FORMS/FLT,
+CLICK/FLT and KSM/FLT.  An alien hard disk driver can also cause this error.
+If your system has the Houde patches for the XLR8er adapter, the patches
+located in SYS0/SYS and BOOT/SYS conflict with HBUILD6 and must be removed.
+
+.ti -.5i
+Cure:	Starting with a copy of the operating system diskette that has no
+non-standard patches, create a new start-up diskette by redefining the logical
+hard disk drives and SYSGENing that information onto the floppy.  (If you want
+the hard disk drivers positioned in memory, use the FORCEHI utility before
+you start defining the drives.)  Once you
+can boot from this new start-up diskette,
+run HBUILD6. Once you have booted from the hard disk drive, you may now
+create a SYSGEN file for the hard disk that adds the
+other drivers and filters you desire.  If you want the Houde patches, use
+the program XLR8SET to dynamically apply the patches when the system boots.
+
+.ti -.5i
+Error:	\fL?The system drive must be on the logical drive that
+ starts on Head 1 of physical Drive 1 (primary drive).  
+ If you are using RSHARD6 or MSCSI6, logical drive 0 must be
+ allocated before any other drive on head 1.\fR
+
+.ti -.5i
+Cause:	The boot ROM is responsible for starting the system.
+It reads a single sector of the boot track and loads
+it into memory.  It always looks at physical Drive 1, Head 1, Cylinder 0
+for that sector.  Therefore, the system drive must also
+start there.  (If you used HARDGEN and did not manually assign
+heads to logical drives, you won't get this error.)
+
+.ti -.5i
+Cure:	If one of the logical drives on the hard disk starts at Head 1
+(ones based), Cylinder 0, use it as the system drive from now on and
+reconfigure the system accordingly.  If this is not possible, save all
+the files that are on your primary hard disk and reinitialize it so
+logical drive 0 is positioned to start on Head 1 (ones based), Cylinder 0.
+Once the operating system is restored to the drive, run HBUILD6.
+
+
+.ti -.5i
+Error:	\fL?The version of SYS0/SYS present on this system cannot be
+ patched.  You must be using LS-DOS 6.3.'
+
+.ti -.5i
+Cause:	To support high memory drivers, HBUILD6 applies patches to SYS0/SYS.
+SYS0/SYS varies from one version of the operating system to the next.  If
+SYS0/SYS has changed significantly, the patches cannot be installed.
+
+.ti -.5i
+Cure:	If you are using an operating system older than LS-DOS 6.3.0,
+you must upgrade.  If you are using an operating system newer than LS-DOS
+6.3.1, contact M. A. D. Software.
+
+
+.ti -.5i
+Error:	\fL?SYS0/SYS does not exist on Drive 0. Use BACKUP to place 
+ all of the system files on Drive 0 and rerun this program.\fR
+
+.ti -.5i
+Cause:	Sometimes SYS0/SYS is deleted from the hard disk because it
+isn't needed after the system is started.  It is only used
+during the boot procedure.  Because the system is starting
+from the hard disk, SYS0/SYS is now required.
+
+.ti -.5i
+Cure:	Move all of the system files from the start-up diskette to
+the hard disk by typing:
+
+	\fLBACKUP SYS:\fRs\fL :0 (S,I)\fR 
+.bx "ENTER"
+.br
+
+where :s is the logical drive number of the floppy drive.
+Rerun HBUILD6.
+
+
+.in 0i
+.ce
+Page  3
+.bp
+.sp .5i
+.in .5i
+.ti -.5i
+Error:	\fL?SYS0/SYS has more than 4 extents.  Use BACKUP to place
+ SYS0/SYS on the hard disk and rerun this program.\fR
+
+.ti -.5i
+Cause:	SYS0/SYS can have more than 4 extents if you used the COPY command
+to put it on the hard disk.  This is an invalid configuration for
+this file.  You must use BACKUP 
+to place SYS0/SYS on a disk.
+
+.ti -.5i
+Cure:	Type:
+
+	\fLBACKUP SYS0:\fRs\fL :0 (S,I)\fR
+.bx "ENTER"
+.br
+
+where :s is the logical drive number for the start-up diskette.
+
+
+.ti -.5i
+Error:	\fL?BOOT/SYS is not installed properly on Drive 0.
+ Use BACKUP with the SYS option to install BOOT/SYS.\fR
+
+.ti -.5i
+Cause:	BOOT/SYS is a special file that moves to a new
+drive when the BACKUP utility moves SYS0/SYS.  You must move
+these two files at the same time.
+In addition, BOOT/SYS must start in the first
+granule of cylinder 0 on every logical drive.  
+BOOT/SYS must also be the correct size, and must only have one extent.
+SYS0/SYS must use less than five extents.
+
+
+.ti -.5i
+Cure:	Type:
+
+	\fLBACKUP SYS0:\fRs\fL :0 (S,I)\fR
+.bx "ENTER"
+.br
+
+where :s is the logical drive number for the start-up diskette.  BACKUP
+moves BOOT/SYS when it moves SYS0/SYS and assures that BOOT/SYS is
+in its required location.
+It is possible that another file is in the location where
+BOOT/SYS must reside.  If so, BACKUP quits.
+If you get an error while executing this command, 
+save all of the files on the hard disk to floppy disks
+and initialize the hard disk drive using HARDGEN.
+After formatting is complete, rerun HBUILD6.  Then restore your
+files.
+
+
+.ti -.5i
+Error:	\fL?Logical Drive 0 is write-protected.  Write-enable the
+ drive and then rerun this program.\fR
+
+.ti -.5i
+Cause:	Logical Drive 0 is software or hardware write-protected.
+
+.ti -.5i
+Cure:	Make sure the PROTECT lamp on the primary drive is off.  If
+it is, depress PROTECT and rerun HBUILD6.  If the PROTECT lamp
+was not on or you continue getting this error, type:
+
+	\fLSYSTEM (DRIVE=0,WP=OFF)\fR
+.bx "ENTER"
+.br
+
+Rerun HBUILD6.
+
+
+.ti -.5i
+Error:	\fL?The DCT entry on logical Drive 0 does not match the
+ entry in memory.\fR
+
+.ti -.5i
+Cause:	The start-up diskette you are using is not
+the same one that was created when you initialized the hard
+disks using HARDGEN.
+
+Another possible cause is that the hard disks were formatted
+before TRSDOS 6.2. 
+
+If you have more than one Model 4/4P/4D system, you may be using the
+start-up diskette for one of the other machines.
+
+You may be using an old start-up diskette that 
+does not match the way the hard disks were divided into
+logical drives when they were last formatted.
+When LS-DOS 6 starts, the DCT from the start-up disk
+is copied into memory.  The DCT describes the amount of space each
+physical hard disk contains, and how much of that space is
+assigned to each logical drive.  Operating the system with the
+wrong DCT can cause files to be written on the wrong logical
+drives, possibly erasing other files.
+
+.ti -.5i
+Cure:	Use the correct start-up diskette for this system and rerun HBUILD6.
+If using the correct diskette does not solve problem, save all of
+the files on the hard disk to floppy diskettes.  Reinitialize the
+hard disk using HARDGEN and rerun HBUILD6.
+
+.ti -.5i
+Error:	\fL?The hard disk driver modules were not all defines at the same time and are
+ not contiguous (beck-to-back) in memory.  Start with a fresh system
+ with no drivers or filters defined, defines all logical drives that are
+ on the hard disk drives (except DiskDisk drives), and then rerun this program.\fR
+
+.ti -.5i
+Cause:	Powersoft drivers use one or more "stub" drivers that set the
+starting cylinder for one or more drives and then jump to a common driver.
+These ":stub" drivers are allocated when a logical drive is defined that
+starts on a cylinder that has not been used on any other head or drive.
+If the logical drives are not all defined at the same time, these drivers
+are not together and cannot be stored for use when the system reboots.
+
+.ti -.5i
+Cure:	Start with a copy of the operating system diskette and create a new
+start-up diskette by defining all the logical drives on the hard disk.
+Do not define other types or drivers or filters at this time.  Then SYSGEN
+this onto the floppy and make sure you can boot from this new start-up floppy.
+Once the drives are configured correctly, run HBUILD6.  After you have
+successfully booted from the hard disk, you can define all your other
+drivers and filters, and write place them in a SYSGEN file on the hard disk.
+.in 0i
+
+
+
+.ce
+Page  4
+.bp
+.sp .5i
+\s+2Removing The Hard Disk Boot\s-2
+
+To remove the hard disk boot any time after running HBUILD6, follow these steps:
+
+.in .5i
+.ti -.5i
+1.	Start the system with your hard disk start-up diskette.
+
+.ti -.5i
+2.	Make sure the primary hard disk drive is write-enabled.
+
+.ti -.5i
+3.	Type:		\fLBACKUP SYS0:\fRs\fL :0 (S,I)\fR
+.bx "ENTER"
+.br
+
+where :s is the logical drive number of the floppy drive that contains
+the start-up diskette.  To display the logical drive number,
+type \fLDEVICE\fR
+.bx "ENTER"
+\&.
+.br
+
+Look at the DEVICE display for the logical drive number
+that contains the startup diskette.
+
+
+.in 0i
+After executing these commands, the hard disk no longer contains
+any hard disk boot information. 
+
+
+\s+2Converting a Data drive to a System drive\s-2
+
+If you are not using your hard disk as a system drive, you must
+build a system drive on the disk before you can boot without a floppy disk.
+To do this, one logical drive is converted to the system drive.  
+The two ways to create a system drive are:
+
+Procedure 1
+.in .5i
+
+Save all of the files on your hard disk to floppy disks and
+reinitialize the hard disk using HARDGEN.  If you have several
+hard disk drives or numerous files, try to use Procedure 2.
+To use Procedure 1, refer to the HARDGEN documentation when
+reinitializing the hard disks.  When formatting is complete,
+rerun HBUILD6.
+
+.ti -.5i
+or
+.ti -.5i
+Procedure 2
+
+Identify the logical drive that can be converted to a system
+drive and add the system files to that drive.
+This procedure requires that you perform some detective-work and
+the entering of several commands.
+
+.ti -.5i
+1.	Start up your system using the hard disk start-up diskette.
+Insert the \fBHard Disk Boot Initialization\fR diskette in
+floppy drive 0.
+
+.ti -.5i
+2.	Type:		\fLBASIC FINDZERO/BAS\fR
+.bx "ENTER"
+.br
+
+to locate the logical drive that can be converted to a system drive.
+
+.ti -.5i
+3.	If the program reports that no logical drives can be used as the
+system drive, the system cannot boot off the hard disk
+as it is currently configured.  This could occur if you have more
+than one operating system on your hard disk.  The only solution
+is to save all of the files from your hard disk
+to floppy disks and reinitialize the drive.  Be sure to save the
+files in the parts of the hard disk drive that are
+being used for CP/M or LDOS as a precaution.
+
+If FINDZERO locates a drive that can be used, it displays
+the drive number.
+
+.ti -.5i
+4.	At LS-DOS Ready, type:
+
+	\fLBACKUP :0 :\fRd\fL (S,I,NEW)\fR
+.bx "ENTER"
+.br
+
+where :d is the drive number that FINDZERO displayed.  If BACKUP displays
+an error, the hard disk drive may be write-protected.  Correct the
+problem and repeat Step 4.
+If there are too many files on the logical drive that has to be used,
+copy some of the files to another logical drive and
+then remove the copied files from drive d.
+See your \fIDisk System Owner's Manual\fR for information on copying
+and removing files.
+
+
+
+
+.in 0i
+.ce
+Page  5
+.bp
+.sp .5i
+.in .5i
+.ti -.5i
+5.	When BACKUP completes successfully, type:
+
+	\fLSYSTEM (SYSTEM=\fRd\fL)\fR
+.bx "ENTER"
+.br
+
+where :d is the drive number that FINDZERO displayed.
+
+.ti -.5i
+6.	Remove the start-up diskette from the floppy drive and
+insert the \fBLS-DOS System and BASIC Interpreter\fR diskette.
+Type:
+
+	\fLBACKUP :\fRd\fL :0 (S,I,NEW)\fR
+.bx "ENTER"
+.br
+
+This copies any remaining files that were not present on the
+start-up diskette, but are normally present on a system drive.
+If LS-DOS displays an error, refer to the instructions in Step 4.
+
+You may now run HBUILD6.  Do not press RESET until you have
+run HBUILD6.  If you encounter any errors and have to press RESET,
+restart the system with the start-up diskette and type:
+
+	\fLSYSTEM (SYSTEM=\fRd\fL)\fR
+.bx "ENTER"
+.br
+
+At this point you can attempt to rerun HBUILD6.
+
+.in 0i
+
+
+011113
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ce
+Page  6
+.bp
+.sp .5i
+\s+2License Agreement and Warranty\s-2
+
+The HBUILD6 program, its documentation, and all other included
+software are copyrighted with
+all rights reserved.  The user is granted a license to use this software on
+a \fBsingle Model 4, 4D or 4P system.\fR 
+
+This product contains serial numbers and other traceable markings.
+HBUILD6 utilizes a serialized protection system to enforce this agreement.
+
+\fBCompanies or
+individuals with multiple systems must obtain a multiple-system version.\fR
+
+The user may make one (1) backup of the diskette for archival purposes.
+
+M. A. D. Software warrants the diskette media on which HBUILD6 is recorded
+to be free from defects under normal use for a period of 90 days from the
+date of original purchase.  If during this 90 day period a defect in the
+diskette media makes the recorded data unusable, you may return the
+diskette to M. A. D. Software for replacement without charge.  The
+user does pay the cost of delivering the diskette to M. A. D. Software.
+
+M. A. D. Software makes no commitment to provide any upgrade.  However, if
+one is produced, the following upgrade policy will apply:
+
+.in .5i
+If an upgrade version of HBUILD6 (or a directly-related utility) becomes
+available during the 90 day warranty period, the user will be advised to
+return the original diskette to M. A. D. Software
+for replacement without charge.
+
+After 90 days, any upgrade software that is made available will be
+provided at a nominal charge when the user returns the original, unaltered,
+and usable diskette.
+
+.in 0i
+Any diskette that is returned due to a defect for an in-warranty exchange or
+for an upgrade (in or out of warranty) that has a defaced or invalid
+registration number, or has been modified or totally erased will not be
+accepted.
+
+
+Except as provided for above, the author and/or M. A. D. Software make no
+warranties, either expressed or implied, with respect to this software
+or its fitness for any purpose.  This software is provided "as-is".  Although
+significant testing has been performed to insure that this product will
+work with the systems listed, this software cannot be expected to work
+in systems other than those listed and on versions of operating systems
+other than the ones specified.   Non-standard versions of 
+hardware or software can also prevent this product from functioning
+as intended.   Should the software prove defective or incompatible, the
+user assumes the entire cost of all necessary servicing, repair, or
+correction and any incidental or consequential damages.  The author and
+M. A. D. Software assume no liability for direct, indirect, incidental or
+consequential damages resulting from any use of or any defects in the
+software.
+
+
+
+
+\s+2For Your Records:
+
+
+HBUILD6 Version #		|
+
+
+HBUILD6 Serial #		|
+
+
+
+Date Purchased:   ___________________________________________
+
+
+Purchased for a (circle one)    Model 4        Model 4D		Model 4P
+
+
+Model 4/4D/4P Serial # _________________________________________\s-2
+
+
+
+
+
+
+.ce
+Page  7

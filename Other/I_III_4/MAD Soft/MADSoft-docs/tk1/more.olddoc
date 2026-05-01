@@ -1,0 +1,325 @@
+MORE(U)								        MORE(U)
+  	 Copyright 1992,1993 M. A. D. Software, All Rights Reserved.
+
+Name
+	MORE - Displays a file one screen at a time.
+
+Syntax
+	more [-cdflsrw!?h] [-n] [+linenumber] [+/pattern] 
+	     [wildspec][:drivespec]...  [< file|device] [> file|device]
+	     [;next command]
+
+Description
+
+MORE acts as filter that allows text to be viewed one screen at a time.  By
+default, MORE pauses when the screen has been filled with text.  MORE then
+displays the "--More--" command prompt at the bottom of the screen.  If the
+user presses SPACE, another page (screen full) of text is displayed.  
+Pressing ENTER causes the next line of text to be displayed.  The number of
+lines of text displayed when these keys are pressed is adjustable.  There
+are numerous other commands available at the --More-- prompt, and these are
+described below.
+
+MORE can accept multiple files at once, and these are displayed in the
+order specified.  Wildcards are also accepted allowing groups of files to be
+displayed with a single MORE command.  If no files are specified, MORE
+reads text from the *SI device (normally the keyboard).  The output of MORE
+can also be redirected into a device or a file.
+
+If a wildspec is specified, all files that match the wildspec will be
+displayed.  If the drive is specified, only files on that particular drive
+will be displayed.  If the drive is omitted, all files that match the
+wildspec on all active drives are displayed.
+
+MORE accepts several command-line options.  Options are specified by single
+letters, and they may be entered in upper or lowercase.  Options are always
+preceded by a hyphen (a "-").  If you are specifying multiple options, you
+can specify the options in any of these formats:
+	-a -b -c   or   -abc   or   -a -bc   or  -ab -c
+
+The options are:
+-c	MORE will display the text on each page by starting at the top of
+	the screen and erasing the old text on each line just before new
+	text is placed on that line.  By default, MORE scrolls the text
+	from the previous page up so that it disappears off the top of the
+	screen, and the new text is added at the bottom.
+
+-d	The --More-- prompt will also display brief help each time it is
+	displayed.  This is useful with users who are unfamiliar with MORE.
+	Note that "?" can be pressed at the --More-- prompt to receive help
+	at all times.
+
+-f	This option instructs MORE to count logical lines instead of screen
+	lines.  If all the lines of text are shorter than 81 lines, you will
+	not be able to see a difference.  This option is useful if the
+	file contains backspace or control-character sequences that might
+	confuse MORE about the true length of lines in the file.
+
+-l	Tells MORE to not treat CONTROL-L as a special character.  By default,
+	a CONTROL-L causes the --More-- prompt to be displayed immediately,
+	just as though the end of the current page had been reached. 
+
+-s	When specified, MORE will not display duplicate blank lines. For
+	example, if a file contains three blank lines in a row, only one
+	blank line will be displayed.  This is useful for looking at
+	documents that are formatted for printing and have multiple blank
+	lines at the top and bottom of each page.
+
+-r	This option causes control characters to be displayed as a caret
+	("^") and a letter.  For example, CONTROL-C would be displayed as
+	^C.  By default, MORE ignores non-carriage control characters.
+
+-w	This option causes MORE to warn the user when all files have been
+	displayed and MORE is about to exit.  This is useful when MORE is
+	invoked from another program or batch file that might clear the
+	screen before the contents can be read.  The prompt "--No More--"
+	waits for the user to press a key before MORE exits.
+
+-!	Causes MORE to ignore any default settings that are specified in
+	the DEFAULTS/MAD file.  MORE will also ignore any options that are
+	specified to the left of the -! option.  Note that the DEFAULTS/MAD
+	file is accessed even if the -! option is specified.
+
+-? -h	Displays the help message and a brief summary of the command-line
+	options.
+
+-n	This is an integer that specifes the number of lines that MORE
+	will display per page instead of the default.  If the number
+	is larger than 23, some lines will scroll off the screen before
+	the --More-- prompt is displayed.
+
++linenumber
+	When specified, MORE skips this many lines in the first file
+	specified before it begins to display the file contents.
+
++/pattern
+	When specified, MORE will search through the first file that is
+	specified looking for the pattern.  When the pattern is found, MORE
+	will begin displaying the file at that point.  MORE displays a four
+	lines in front of the point where the match occurs to provide some
+	context. 
+	
+	If the pattern is not found, the message "Pattern not found" is
+	displayed.  If a filename was specified to MORE, MORE positions to
+	the beginning of the current file after the search fails.  If MORE
+	was reading from the standard input or from a redirected file, MORE
+	remains positioned at the end of the file.
+
+	Patterns may include all types of wildcards (see the wildspec
+	documentation below for information on wildcards).  You may also place
+	an uparrow (^) at the start of the pattern.  The uparrow means that
+	the pattern must match text at the start of lines in the file.  For
+	example, if the pattern was "^ine":
+
+		This line would not match the pattern,
+		ine But this line would.
+
+	By default, the pattern will match text anywhere in a line.
+
+	The pattern is case-sensitive, so upper and lowercase characters must
+	match the pattern exactly.  The pattern can specify upper or lowercase
+	for certain characters if needed.
+
+wildspec
+	A wildspec specifies one or more files that are to be dsplayed in
+	alphabetical order.  A wildspec may contain none or more of the
+	following wildcard characters:
+
+	*	The * matches zero or more characters in the specified
+		position.  For example, the wildspec A*Z will match any
+		of the following:
+			AZ		ABZ
+			ABCDEFGZ	ABC/XYZ
+		Note that unlike a LS-DOS/TRSDOS 6 partspec, the filename and
+		extension are treated as a single unit.
+
+	%	The % matches exactly one character.  So A%C matches:
+			ABC		AXC
+		The file AC will not match the A%C pattern.
+
+	[]	Ranges specify multiple characters that may appear in a given
+		position in the filenames being tested.  There are two formats
+		that can be combined:
+		[abc]	These specific characters are acceptable in this
+			position in the filename.  So A[BC5]D would accept
+			ABD		ACD		A5D
+		[a-d]	The characters in this ASCII range are acceptable
+			in this position in the filename.  A[E-J]X matches:
+			AEX		AFX		AGX
+			AHX		AIX		AJX
+		Numbers can also be included in ranges, but the first value of
+		the range must have a lower ASCII value than the second value.
+		[!...]	The ! excludes all files that match characters in this
+			position.  So A[!DKP]D will match all filenames that
+			start with an "A", end with a "D", and the second
+			character is any character except "D", "K", or "P".
+
+				Page  2
+
+
+
+
+
+MORE(U)								        MORE(U)
+
+
+		Combinations of ranges are also allowed.  A[1-3ABD]X would
+		allow these filenames:
+			A1X		A2X		A3X
+			AAX		ABX		ADX
+	Any lowercase characters in the wildspec are converted to uppercase
+	before the comparison is performed.
+
+:drivespec
+	The drivespec specifies one or more logical drives that should
+	be scanned for files that match the file wildspec.  The % and *
+	will examine all enabled drives.  A range can also be used.
+	For example, :[2-47] will search for files on drives 2, 3, 4 and 7.
+
+	If the drivespec is not specified and a wildspec is, all drives are
+	searched for files that match the file wildspec and all that are
+	found will be displayed.  So if the file SAMPLE/TXT exists on four
+	drives, all four files will be displayed unless a drivespec limits
+	the search.
+
+< file | device
+	*NIX input file redirection.  By specifying a file or device, the
+	input to MORE is read from the specified file or device instead of
+	from files that are specified normally.  Note that when the input to
+	MORE is redirected, MORE is unable to back-up in the file.
+
+> file | device
+	*NIX output file redirection.  By specifying a file or device, the
+	output is sent to the specified file or device instead of the
+	display.  When the output is redirected, MORE displays all files
+	in sequence without pausing.
+
+;next command
+	After MORE completes, the remainder of the command line is executed
+	as a second command.  The command MORE XYZZY;DATE will display the
+	contents of the file XYZZY, then display the current date.
+
+<SHIFT>@
+	When pressed during output to the display, the output will be paused
+	before the next line is displayed.  Pressing any other key causes
+	the output to resume.  Pressing this key is ignored when output is
+	redirected.
+
+--More-- Prompt Commands
+
+	When the --More-- prompt is displayed, numerous commands can be
+	specified.  These allow you to skip to the next file, skip further
+	down the current file, even search for a particular string within
+	the file.  With the exception of the "/" command, no characters
+	are echoed while the command is being entered.  
+
+	Some of the commands optionally accept a decimal value.
+
+[i][SPACE]
+	When the [SPACE] key is pressed, another screen worth of information
+	is displayed.  By default, 22 new lines are displayed each time so
+	that one line from the previous screen will remain in the screen.
+	If a decimal value is specified, it will set the number of lines
+	that are displayed each time the [SPACE] key is pressed from now on.
+
+[i][ENTER]
+	This command causes one more line of the file to be displayed.  If
+	a number is specified, it changes the number of lines the [ENTER]
+	key displays.  The command  7[ENTER] causes the [ENTER] to display
+	seven more lines each time it is pressed.
+
+[i][CTRL-D]
+	Similar to the [SPACE] key, except that 11 more lines are displayed.
+	This default can be changed by specifying a new value.
+
+[i]s	The specified number of lines are skipped and then a new page of
+	text is displayed.  For example if the --More-- prompt pauses at
+	line 23 of a file and you type 500s, the listing will resume at
+	line 524.
+
+[i]f	This skips foreward in the file by the specified number of screens
+	of text.  
+
+[i]/pattern
+	Searches forward in the current file looking for a line that contains
+	text that matches the pattern.  Wildcards and the uparrow (^) can be
+	used in the pattern.  When a line is found that matches the pattern,
+	the listing resumes four lines above the line containing the match.
+	
+	If a decimal value is specified, MORE will search for the nth
+	occurrence of the specified pattern.
+
+	If the pattern cannot be found, MORE will display the error
+	"Pattern not found".  If MORE was reading from a file, it will
+	position to where the location in the file that MORE was at when
+	the search was started.  If MORE was reading from a standard in
+	or a redirected input, MORE will terminate unless the -w option
+	was specified on the command line.
+
+[i]n	When the n command is specified, MORE will start a search using the
+	last pattern that was specified with the "/" command.  A decimal
+	value starts a search for the nth occurrence of the pattern.
+
+=	Will display the current line number.  All --More-- commands are
+	accepted even though the --More-- prompt isn't visible.  To
+	redisplay the --More-- prompt, press [BACKSPACE] or any other
+	invalid character.
+
+.	Causes MORE to repeat the last command that accessed the file.
+
+
+q	Causes MORE to exit, regardless of how many more files are to be
+	displayed.  MORE exits with no error condition.  Any addition
+	commands specified on the MORE command line are not executed.
+
+[BREAK]	Causes MORE to exit.  MORE exits with an abort error condition and
+	will not execute any additional commands on the MORE command line.
+
+The following commands are not available when reading from a streaming
+device.  This includes reading from standard in or from a redirected file.
+
+'	MORE positions back to where the last search started.  For example,
+	if you used the / command to search for something and the wrong
+	search string was specified, the "'" command will back up to the
+	place in the file you were at when the last search started.
+
+:f	Displays the current filename and line number.  Similar to the "="
+	command.
+
+[i]:n	Advances to the next file when multiple files are specified.  If
+	there are no more files, MORE exits (unless the -w option was
+	specified).  If a number is specified, the specified number of
+	files are skipped.  If the command MORE A B C D was used and
+	in the middle of reading file A you gave the command 2:n, MORE
+	would skip to the file named C.  By default, :n goes forward
+	to the very next file.
+
+[i]:p	Moves to the previous file when multiple files are specified.  If
+	there are no previous files, MORE goes to the first file specified.
+	If a number is provided, MORE skips back that number of files.
+	The command 0:p goes to the start of the current file.  By default,
+	:p goes back one file.
+
+
+Files
+	MORE reads the DEFAULTS/MAD file and uses any default options that
+	are specified there.  For example, if you wanted MORE to always
+	display control characters, the following entry in the DEFAULTS/MAD
+	file would do this.  
+		MORE -R
+
+	Options in the DEFAULTS/MAD file are ignored if the -! option
+	is specified on the command line.
+
+
+If you need more information on MORE or if you want to obtain the LDOS 5.x/
+version, please write to M.A.D. Software, P.O. Box 331323, Ft. Worth Texas,
+76163.  Please include a Self-Addressed-Stamped-Envelope when requesting
+information.
+------
+303172
+
+
+
+
+				Page  3

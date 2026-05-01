@@ -1,0 +1,10 @@
+. DO1/FIX - 07/16/90 - Patch LS-DOS 6.3.1 DO command
+. Allows DO * to find a SYSTEM/JCL file on a drive other than :0
+. Apply fix DO FIX631F
+D2D,AB=CD AC 2A;F2D,AB=32 EB 29
+D33,0B=03;F33,0B=3A
+D33,AD="Bad JCL format, process aborted"
+F33,AD="Invalid JCL format, processing "
+D33,CC=0D 67 2E 3A 22 EA 29 C9
+F33,CC=61 62 6F 72 74 65 64 0D
+. Eop

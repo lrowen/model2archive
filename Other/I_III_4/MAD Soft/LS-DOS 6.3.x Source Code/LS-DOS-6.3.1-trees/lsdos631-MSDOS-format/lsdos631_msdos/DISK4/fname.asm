@@ -1,0 +1,22 @@
+	LD	A,(FCB1)	;P/u to test device/file
+	CALL	$FNAME
+;*=*=*
+;	Routine to pick up device/file name
+;*=*=*
+$FNAME	BIT	7,A		;Test device/file
+	JR	Z,FNAME1
+	@@FNAME
+	RET
+FNAME1	LD	A,'*'		;Stuff device indicator
+	LD	(DE),A
+	INC	DE
+	LD	A,C		;Stuff 1st character
+	LD	(DE),A
+	INC	DE
+	LD	A,B		;Stuff 2nd character
+	LD	(DE),A
+	INC	DE
+	LD	A,3		;Stuff ETX
+	LD	(DE),A
+	RET
+

@@ -1,0 +1,13 @@
+;CLIENTS/ASM - File to establish sign-on headers
+; and version numbers.
+;
+; EACH LINE SHOULD CONTAIN ONLY 63 CHARACTERS !!
+;
+	DB	' - 6.2.0 - Copyright 1982/83/84 by Logical Systems, Inc.      ',10
+;
+	DB	'All Rights Reserved. Licensed 1982/83/84 to Tandy Corporation.',10,13
+;
+;	DB	'All Rights Reserved. Beta-TEST Level/AD, DO NOT DISTRIBUTE !! ',10,13
+;	DB	'All Rights reserved by LSI, 8970 N. 55th St. Milwaukee, Wisc. ',10,13
+;	DB	'All Rights Reserved. Unauthorized duplication is prohibited.  ',10,13
+

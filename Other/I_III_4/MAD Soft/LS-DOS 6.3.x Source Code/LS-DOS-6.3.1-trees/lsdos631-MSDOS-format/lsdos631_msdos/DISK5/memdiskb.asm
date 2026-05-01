@@ -1,0 +1,317 @@
+;MEMDISKB/ASM - Miscellaneous Subroutines
+	SUBTTL	'<MEMDISKB - Subroutines>'
+	PAGE
+;
+;	SETBANK - Tell system which banks are used
+;
+SETBANK	LD	A,$-$		;P/u bank #
+	LD	C,A		;Xfer to C
+	CP	3		;Both banks 1 & 2 ?
+	JR	NZ,STBANK	;No - just 1 bank
+	DEC	C		;Set C = 2
+	CALL	STBANK		;Show Bank in use
+	DEC	C		;C = 1
+STBANK	PUSH	BC		;Save BC
+	LD	B,3		;Show in use function #
+	@@BANK			;Let system know it
+	POP	BC
+	RET			;RETurn
+;
+;	FREBANK - Free up Bank C
+;
+FREBANK	PUSH	BC		;Save C & B
+	LD	B,1		;Show bank available
+	@@BANK
+	POP	BC		;Recover C
+	RET			;RETurn
+;
+;	DECASC2 - Display Number to video
+;
+DECASC2	CALL	SAVEREG		;Save Registers
+	PUSH	AF		;Save #
+	LD	C,BS		;Backspace
+	CALL	DSP		;Output byte
+	CALL	DSP		;Twice
+	POP	AF		;Recover A
+	CALL	DECASC		;Convert to ASCII
+	LD	C,H		;P/u ms digit
+	CALL	DSP
+	LD	C,L		;P/u ls digit
+;
+;	DSP - Output byte to Video & exit if I/O err
+;
+DSP	@@DSP			;Output byte
+	RET	Z		;RETurn if good
+;
+;	IOERR - Set HL = Error # & Abort
+;
+IOERR	LD	L,A		;Set HL = I/O Error #
+	LD	H,0
+	JP	EXIT		;Go to exit routine
+;
+;	Display Decimal ASCII equivalent
+;
+DECASC	LD	H,2FH		;H=msb  of BCD ASCII
+LPADD	INC	H		;Bump msb
+	SUB	10		;Successive sub's of 10
+	JR	NC,LPADD	;Keep sub til carry
+	ADD	A,3AH		;A = lsb ASCII
+	LD	L,A		;HL => DEC ASCII
+	RET
+;
+;	DECHEX - Convert Decimal ASCII to Hex
+;
+DECHEX	CALL	GETDIG		;Get digit
+	INC	HL		;Next byte in buffer
+	DEC	B		;Dec digit counter
+	JR	Z,DONE1		;All done
+	LD	D,A		;Xfer to D
+	CALL	GETDIG		;Get digit
+	LD	E,A		;Save digit
+	LD	A,D		;P/u ten's digit
+	ADD	A,A		;Multiply
+	ADD	A,A		;  A times 10
+	ADD	A,D		;  and add it
+	ADD	A,A		;  to the ones digit
+	ADD	A,E		;A = number of tracks
+DONE1	CP	A		;Set Z flag
+	RET			; and RETurn
+;
+GETDIG	LD	A,(HL)		;P/u second digit
+	SUB	'0'		;Cvt to binary
+	JR	C,ILLEGAL	;Clr stack & RETurn NZ
+	CP	10		;Legal digit
+	RET	C		;Yes - A = digit
+ILLEGAL	INC	A		;Reset Z flag
+	POP	HL		;Clear stack
+	RET			;  and RETurn
+;
+;	Verify Error - P/u Bank / Address & display
+;
+ERROR	PUSH	HL		;L = lsb of Address
+	LD	A,0C9H		;Modify GETADR routine
+	LD	(STFRET),A	;HL <= page from DE
+	CALL	GETADR
+	POP	DE		;E = lsb of address
+	LD	L,E		;HL = Bad RAM address
+;
+;	Stuff Bank # and Address into string
+;
+	LD	A,'0'		;Cvt BANK # to ASCII
+	ADD	A,C
+	LD	(VBANK),A	;Stuff into string
+	EX	DE,HL		;Xfer address to DE
+	LD	HL,VLOC		;HL => string destination
+	@@HEX16			;Cvt DE to Hex ASCII @ HL
+;
+;	Display string & restore hi/low mem
+;
+	LD	HL,BADRAM	;"BAD RAM ...
+	@@LOGOT			;Display it
+	JP	OLDRVR		;Leave & clear stack
+;
+;	SAVEREG - Save All Primary Registers
+;
+SAVEREG	EX	(SP),HL
+	LD	(RETADDR+1),HL
+	POP	HL
+	PUSH	HL
+	LD	(SAVEDE),DE
+	PUSH	DE
+	PUSH	BC
+	PUSH	AF
+	LD	DE,RESTREG
+	PUSH	DE
+	LD	DE,(SAVEDE)
+RETADDR	JP	$-$
+RESTREG	POP	AF
+	POP	BC
+	POP	DE
+	POP	HL
+	RET
+;
+;	CKBANK - Check if Bank C is in use
+;
+CKBANK	PUSH	BC		;Save BC
+	LD	B,2		;Bank in use ?
+	@@BANK			;Check it out
+	POP	BC		;Recover BC
+	RET	Z		;RETurn if available
+	JP	BNKUSE		;  else - display "in use"
+;
+;	INPUT - Input a line to the input buffer
+;
+INPUT	LD	HL,BUFFER	;HL => Input buffer
+	@@KEYIN			;Input line
+	JP	C,ABORT		;Exit if <BREAK> hit
+	INC	B		;Set Z if no chars
+	DEC	B
+	RET			;  else RETurn
+;
+;	GETCYL - Get max # of cylinders in A
+;
+GETCYL	PUSH	DE		;Save regs
+	PUSH	HL
+;
+;	Init DE = # bytes/cyl, A = dividend (-1)
+;
+BPC	LD	DE,DDBPC	;P/u bytes/cyl
+	LD	A,-1		;Init avail cyl cnt = -1
+;
+;	Divide total bytes available by Bytes/cyl
+;
+DIVLP	INC	A		;Bump cyl count
+	OR	A
+	SBC	HL,DE		;Take off 1 cyl
+	JR	NC,DIVLP	;Loop until carry
+;
+;	A = # of cyls avail, Restore regs
+;
+	POP	HL		;Recover regs
+	POP	DE
+;
+;	Set Z flag if more than 1 cylinder available
+;
+	CP	2		;0 or 1 ?
+	RET	C		;Yes - RETurn NZ
+	CP	A		;Set Z flag
+	RET			;  and RETurn
+;
+;	CALCDRV - Calculate drive Number for MemDISK
+;
+;	DE => DCT block for Drive
+;
+CALCDRV	EQU	$
+	EX	DE,HL		;Xfer to HL
+	LD	(SAVEDCT),HL	;Save DCT pointer
+	CALL	SAVDCT		;Save DCT
+	LD	A,H		;Drive number issued ?
+	OR	L
+	JP	Z,NODRV		;No drive entered
+;
+;	Get Start of Drive Code Table
+;
+	LD	C,0		;Get start of DCT
+	@@GTDCT			;Get DCT for Drive 0
+	PUSH	IY		;Get DCT start
+	POP	DE
+;
+;	Calculate Offset in Table
+;
+	XOR	A
+	SBC	HL,DE		;L = offset from start
+	OR	L		;P/u offset
+	JP	Z,BADDRV	;Cannot use DRIVE 0
+;
+;	Divide offset by 10 to get drive #
+;
+	LD	B,-1		;Init dividend = -1
+DIVLP1	INC	B		;Bump dividend
+	SUB	10		;Subtract ten
+	JR	NC,DIVLP1
+;
+;	Stuff away drive # into WRSEC routine
+;
+	LD	A,B		;P/u drive #
+	LD	(DRIVE+1),A	;Stuff away drive #
+;
+;	Point IY to System Flag table & RETurn
+;
+	@@FLAGS			;IY => Flags
+	RET			;Later
+;
+;	SAVDCT - Save Old DCT setup
+;
+SAVDCT	CALL	SAVEREG		;Save registers
+	LD	DE,DUPDCT	;Destination
+DOXFER1	LD	BC,10		;10 bytes to xfer
+	LDIR
+	RET
+;
+;	GETDUP - Get Duplicate of original DCT setup
+;
+GETDUP	LD	DE,(SAVEDCT)	;DE => DCT+0
+	LD	HL,DUPDCT	;Source
+	JR	DOXFER1		;Transfer back
+;
+;	GTDRV - P/u Next available Driver Address
+;
+;	IX <= Driver Address Pointer
+;	DE <= Current Address
+;
+GTDRV	PUSH	HL		;Save HL
+	LD	DE,'IK'		;P/u *KI DCB address
+	@@GTDCB
+	DEC	HL		;KIDCB - 2 => free area
+	PUSH	HL		;Xfer to IX
+	POP	IX
+	LD	D,(HL)		;P/u address in DE
+	DEC	HL
+	LD	(KIDCB$+1),HL	;Save address to stuff
+	LD	E,(HL)
+	POP	HL		;Recover HL
+	RET
+;
+;	INSTDRV - Relocate & Install Disk Driver
+;
+INSTDRV	EX	DE,HL		;Xfer dest to HL
+	LD	DE,DRIVER	;Start of driver
+	PUSH	HL		;Save Source & Dest ptrs
+	PUSH	DE
+	OR	A		;Clear carry
+	SBC	HL,DE		;Get offset
+;
+;	Relocate internal references in driver
+;
+	LD	IX,RELTBL	;Point to relocation tbl
+	LD	B,H		;Move to BC
+	LD	C,L
+RLOOP	LD	L,(IX)		;Get address to change
+	LD	H,(IX+1)
+	LD	A,H
+	OR	L
+	JR	Z,RELDUN
+	LD	E,(HL)		;P/U address
+	INC	HL
+	LD	D,(HL)
+	EX	DE,HL		;Offset it
+	ADD	HL,BC
+	EX	DE,HL
+	LD	(HL),D		;Put it back
+	DEC	HL
+	LD	(HL),E
+	INC	IX
+	INC	IX
+	JR	RLOOP		;Loop till done
+;
+;	Relocation Table for Driver
+;
+RELTBL	DW	REL1+1,REL2+1,REL3+1,REL4+1
+	DW	REL5+1,REL6+2,REL7+1,REL8+1,REL8A+1
+	DW	REL8B+1,REL9+1,REL2A+1,0
+;
+;	Transfer MemDisk driver to driver area
+;
+RELDUN	POP	HL		;HL => Source DE => Dest
+	POP	DE
+	PUSH	DE		;Save start
+	LD	BC,LENGTH	;# bytes to move
+	LDIR			;Block move
+	POP	DE		;Restore start
+	RET			;RETurn
+;
+;	SETDCT - Set up Drive Code Table for MemDISK
+;
+SETDCT	LD	IX,(SAVEDCT)	;IX => DCT address
+	LD	(IX+0),0C3H	;Enable
+	LD	(IX+1),E	;Lsb of driver
+	LD	(IX+2),D	;Msb of driver
+SDEND	LD	(IX+3),40H	;DD,5",floppy,step=6
+SDENE	LD	(IX+4),50H	;DDC=Y, 1 side, ALIEN
+	LD	(IX+5),0	;Current Cyl = 0
+	LD	(IX+6),A	;# of tracks rel from 0
+SDENF	LD	(IX+7),17	;18 spt (DD), 10 spt (SD)
+SDENG	LD	(IX+8),45H	;2/3 G/C, 5/6 S/G
+	LD	(IX+9),1	;Directory Cyl = 1
+	RET			;RETurn
+

@@ -1,0 +1,40 @@
+;SYS13/ASM - LS-DOS 6.2
+	TITLE	<SYS13 - LS-DOS 6.2>
+;
+CR	EQU	13
+LF	EQU	10
+*GET	SYS0/EQU:2
+*GET	COPYCOM:3		;Copyright message
+;
+	ORG	1E00H
+;
+SYS13	JR	START
+	DC	32,0		;Slack
+;
+START	AND	70H		;Strip bit 7
+	CP	70H		;Go if 0111,0000
+	JP	Z,NOCMD		;  to no * command
+NOSYS13	LD	A,101		;Get flags
+	RST	40
+	LD	(IY+'E'-'A'),0	;Reset ECI flag
+	LD	HL,NXCI$	;"No ECI present...
+	LD	A,12		;Display and log it
+	RST	40
+	XOR	A
+	RET
+;
+NOCMD	LD	HL,NOCMD$	;"No sys13...
+	LD	A,12		;Display and log it
+	RST	40
+	XOR	A
+	RET
+;
+NXCI$	DB	'No Extended Command Interpreter Present, as SYS13 ',LF,CR
+NOCMD$	DB	'No command <*> present, as SYS13 ',LF,CR
+;
+*LIST OFF			;500 spare bytes
+	DC	500,0		;More slack
+*LIST ON
+;
+	END	SYS13
+

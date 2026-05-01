@@ -1,0 +1,76 @@
+.sp .5i
+.ps 14p
+.vs 16p
+.ce
+SPECIAL INSTRUCTIONS FOR 4P-ROM ADAPTER
+.br
+.ps 10p
+.vs 11p
+.ce
+Please read this page before installing your 4P-ROM.
+.br
+
+
+To help keep our product cost down, we now provide the 4P-ROM
+with a special adapter socket.  This adapter allows us to use newer,
+commonly-available EPROMs instead of the type originally used by your system.
+
+When you reach the point in the instructions where it directs you to
+install the
+new 4P-ROM in the socket, simply plug the adapter (with the 4P-ROM already
+attached) into the socket as the instructions indicate.
+
+If you have a SmartWatch installed in the boot ROM socket inside
+your computer, follow these steps:
+
+.in .5i
+.ti -.5i
+1.	Remove the SmartWatch from your existing system and remove the old ROM.
+
+.ti -.5i
+2.	Remove and discard any jumper wires or adapter sockets that were used to
+provide power to pin 28 of the SmartWatch.  These are no longer
+necessary and could prevent proper operation.
+
+.ti -.5i
+3.	Carefully remove the new 4P-ROM from the adapter.  When handling
+the adapter, take extra care to not bend the pins on the other
+side of the adapter.  You might want to stick the pins into a piece of foam
+while working with the adapter.
+
+.ti -.5i
+4.	Plug the SmartWatch into the adapter.  There is a "1" and "notch"
+marking on the adapter to indicate proper insertion.  Note that the
+zero-profile sockets on the adapter require that the pins be aligned
+exactly.  If the SmartWatch is resisting being inserted, one or more pins are
+not lining up.  When the pins are lined-up, the SmartWatch will plug in
+easily.
+
+.ti -.5i
+5.	Plug the new 4P-ROM into the top of the SmartWatch.  Remember to
+place pin 1 of the new 4P-ROM into pin 3 of the SmartWatch.  The old ROM was
+plugged-into the same position.
+
+.ti -.5i
+6.	Now follow the original instructions and insert the adapter,
+SmartWatch and new 4P-ROM as a single unit.
+
+.in 0i
+Note:
+.br
+The combination of the adapter and ROM are taller than the old
+ROM by itself.  If your Model 4P has a built-in modem, it may interfere
+with the ROM/adapter combination.  If you have had a SmartWatch
+installed in your system, the additional height should not be a problem.
+
+(If you are not using a built-in modem, there should not be any problem.)
+
+.br
+If the use of the adapter is unacceptable to you, return it, along with
+all documentation, diskettes, packaging and the new
+ROM.  We will exchange it for an old-style ROM, or, if they are not
+available, we will refund the purchase price.
+
+
+008281
+

@@ -1,0 +1,56 @@
+Drive :6  SRC631D1   40 Cyl, DDEN, Free =   27.00K /   360.00K,  Date 25-May-98
+Filespec    MOD Attr   Prot  LRL  #Recs  EOF  File Size  Ext  Mod Date   Time
+-------------------------------------------------------------------------------
+ALCPROG/TXT            FULL   256    29  240      7.50K    1  13-Jul-83  12:00a
+ASMLIB/JCL             FULL   256     5  158      1.50K    1   1-Jul-87  12:00a
+ASMREF/JCL             FULL   256     1  229      1.50K    1   1-Jul-87  12:00a
+ASMSYS/JCL             FULL   256     2  113      1.50K    1   1-Jul-87  12:00a
+ASMSYS0/JCL            FULL   256     3   47      1.50K    1   1-Jul-87  12:00a
+ASMSYS2/JCL            FULL   256     3   13      1.50K    1   1-Jul-87  12:00a
+ASMUTIL/JCL            FULL   256     4   12      1.50K    1  24-May-98  11:02p
+ASMUTIL2/JCL           FULL   256     4   80      1.50K    1   1-Jul-87  12:00a
+BAS324/TXT             FULL   256    15  168      4.50K    1  20-Jan-84  12:00a
+BUILD/TXT              FULL   256    26  131      7.50K    2  29-May-00   4:46p
+COPY622/JCL            FULL   256     7  110      3.00K    1   1-Nov-83  12:00a
+COPY63/JCL             FULL   256     7  125      3.00K    1   1-Jul-87  12:00a
+DEBUG/JCL              FULL   256     1  120      1.50K    1   1-Jul-87  12:00a
+DIR1/FIX               FULL   256     2   85      1.50K    1  25-May-98   2:08p
+DIR2/FIX               FULL   256     1  187      1.50K    1  25-May-98   2:09p
+DO1/FIX                FULL   256     2   86      1.50K    1  25-May-98   3:02p
+DOS/HLP                FULL     1 20115  146     21.00K    1  15-Mar-84  12:00a
+DOS2/HLP               FULL     1 18710   21     19.50K    2  13-Dec-83  12:00a
+DOS4/HLP               FULL     1 20691  210     21.00K    1   1-Jul-87  12:00a
+FIX631A/JCL            FULL   256     2   33      1.50K    1  25-May-98   1:22p
+FIX631B/JCL            FULL   256     2    9      1.50K    1  25-May-98   2:06p
+FIX631C/JCL            FULL   256     1  255      1.50K    1  25-May-98   2:07p
+FIX631D/JCL            FULL   256     2  198      1.50K    1  25-May-98   2:25p
+FIX631E/JCL            FULL   256     2   16      1.50K    1  25-May-98   2:17p
+FIX631F/JCL            FULL   256     3  113      1.50K    1  25-May-98   2:35p
+FIX631G/JCL            FULL   256     2   68      1.50K    1  25-May-98   2:23p
+FIXESI/TXT             FULL   256   122  236     31.50K    1   8-Feb-87  12:00a
+GENLIB/JCL             FULL   256     1  138      1.50K    1   1-Jul-87  12:00a
+GENLIBSM/JCL           FULL   256     1  136      1.50K    1   1-Jul-87  12:00a
+HELPM2/TXT             FULL   256    89  221     22.50K    1   8-Dec-83  12:00a
+HELPM4/TXT             FULL   256    91  244     24.00K    1   8-Dec-83  12:00a
+HELPM4F/T30            FULL   256    99   78     25.50K    1   1-Jul-87  12:00a
+HELPM4F/T31            FULL   256   106   46     27.00K    1  18-May-98  11:47p
+HELPM4F/TXT            FULL   256   106   46     27.00K    1  18-May-98  11:47p
+LDOS262/TXT            FULL   256    21  150      6.00K    1   7-Oct-83  12:00a
+LDOS6/JCL              FULL   256     3   42      1.50K    1   1-Jul-87  12:00a
+LDOS6X2/JCL            FULL   256     3  170      1.50K    1  13-Oct-83  12:00a
+LIB6/MAP               FULL   256     2   88      1.50K    1   1-Jul-87  12:00a
+LIB6SM/MAP             FULL   256     1  109      1.50K    1   1-Jul-87  12:00a
+LIB7/MAP               FULL   256     1  206      1.50K    1   1-Jul-87  12:00a
+LIB7SM/MAP             FULL   256     1   93      1.50K    1   1-Jul-87  12:00a
+LIB8/MAP               FULL   256     1  131      1.50K    1   1-Jul-87  12:00a
+LIB8SM/MAP             FULL   256     1   68      1.50K    1   1-Jul-87  12:00a
+LSDOS63/JCL            FULL   256     3   44      1.50K    1   1-Jul-87  12:00a
+MEMORY1/FIX            FULL   256     2   56      1.50K    1  25-May-98   2:21p
+NEWB/JCL               FULL   256     1  168      1.50K    1   1-Jul-87  12:00a
+OPT63/JCL              FULL   256     6  202      1.50K    1   1-Jul-87  12:00a
+README/TXT             FULL   256    83  112     21.00K    2  29-May-00   5:14p
+SETKI1/FIX             FULL   256     1  117      1.50K    1  25-May-98   2:05p
+SPOOL1/FIX             FULL   256     2   76      1.50K    1  25-May-98   2:16p
+===============================================================================
+                    50 files of  52 selected,   322.50K
+

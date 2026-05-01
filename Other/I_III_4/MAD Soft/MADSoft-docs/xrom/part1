@@ -1,0 +1,525 @@
+\"Updated 17-Aug-88
+.lg 0
+.de en
+\fB\s-2\(br\|\\$1\|\(br\l'|0\(rn'\l'|0\(ul'\s+2\fR\c
+..
+.sp .5i
+.ps 16p
+.vs 18p
+.ce
+ENHANCED ROM FOR MODEL 4/4D
+.ps 12p
+.vs 13p
+.ce
+Copyright 1985, 1989 fdiv, All Rights Reserved.
+.br
+.ce
+Licensed to M. A. D. Software
+.br
+.ps 10p
+.vs 11p
+
+
+Congratulations on purchasing the "X" or "XD" ROM for the Model 4/4D.
+These products provide numerous
+enhancements to the capabilities and performance of your machine.
+.br
+.sp
+.in 1.0i
+.ti -1.0i
+\fB\s+2Important\s-2\fR:	Read the license agreement and warranty terms before opening the
+ROM package.  If you have obtained the wrong product or
+you cannot agree to the license and warranty terms, return
+the entire package (including documentation) with the ROM package still sealed for
+an exchange or full refund.  The product must be returned within 30 days.
+Once the ROM package is opened, only exchanges for identical
+parts will be made.
+.br	
+.sp
+.in 0i
+Please read over the instructions carefully before using your part.  They
+will warn you of things to watch for during the disassembly and reassembly
+of your computer, and will also tell you how to take advantage of the
+new functions.
+.br
+.sp
+Some of the features that the "X" ROM provides include:
+.br
+.sp
+.in 1.0i
+.ti -.5i
+\(bu	Ability to boot LS-DOS\u\(rg\d 6.3 or TRSDOS\u\(rg\d 6.2 directly from
+a hard disk drive without using a startup diskette.
+(You must use the HBUILD6 utility to install a new
+boot track on your LS-DOS 6.3 or TRSDOS 6.2 hard disk.
+The ability to boot LDOS\u\(rg\d 5.3 in a similar fashion
+is being researched at this time.)
+
+.ti -.5i
+\(bu	When running in Model III mode, the ROM driver 
+allows the keyboard to produce all 128 ASCII
+character codes.   The keyboard repeat rate and other
+parameters can also be adjusted.
+
+.ti -.5i
+\(bu	When running in Model III mode at 4MHZ, the real-time
+clock continues to keep correct time and the cursor
+blink remains constant.
+
+.ti -.5i
+\(bu	With Network III or Network 4 hardware installed,
+either can be booted by pressing a single key.
+
+.ti -.5i
+\(bu	Allows the use of a fully programmable CRT Controller (6845)
+in place of the preprogrammed version (68045) that came installed
+with the Model 4. 
+.in 0i
+
+\s+2How It Works\s-2
+
+The Model III, 4 and 4D contain two or three code ROMs.  These allow the machine
+to provide BASIC\u\(rg\d when the machine does not have a disk drive.  When running
+a Model III disk operating system (LDOS, TRSDOS 1.x, etc), the
+ROM continues to provide many needed services to both the DOS and to
+programs that you run.  For example, Disk BASIC only adds functions
+to the existing ROM BASIC.
+
+The code in the Model 4 and 4D version of these ROMs varies slightly from
+what was in the Model III.  (These changes deal with initializing the
+Model 4/4D hardware and supporting the extra keys on the keyboard.)
+
+The three ROMs are named the "A", "B" and "C" ROMs.  The "A" ROM contains
+8192 bytes of code that consist of machine-independent operations and some
+of BASIC.   The "B" ROM is 4096 bytes long and contains the rest of ROM
+BASIC.  The "C" ROM is 2048 bytes long and contains code that controls
+functions that change depending on where the machine is to be sold.
+For instance, if the Model 4 has a German keyboard, the keyboard driver has
+to be different.  The keyboard driver is stored in the "C" ROM, so only a single
+code ROM has to be replaced.
+
+The Model 4D only has two physical ROMs.  Two 8192 byte ROMs are used.
+The first ROM is called the "A" ROM and is identical to the one "A" ROM used
+in the Model 4.  The second ROM is called the "D" ROM.  It contains the
+code that was in both the "B" and "C" ROMs in a Model 4.  An additional
+2K of code in the "D" ROM is used during the manufacturing burn-in
+process and cannot normally be accessed.
+
+The "X" ROM replaces the "C" ROM used in the Model 4, while the "XD" ROM
+replaces the "D" ROM used in the Model 4D.
+
+.fi
+
+.ce
+Page  1
+.bp
+.sp .5i
+
+\s+2What you should know before starting the installation\s-2
+
+Installing the "X" or "XD" ROM requires that you disassemble your computer.
+When you do this, the "warranty seal" will be broken.  The strictest reading
+of the Radio Shack repair policy is that any remaining warranty (original
+or a repair warranty) will be void if the seal is broken, and if the machine
+is ever repaired again by Radio Shack, the technicians may remove or replace
+any "alien" components to restore the unit to its original state.
+
+However, in 1982 Ed Juge (the Press Officer of Radio Shack/Tandy)
+clarified how "alien" modifications are handled by
+Radio Shack Service Centers.  In "TRS-80 Microcomputer News", July/August
+1982, and in "80-US", May 1982, Mr. Juge states that Radio Shack will
+service a machine with a modification and will ignore it if doesn't seem
+to be hurting anything.  If the modification prevents the technician
+from properly testing the unit, they may ask you for permission to remove
+it. 
+
+It is also possible
+that some future repair may require the CPU board be exchanged and the
+technician may not notice that you have a different ROM in your
+machine and may fail to move the "X" or "XD" ROM to the replacement
+board.  To avoid this, be sure to tell the technician that you have a
+special ROM in the "C" (Model 4) or "D" (Model 4D) position.  Be sure this
+gets written down on the repair ticket in case a different person ends up
+working on your machine.   You should leave the sticker on your "X" or "XD"
+ROM, as this will help identify it as a special part.
+
+You should also keep your old "C" or "D" part so that you can either replace
+it in your Model 4 or 4D before taking your machine in for repair, or have
+it available if the technician wants to use it in place of the "X" or "XD"
+part while repairing the machine.
+
+This information is not meant to alarm you.  It just advises you of
+things you should be aware of if your machine ever requires service in
+the future.   Since the "X" or "XD" ROM is compatible with the old
+"C" and "D" ROM, most of the diagnostics a technician might run will produce identical
+results.   Generally, the repair centers are very cooperative.
+
+
+\s+2Installation\s-2
+
+As discussed above, installing the "X" or "XD" ROM requires your computer
+to be disassembled.  The entire job can be done in about 30 minutes.  Two
+steps are much easier if you have a second person to help.  Read through the
+following steps and if the procedure seems beyond your capabilities, seek
+help from a local computer shop, TV repair store or local college.
+
+The installation instructions are written for the person who has never
+disassembled a Model 4 or 4D before, but is able to perform repairs
+on the car or the toaster.   If you have installed a battery-powered
+clock in your computer or changed a disk drive, the instructions need
+only be skimmed.  Otherwise, read each step entirely and then perform
+the action.  It is suggested that you place a check mark next to
+each step as it is completed so that you won't skip anything.
+
+The following procedure installs the "X" ROM in a Model 4 or a "XD" ROM
+in a Model 4D.  If you do not know which machine you have,
+the Model 4D can be identified by looking at the back of the machine.
+If it is a Model 4D, there will be a RS-232 connector (a 25 pin connector)
+on the back of the machine.  If there is no connector, the unit is a
+Model 4.  Make sure
+you have obtained the correct part ("X" or "XD") before going any further.
+
+\s+2Installing the "X" ROM in the Model 4 or the "XD" ROM in the Model 4D\s-2
+
+.in .5i
+.ti -.5i
+1.	You will need a medium-sized Phillips screwdriver, a small
+flat-blade screwdriver (1/4" wide tip or smaller), a large
+towel (or towels) that will cover a 5' x 3' area, and a
+table or workbench with at least 5' x 3' of space.
+
+.ti -.5i
+2.	Place the cloth or towel over the area that is to be used.
+This will protect the surface of the table and the case of
+computer during disassembly.
+
+.ti -.5i
+3.	Unplug the power cord and disconnect all other cables attached
+to the computer.
+
+.ti -.5i
+4.	Place the Model 4 on the left hand side of the table
+and lay it on its left side, as one looks at the keyboard.
+
+
+
+
+.in 0
+.ce
+Page  2
+.in .5i
+.bp
+.sp .5i
+.ti -.5i
+5.	Remove the ten Phillips screws that hold the top and bottom
+of the case together.   Keep track of where the screws come from as
+they may be of different types and sizes.  In some cases, one or more
+screws may be missing or may be hidden under the warranty seal.  Two
+recessed screws on either side of the case are sometimes hard to
+remove.  If you don't have a magnetized screwdriver, simply unscrew
+them until they are loose.  They should fall out in the next step.
+
+.ti -.5i
+6.	Set the machine upright by tipping it from its side.  It
+should now be on the right side of the table.  While tilting 
+the machine, keep in mind that the cover is loose, so hold the
+top and bottom sections together.
+If you had trouble with the two side screws, check to see that
+they have fallen out onto the table.  If they did not, go back
+to Step 4.
+
+.ti -.5i
+7.	Remove the Phillips screw from the back of the cabinet.  If it is missing, don't worry; it is
+possible that this part was left out after some previous
+disassembly.
+
+.ti -.5i
+8.	If you have floppy drives with "garage door" latches (these came
+standard on the Model 4 but not on the Model 4D), close them before
+proceeding.
+
+.ti -.5i
+9.	READ STEP 9 ENTIRELY BEFORE DOING STEP 9.
+
+Very carefully, lift the top half of the case STRAIGHT UP.
+Watch the neck of the CRT through the vent at the top of the
+computer, or through the top floppy drive opening.  It is VERY
+IMPORTANT that you not lift the cover at an angle or push the
+cover towards the back because the CRT socket or cabling could
+catch on the lower half of the chassis and break the tube.  If you
+have a second person to help, have them watch the CRT neck and
+give directions as you lift.  Do not allow the top half of
+the computer to slip or drop, as the CRT could implode.
+
+Once the cover is clear of the lower half of the computer, lay
+the cover on its side next to the bottom half.  The cables from
+the bottom half to the cover are long enough to do this.
+The cover should be sitting on the left side of the computer now, as
+one looks at the keyboard.
+
+.ti -.5i
+10.	Move around to the back of the computer.  If a metal plate covers
+the circuit boards (across the back), remove the brass-colored screws
+that hold the cover in place.  These are located across the top
+and sides of the CPU enclosure.  Do not remove the screws that
+hold the CPU to the plastic base.  If there is no shield, skip
+to step 13.
+
+.ti -.5i
+11.	Some machines are equipped with Network 4 or a Model III graphics
+hardware.  These boards (only one can be present in a machine)
+are mounted on the shield.  If these boards are present, one or
+more multi-wire cables will plug into connectors that stick
+out of a slot in the shield.  Make a note of where each connector
+goes (label them if necessary) and unplug them from the connector(s)
+on the shield.
+
+.ti -.5i
+12.	Once the screws are removed, gently fold the shield (metal surface
+that faces the back of the machine) down.  In some machines, 
+small metal hooks were installed to hold the cover in place while the
+screws are being inserted.  By bending the cover back in one area at a
+time, the cover should fold down so that the CPU board is revealed.
+
+Some units also have a metal foil across the bottom of the shield.
+If this prevents the shield from folding down, peel it off the
+shield but leave it attached to the base of the machine.  You will
+have to re-apply the foil later, so don't destroy it.
+
+.ti -.5i
+13.	You should now be able to see the CPU board.  If you own a
+Model 4D, skip to Step 15.  If you own a Model 4, go to Step 14.
+
+.ti -.5i
+\fBThis step is for the Model 4 Only\fR
+
+.ti -.5i
+14.	At the bottom of
+the circuit board, just to the left of center are the three ROMs used
+in the Model 4.  These are 24 pin parts.  Near each socket (usually
+just above it) is written a number like U70.  U70 is where the CROM
+is located and this is the part we will change.   
+
+If you cannot find U70, or the socket with that number is the wrong
+size, don't panic.   There were several different circuit boards
+built for the Model 4, and the one you have may have the socket
+in a slightly different place or it may have a different
+socket number.
+
+
+
+
+
+
+.in 0
+.ce
+Page  3
+.in .5i
+.bp
+.sp .5i
+Search the CPU board for the following items and you should be
+able to identify the "C" ROM:
+
+.in 1i
+.ti -.5i
+1.	The chip must have 24 pins.
+
+.ti -.5i
+2.	There should be two other 24 pin chips adjacent
+(in the same row) to the chip you located.
+
+.ti -.5i
+3.	The part number on the chip ends in "16".  For
+example, MCM68A316, 8042316, 2716, 2516, etc.
+
+.in .5i
+Once you locate a chip that meets these requirements, you have
+located the correct part.  The "A" and "B" ROMs have part
+numbers that end in "64" and "32", so it should be pretty easy
+to identify the "C" ROM.   Now, skip over the Model 4D-only
+instructions and go to Step 16.
+
+
+.in 1i
+.ti -.5i
+Note:	There is another 24 pin part that has been mistaken for
+the CROM because it has a number stamped on it that
+ends in "16".  It usually also has the part number 8049007
+and is not located near any other 24 pin parts.  This part
+is NOT the CROM.   Be sure that all three "rules" listed
+above are met.
+.in .5i	
+
+Now skip over the Model 4D-only instructions by going to Step 16.
+
+
+.ti -.5i
+\fBThis step is for the Model 4D Only\fR
+
+.ti -.5i
+15.	Near the upper left corner of the Model 4D CPU board are the
+two ROMs, one above the other.  These are 24 pin parts.  The
+upper part is the DROM, the part to be replaced.  Just above
+it should be the label "U4".
+
+
+.ti -.5i
+\fBModel 4 and 4D \fR
+
+.ti -.5i
+16.	On one end of the ROM there will be a notch, indentation or small
+"divot".  This indicates which end of the ROM has pin 1.  It is
+extremely important to remember which way the ROM goes in so that
+the new ROM can be installed correctly.   Although the CPU board
+may also have a "1" marked on it indicating where pin 1 is, CPU
+boards have been known to be incorrectly marked.  
+
+.ti -.5i
+17.	Remove the "C" or "D" ROM from the socket.  If you know how remove the ROM,
+do so and skip to 18.   
+
+If you don't know how to remove the IC, here is one way to do it
+with the tools you have.   Using the blade of the flat-blade 
+screwdriver, slip the end between the IC and the socket on either
+end of the chip.  DO NOT try to do this between the pins.  Insert the
+screwdriver only a quarter of an inch, or less.  Now rotate the
+screwdriver VERY GENTLY so that the chip lifts away from the socket.
+If you can't so this, then use the screwdriver as a lever and pry
+the chip up NO MORE than 1/8 of an inch.  DO NOT try to pry the chip
+out of its socket with a single motion or you could bend or break
+the pins, or even crack the chip.
+
+Now that you have one end of the chip lifted slightly, insert
+the screwdriver further under the chip (about 3/4 of an inch, or
+as far as it will go without forcing), and repeat the process.
+This will lift the chip out of its socket without bending the pins.
+You may have to insert the screwdriver one more time to completely
+lift the chip.
+
+If the chip has not fallen out, you should be able to grasp it on
+each end with a finger and pull it straight out.  If it is too tight
+to be removed using two fingers, repeat the screwdriver maneuver.
+
+.ti -.5i
+18.	Remove the "X" or "XD" ROM from the foam or tube.  If the chip
+was packaged in foam, check between the pins for any small pieces
+of the foam that may have stuck to the pins or to the chip.
+Remove these particles.
+
+.ti -.5i
+19.	Insert the old "C" or "D" ROM pins into the foam or the tube.  This will
+protect the part from static electricity.
+
+.ti -.5i
+20.	Insert the "X" or "XD" ROM into the socket that the "C" 
+or "D" ROM came from.  Make
+sure the notch, indention or "divot" on the chip is facing the
+same way as the "C" or "D" ROM.   This is most important, as 
+improper insertion will ruin the ROM and void the warranty.
+
+
+.in 0
+.ce
+Page  4
+.in .5i
+.bp
+.sp .5i
+
+Line the chip up so that its legs are sitting in the sockets.
+You may have to bend one or more pins ever so slightly to get them
+all started into the socket.   When everything appears to be
+lined up, press the chip into the socket part-way by pressing it
+with your thumb.  Confirm that all the pins are still going into
+the socket and that none are going outside the socket or are
+bending under the chip.  (The top of the pin usually bows out
+if the bottom of the pin is bending under the chip.)  If one
+or more pins are out of line, remove chip using the
+screwdriver method, and straighten the pins out that are not
+inserting properly.  Then try again.  It may take a few tries
+to get all the pins going into the socket.
+
+If the pins are still going into the socket after you have pushed
+it halfway into place, push it down until it feels firmly seated.
+There is usually about 1/8 to 1/16 of an inch between the bottom
+of the chip and the socket when it is inserted properly.
+
+Do not try to force the chip flush with the socket.  Some sockets
+are designed to prevent you from doing this and the excessive
+force could crack the CPU board.
+
+Now run your finger along the pins on either side.  If a pin feels like
+it is out of line, examine it carefully, as it may have folded under
+the chip despite your efforts.  If you have a flashlight, examine
+the pins by looking under the chip from one end.  If a leg is bent,
+carefully remove the chip and straighten the leg by bending it very slowly and try
+again.  A IC leg can usually be straightened twice without breaking, 
+but that is all.
+
+.ti -.5i
+21.	In the upper half of the case, check the connector that attaches
+to the video board (mounted on the side of the cover).  Sometimes
+this comes loose when the machine is disassembled.  Make sure
+the connector is pushed all the way onto the circuit board.  
+
+.ti -.5i
+22.	Re-install the shield over the CPU board if your machine had one.
+If there was a piece of foil-covered tape along the bottom of the
+shield, be sure the foil is on the outside of the shield when
+you put it back in place.   Press the tape into place and if the
+adhesive is not holding the tape in place, use non-fiber packing
+tape or electricians tape to hold it in position.
+
+Once the shield is back in position, insert and tighten the
+brass screws that hold the shield in place.
+
+If your machine has the Network 4 or Model III graphics boards,
+reconnect the cables that you removed earlier.   If you have
+the Model III graphics board and fail to reconnect these cables
+correctly, the screen will not display anything when you test the
+installation.
+
+.ti -.5i
+23.	At this point, you can either completely reassemble the machine,
+or test the ROM first.   If you want to go ahead and reassemble
+the machine, Skip to step 33.
+
+
+
+.ti -.5i
+\s+2Testing the "X" or "XD" ROM installation with the machine disassembled\s-2
+
+.in 1.5i
+.ti -1.0i
+\fBCAUTION!	HIGH VOLTAGE EXISTS WITHIN THE CABINET WHEN
+POWER IS APPLIED, EVEN WHEN THE POWER SWITCH
+IS OFF.  AVOID TOUCHING ALL METAL SURFACES.  NEVER TOUCH ANY
+OF THE CIRCUITS WHILE POWER
+IS APPLIED TO THE COMPUTER.\fR
+.in .5i
+
+.ti -.5i
+24.	Reach under the right edge of the machine and turn the power switch
+on.  Because the 120 volt connections to that switch are exposed
+while the cover is removed, that area should be avoided during
+this test.   For this test, the computer will be turned on and
+off by plugging it into the outlet or an extension cord.
+
+.ti -.5i
+25.	Plug the power cable into the outlet.  The floppy drive should
+light and the floppy drive motor should run for a few seconds
+and then stop.  If 'Yes', go to Step 28.
+
+.ti -.5i
+26.	Press RESET.  The floppy drive should light and the motor should
+run for a few seconds and then stop.  If 'Yes', go to Step 28.
+
+
+
+
+
+
+
+
+.in 0
+.ce
+Page  5

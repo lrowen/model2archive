@@ -1,0 +1,112 @@
+
+						M. A. D. Software
+						P. O. Box 331323
+						Ft. Worth, Texas
+								76163
+
+Editor						December 12, 1991
+Computer News 80
+P. O. Box 680
+Casper, Wyoming	82602-0680
+
+Dear Sir or Madam,
+
+Thank you for mentioning M. A. D. Software in your December (Vol 4, No 12)
+issue on Page 2.   However, the information you received about our demise
+was incorrect and/or misleading and we hope to clarify this in this letter.
+
+In a recent flyer, we announced that M. A. D. Software would cease to
+purchase Radio Shack PALs and ROMs, and stop the production some of our
+own ROMs next year.
+
+We have been obtaining pre-programmed PALs and ROMs in quantity from Radio
+Shack, but the demand has dwindled to the point that it no longer makes sense
+to carry them.  In fact, some of the parts are no longer available from Radio
+Shack, and our current stock is all that remains.  We will cease trying to
+obtain additional components from Radio Shack on March 1st, but will continue
+to offer our remaining stock until our supply is exhausted.
+
+Similarly, certain versions of our XROM, XDROM, 4P-ROM are to be discontinued.
+We will cease production of these EPROMS in April 1992.  The versions affected
+are for Powersoft Series I hard disk drivers.   We will also stop making
+customized 4P-ROMs. 
+
+Our other products will remain available for now and we have some new products
+we plan to release in the new year.
+
+We would be interested in you putting a question to your readership.  Some
+years ago, one of our programmers wrote a LS-DOS 6 networking system that
+utilized the Radio Shack Network 4 hardware.  M. A. D. Software didn't feel
+that there was sufficient interest in this sort of product since someone
+would have to own at least two Model 4 systems.  They would also have to have
+Network 4 hardware, something that we assume few people have, and is probably
+difficult to get.  We get a request for this from time to time, and we really
+can't get excited about putting a significant amount of work into a product
+that few people would use.  
+
+So the question is, do your readers have systems that are equipped with
+Network 4 support?  (A machine has Network 4 support if there is a small block
+of switches next to where the power cable connects to the Model 4/4D.) 
+Many schools had these systems and have probably sold them off by now, so it
+is possible that individuals have them now.  Also, do any of the Radio Shack
+equipment retailers have any significant quantity of the network boards?
+(They are not available from any division of Radio Shack.)  And finally, if
+you had the hardware or could get it cheaply, would you be interested in
+sharing a hard disk and other resources between multiple computers?  If the
+answers are sent to us, we will be happy to report back with a tally of
+responses.
+
+On another subject, please send us information regarding advertising costs
+for CN80, requirements, copy formats and deadlines.  Please indicate if you
+accept oversize originals or if artwork has to be pre-sized.
+^L
+							Page  2
+
+
+Finally, we wanted to mention two corrections to the Q & A on Page 14.
+
+Q:	If a 3-1/2" diskette has a hard plastic shell protecting them,
+	why are they still referred to as a floppy disk and floppy disk
+	drives?
+
+The actual answer is that the term "floppy disk" and "hard disk" has always
+referred to the media itself, with a "floppy" or flexible media using mylar
+or a similar material as its base, and a "hard disk" using aluminum or some
+other rigid material as its base.   A Bernoulli box cartridge is also in a
+rigid plastic shell, but the media is flexible, so it is considered to be
+a floppy disk drive.
+
+Q:	"How many disk drives will my computer support?"
+
+If the machine is a Model 4, 4D, II, 12, 16, or 6000 the standard Radio Shack
+configuration can support up to four floppy drives and four hard disk drives.
+Radio Shack offered four 15 Meg drives as the largest supported Model 4/4D
+combination at one point.  (Granted, you could not have all that space online
+at the same time under LDOS/TRSDOS 6/LS-DOS 6.)  If the machine is a 4P, the
+standard Radio Shack configuration can support up to two floppy drives and
+four hard disk drives.
+
+All external versions of the Radio Shack hard disk controller supported up
+to four hard disk drives at once.  The internal card for the 16B HD/6000 HD
+allowed only two hard disk drives.
+
+
+Thank you for your time, and we hope that this letter has cleared things up.
+
+
+						Sincerely,
+
+
+
+P. S.   To contact M. A. D. Software from CompuServe, use the following
+	command at the "Send to (Name or User ID):" prompt:
+
+	">INTERNET:madcs%madsoft@nemesis.lonestar.org"
+    or
+	">INTERNET:uunet!utacfd!nemesis!madsoft!madcs"
+
+	Do not include the quotes, and the >INTERNET: is required.
+
+
+
+

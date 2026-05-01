@@ -1,0 +1,321 @@
+;FDCDVR/ASM - LS-DOS 6.2
+	SUBTTL	'<Floppy Disk Driver>'
+	PAGE	OFF
+;
+;	 HL=> buffer address
+;	  D=> track desired
+;	  E=> sector desired
+;	  C=> drive desired
+;	  B=> disk primitive command
+;
+WRNMIPORT	EQU	0E4H	;NMI mask register
+FDCADR		EQU	0F0H	;FDC command
+FDCSTAT		EQU	0F0H	;FDC status
+TRKREG		EQU	0F1H	;FDC track register
+SECREG		EQU	0F2H	;FDC sector register
+DATREG		EQU	0F3H	;FDC data register
+DSELCT		EQU	0F4H	;Drive select port
+;
+;
+;	Disk Driver Entry Point
+;
+FDCDVR	JR	FDCBGN		;Branch to entry code
+	DW	FDCEND		;Last byte used
+	DB	3,'$FD'		;Module name
+;
+;	Automatic density recognition and retry density switch
+;
+SWDEN
+	LD	A,3		;Check counter for 2
+	CP	B		;  tries left after this one
+	JR	Z,RESTOR	;If so try a RESTORE
+;
+	LD	A,(IY+3)	;Flip the density bit,
+	XOR	40H		;  Bit 6, (IY+3)
+	LD	(IY+3),A
+	LD	BC,2409H	;Set alloc to SDEN
+	BIT	6,A		;Test SDEN/DDEN
+	JR	Z,SDEN		;Do SDEN if it was DDEN
+	LD	BC,4511H	;  else set alloc to DDEN
+SDEN	LD	(IY+7),C
+	LD	(IY+8),B
+	RET
+;
+;	Verify routine
+;
+VERFIN	LD	HL,BUCKET	;Set byte bucket
+	LD	A,2DH		;Set for DEC L,...
+	DB	1EH		;Ignore next with LD E,n
+;
+;	Read routine
+;
+RDIN	XOR	A		;Set for NOP
+	LD	(CKVER),A
+	CALL	RWINIT		;Initialize
+	LD	E,16H		;Status mask
+RDIN1	IN	A,(FDCSTAT)	;Get status
+	AND	E		;Loop until DRQ
+	JR	Z,RDIN1		;  or error
+	INI			;Grab byte
+	DI
+	LD	A,D		;Get drive sel + WSGEN
+RDIN2	OUT	(DSELCT),A	;Initiate wait state
+CKVER	NOP			;DEC L: if verify
+	INI			;Xfer byte
+	JR	NZ,RDIN2	;Loop then TSTBSY
+;
+;	Reselect drive while controller is busy
+;
+TSTBSY	IN	A,(FDCSTAT)	;Ck FDC status
+	BIT	0,A		;Busy?
+	RET	Z		;RET if not
+	LD	A,(PDRV$)	;P/u drive
+	OUT	(DSELCT),A	;  & reselect
+	JR	TSTBSY		;Loop until idle
+;
+;	Driver start
+;
+FDCBGN	LD	A,B		;P/u primitive request
+	AND	A		;NOP?
+	RET	Z		;Quit if so
+	CP	7
+	JR	Z,TSTBSY	;Jump on TSTBSY request
+	JP	NC,IORQST	;Jump on I/O request
+	CP	6
+	JR	Z,SEEKTRK	;Jump on track seek
+	DEC	A
+	JR	Z,SELECT	;Jump on drive select
+	INC	(IY+5)		;Bump current cylinder
+	CP	4
+	LD	B,58H		;FDC step-in command
+	JR	Z,STEPIN
+RESTOR	LD	(IY+5),0	;Set track to 0
+	LD	B,8		;Restore drive
+	JR	STEPIN
+;
+SELECT	CALL	TSTBSY		;Check drive status
+	RLCA
+	IF	@BLD631
+;
+;	This is the first part of the fix for Gate-Array systems.  Provided
+;	by Frank Durda IV in a paper for The Misosys Quarterly, Vol IV.iii
+;	Essentially, the motor-on timer in gate-array Model 4/4D/4P systems
+;	sometimes fails to log a write to 0xD4, and the motor can unexpectedly
+;	spin-down.  The most common symptom is to end up with duplicate
+;	directory entries.   The patch ensures that for directory accesses
+;	port 0xd4 is accessed twice before read/write operations begin.
+;
+	LD	A,(IY+3)	;<631>P/u SDEN/DDEN/DELAY (DLY chked later)
+	PUSH	AF		;<631>Save NOT READY flag
+	PUSH	BC		;<631>
+	ELSE
+	PUSH	AF		;Save NOT READY flag
+	PUSH	BC
+	LD	A,(IY+3)	;P/u SDEN/DDEN
+	ENDIF
+	RLA			;Bit 6=>7, bit 4=>4
+	SRA	A
+	AND	90H		;Keep only DDEN & side 1
+	LD	C,A		;Save the bits
+	BIT	7,A		;Check if SDEN or DDEN
+	JR	Z,NOPCMP	;No precomp if SDEN
+	LD	A,(IY+9)	;Set precomp on all
+	CP	D		;  tracks above DIR
+	JR	NC,NOPCMP	;Go if no precomp needed
+	SET	5,C		;Request precomp
+NOPCMP	LD	A,(IY+4)	;Get drive sel code
+	AND	0FH		;Keep only sel bits
+	OR	C		;Merge in bits 4,5,7
+	POP	BC
+	OUT	(DSELCT),A	;Select drive
+	LD	(PDRV$),A	;Store port byte
+	IF	@BLD631
+;	This is the second part of the fix for Gate-Array systems.  Provided
+;	by Frank Durda IV in a paper for The Misosys Quarterly, Vol IV.iii
+	OUT	(DSELCT),A	;<631>Re-write Drive select just in case
+	POP	AF		;<631>Retrieve Not Ready Bit
+	RET	NC		;<631>Return if was ready
+	BIT	2,A		;<631>Check DELAY=0.5 or 1.0 (IY+3 in A)
+	ELSE
+	POP	AF		;Retrieve Not Ready bit
+	RET	NC		;Ret if was ready
+	BIT	2,(IY+3)	;Check DELAY=0.5 or 1.0
+	ENDIF
+	CALL	Z,FDCDLY	;Double delay if 1.0
+FDCDLY	PUSH	BC		;Delay routine
+	LD	B,7FH
+	CALL	PAUSE@
+	POP	BC
+	RET
+;
+;	Routine to seek a track
+;
+SEEKTRK	CALL	TSTBSY		;Wait till not busy
+	LD	A,(IY+5)	;P/u current cylinder
+	OUT	(TRKREG),A	;  & set FDC to current
+	LD	A,(IY+7)	;P/u alloc data
+	AND	1FH		;Get highest # sector
+	SUB	E		;Form req sector minus
+	CPL			;  max, setting CY flag if
+	RES	4,(IY+3)	;  init side select to 0
+	JR	NC,SETSECT	;Go if sector on side 0
+	BIT	5,(IY+4)	;If not 2-sided media,
+	JR	Z,FRCSID0	;  don't set side 1
+	SET	4,(IY+3)	;Set side 1
+	DB	06H		;Ignore next with LD B,n
+SETSECT	LD	A,E		;Restore unaltered sec #
+FRCSID0	OUT	(SECREG),A	;Set sector
+	LD	A,D
+	OUT	(DATREG),A	;Set desired track
+	CP	(IY+5)		;If at desired track,
+	LD	B,18H		;  use seek, else use
+	JR	Z,STEPIN	;  seek w/verify
+	LD	(IY+5),D	;Update current cylinder
+	LD	B,1CH		;Seek w/verify ocmmand
+STEPIN	CALL	SELECT		;Select drive
+	LD	A,(IY+3)
+	AND	3		;Strip all but step rate
+	OR	B
+PASSCMD	OUT	(FDCADR),A	;Give FDC its command
+	LD	B,12H
+	DJNZ	$		;Wait
+	XOR	A
+FDCRET	RET
+;
+;	Read and write init routines
+;
+RWINIT	LD	A,D		;Restuff trk reg
+	OUT	(TRKREG),A
+	LD	A,(PDRV$)	;Get select code
+	OR	40H		;Set WSGEN bit
+	LD	D,A		;Save code in D
+	AND	10H		;Get side sel bit
+	RRCA			;  to bit 3
+	BIT	1,C		;Check if doing side cmp
+	JR	NZ,GETCMD	;Go if so
+	XOR	A
+GETCMD	OR	C
+	LD	C,DATREG	;Get port into C
+	CALL	FDDINT$		;Interrupts on or off?
+	JR	PASSCMD		;Pass command to ctrlr
+;
+;	I/O request handler
+;
+IORQST	BIT	2,B		;Write command?
+	LD	BC,(RFLAG$-1)	;P/u retry count
+	LD	C,82H		;FDC cmd=readsec
+	JR	NZ,WRCMD	;Go if write command
+	CP	10		;Verify sector?
+	JR	Z,VERFY
+	CALL	GRABNDO		;Grab next code & insert
+	DB	1		;Error code start
+	DW	RDIN		;Read entry point
+VERFY	CALL	GRABNDO		;Stuff I/O direction
+	DB	1		;Error code start
+	DW	VERFIN		;Verify entry point
+WRCMD	BIT	7,(IY+3)	;Software WP?
+	JR	Z,WRCMD1	;Bypass if not
+	LD	A,15		;Else set WP error
+	RET
+WRCMD1	LD	C,0A2H		;Write sector FDC command
+	CP	14		;Directory sector?
+	JR	C,DOWRIT
+	LD	C,0A3H		;Change DAM if directory
+	JR	Z,DOWRIT
+	LD	C,0F0H		;  else write track
+DOWRIT	CALL	GRABNDO		;Switch code
+	DB	9		;Error code start
+	DW	WROUT		;Write entry point
+;
+;	Routine stuffs error start byte & I/O vector
+;
+GRABNDO	EX	(SP),HL		;Save HL & get ret addr
+	LD	A,(HL)		;P/u & stuff error code
+	INC	HL		;  start byte
+	LD	(ERRSTRT+1),A
+	LD	A,(HL)		;Set up data transfer
+	INC	HL		;  direction vector
+	LD	H,(HL)
+	LD	L,A
+	LD	(CALLIO),HL	;Stuff CALL vector
+	POP	HL		;Restore buffer addr
+;
+;	Main I/O handler routine
+;
+RETRY	PUSH	BC		;Save retry & FDC command
+	PUSH	DE		;Save track/sector
+	PUSH	HL		;Save buffer
+	BIT	4,C		;Test for track command
+	CALL	Z,SEEKTRK	;Seek if not track write
+	CALL	TSTBSY		;Wait till not busy
+	CALL	0		;Call I/O routine
+CALLIO	EQU	$-2		;Data xfer direction
+DISKEI	NOP			;Will be changed to a EI after
+				;  BOOT has read in SYS0
+	IN	A,(FDCSTAT)	;Get status
+	AND	7CH		;Strip all but 2-6
+	POP	HL
+	POP	DE		;Rcvr track & sector
+	POP	BC		;Rcvr retry count & cmd
+	RET	Z		;Ret if no error
+	BIT	2,A		;Lost data?
+	JR	NZ,RETRY	;Don't count this retry
+	PUSH	AF
+	AND	18H		;Record not found or CRC
+	JR	Z,DISKDUN	;No retries if otherwise
+	BIT	4,A		;Record not found?
+	PUSH	BC		;If so, switch
+	CALL	NZ,SWDEN	;  density or restore
+	POP	BC
+	POP	AF
+	DJNZ	RETRY		;Count down retry
+	DB	6		;Ignore next with "LD B,nn"
+DISKDUN	POP	AF		;Adjust ret code
+	LD	B,A
+ERRSTRT	LD	A,0		;Start with R=1, W=9
+ERRTRAN	RRC	B
+	RET	C
+	INC	A
+	JR	ERRTRAN
+;
+;	Write routine
+;
+WROUT	CALL	RWINIT		;Set up initialization
+	LD	E,76H		;Status mask
+WRO1	IN	A,(FDCSTAT)	;P/u status
+	AND	E		;Fall out on DRQ or error
+	JR	Z,WRO1		;  else loop
+	OUTI			;Xfer byte to FDC
+	DI			;Now kill the interrupts
+	IN	A,(FDCSTAT)	;Check for errors
+	RRA			;Did BUSY drop?
+	RET	NC		;Quit now if so
+	LD	A,0C0H		;Enable INTRQ and timeout
+	OUT	(WRNMIPORT),A
+	LD	B,50H		;Time delay for WRSEC
+	DJNZ	$
+	LD	B,(HL)		;Get next byte early
+	INC	HL
+WRO3	LD	A,D		;Enable wait states
+	OUT	(DSELCT),A
+	IN	A,(FDCSTAT)	;Check if timed out
+	AND	E		;Loop back if it timed
+	JR	Z,WRO3		;  out (must be WRTRK)
+	OUT	(C),B		;Pass 2nd byte
+	LD	A,D		;Get sel code + WSGEN bit
+WRO2	OUT	(DSELCT),A	;Pass until FDC times out
+	OUTI			;  & generates NMI
+	JR	WRO2
+	IFEQ	$&0FFH,0FFH
+	ERR	'Warning... BUCKET position error
+	ENDIF
+BUCKET	DB	'S'
+;
+@RSTNMI	XOR	A		;NMI vectors here
+	OUT	(WRNMIPORT),A	;Disable INTRQ & timeout
+	LD	BC,100		;Need to wait a moment
+	CALL	PAUSE@		;Call pause
+	POP	HL		;Discard return
+	RET
+FDCEND	EQU	$-1
+

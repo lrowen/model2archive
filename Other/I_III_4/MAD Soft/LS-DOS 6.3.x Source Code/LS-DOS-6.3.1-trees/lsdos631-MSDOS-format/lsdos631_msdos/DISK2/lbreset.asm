@@ -1,0 +1,297 @@
+;LBRESET/ASM - RESET Command
+	TITLE	<RESET - LS-DOS 6.2>
+;
+CR	EQU	13
+*GET	BUILDVER:3
+*GET	SVCMAC:3		;SVC Macro equivalents
+;
+	ORG	2400H
+;
+;	Save stack & call reset code
+;
+RESET	LD	(SAVESP+1),SP	;Save Stack ptr
+	IF	@BLD631
+	@@CKBRKC		;<631>
+	JR	NZ,ABORT
+	ENDIF
+	CALL	RESET1		;Call Reset routine
+	LD	HL,0		;Init successful
+	JR	Z,SAVESP	;Z - Exit clean
+;
+;	I/O Error Processing
+;
+IOERR	LD	L,A		;Error # to HL
+	LD	H,0
+	OR	0C0H		;Abbrev, return
+	LD	C,A
+	@@ERROR
+	JR	SAVESP		;P/u stack & return
+;
+;	Internal Message Exit
+;
+SPCREQ	LD	HL,SPCREQ$	;"Devspec req...
+	@@LOGOT
+ABORT	LD	HL,-1		;Set abort code
+;
+;	P/u stack & clear any pending <BREAK>
+;
+SAVESP	LD	SP,$-$		;P/u stack ptr
+	@@CKBRKC		;Clear any Break
+	RET
+;
+;	RESET1 - Reset a Filespec or Devspec
+;
+RESET1
+	IF	@BLD631
+	PUSH	HL		;<631>
+NXTCHAR	LD	A,(HL)		;<631>
+	CP	'('		;<631>
+	JR	Z,ISPAREN	;<631>
+	CP	0EH		;<631>
+	JR	C,ISEOL		;<631>
+	INC	HL		;<631>
+	JR	NXTCHAR		;<631>
+
+ISPAREN				;<631>
+	ENDIF
+	IF	@BLD631
+	LD	DE,PRMTBL$	;<631>
+	@@PARAM			;<631>
+	JR	NZ,IOERR	;<631>Must reset something
+ISEOL	POP	HL		;<631>
+	LD	DE,FCBDEV	;<631>
+	@@FSPEC			;<631>
+	JR	NZ,SPCREQ	;<631>
+	ELSE
+	LD	DE,FCBDEV	;Get file/device spec
+	@@FSPEC
+	JP	NZ,SPCREQ	;Must reset something
+	ENDIF
+	LD	A,(DE)		;File reset used to
+	CP	'*'		;  reset the
+	JP	NZ,RESFIL	;  "file open bit
+	LD	DE,(FCBDEV+1)	;P/u the device name
+	@@GTDCB			;Find in device tables
+	RET	NZ		;NZ - "Device not Avail"
+	PUSH	HL		;Save pointer to table
+	CALL	CLSFILS		;Reset routes to files
+	POP	HL		;Get DCB pointer
+	RET	NZ		;NZ - I/O Error
+;
+;	Unhook the device chain
+;
+	PUSH	HL
+	DI			;Don't stop me now
+	CALL	FIXDCB		;Fixup the DCB
+	EI			;Now you can interrupt
+	LD	HL,FCBDEV	;Determine if system
+	LD	D,H		;  device by attempting
+	LD	E,L		;  to rename it
+	@@RENAM			;The error code will be
+	POP	HL		;  either 19 or 40
+	CP	40		;Protected system device?
+	JR	Z,SYSDVC
+	LD	(HL),8		;Show device is NIL
+	XOR	A		;Set Z
+	RET			;Z - successful
+;
+;	RESET of system device
+;
+SYSDVC	PUSH	HL		;Save DCB ptr
+	INC	L		;If DCB vector is X'0000'
+	LD	A,(HL)		;  then do NOT reset the
+	INC	L		;  NIL bit
+	OR	(HL)
+	POP	HL
+	RET	Z		;Z - return
+	RES	3,(HL)		;Make sure NIL is off
+	XOR	A		;Set Z & Return
+	RET
+;
+;	Reset the "file open bit" of a file
+;
+RESFIL	@@FLAGS			;Get flag table pointer
+	SET	0,(IY+'S'-'A')	;Inhibit file open bit
+	@@OPEN
+	RET	NZ		;NZ - I/O Error
+	IF	@BLD631
+	PUSH	DE		;<631>
+	POP	IX		;<631>
+	LD	A,(IX+1)	;<631>Make sure access level
+	AND	7		;<631>is at least UPDATE
+	CP	5		;<631>
+	JR	NC,L24AD	;<631>
+	LD	A,(LRLBYT)	;<631>
+	AND	80H		;<631>
+	LD	B,A		;<631>
+	LD	A,(DATBYT)	;<631>
+	AND	40H		;<631>
+	OR	B		;<631>
+	JR	NZ,L24B1	;<631>
+L24A5:	SET	6,(IX+0)	;<631>
+	@@CLOSE			;<631>
+	RET			;<631>
+
+L24AD:	LD	A,37		;<631>Init "Illegal access...
+	OR	A		;<631>
+	RET			;<631>
+
+L24B1:	LD	BC,(FCBDEV+6)	;<631>Get DEC and drive number info
+	@@DIRRD			;<631>
+	RET	NZ		;<631>
+	PUSH	HL		;<631>
+	DB	0FDH		;<631>
+L24BB:	POP	HL		;<631>
+	LD	A,(LRLBYT)	;<631>
+	AND	80H		;<631>
+	JR	Z,L24C9		;<631>
+LRLPRM:	LD	DE,0		;<631>
+	LD	(IY+4),E	;<631>
+L24C9:	LD	A,(DATBYT)	;<631>
+	AND	40H		;<631>
+	JR	Z,L24E8		;<631>
+DATPRM:	LD	DE,0		;<631>
+	LD	(IY+12H),96H	;<631>Default password
+	LD	(IY+13H),42H	;<631>
+	PUSH	IX		;<631>
+	LD	A,D		;<631>
+	OR	E		;<631>
+	POP	DE		;<631>
+	SET	2,(IX+0)	;<631>
+	CALL	NZ,L24A5	;<631>
+	RET	NZ		;<631>
+L24E8	@@DIRWR			;<631>
+	RET			;<631>
+	ELSE
+	LD	A,(HL)		;Make sure access level
+	AND	7		;  is at least UPDATE
+	CP	5
+	LD	A,37		;Init "Illegal access...
+	RET	NZ		;NZ - I/O error
+	EX	DE,HL
+	SET	6,(HL)		;Set "close authority
+	EX	DE,HL		;  to reset dir bit
+	@@CLOSE
+	RET			;Return w/ condition
+	ENDIF
+;
+;	Find the last device route & close any open file
+;
+CLSFILS	BIT	4,(HL)		;Jump if no route
+	JR	Z,CLSFIL1
+	INC	HL		;Else p/u link address
+	LD	A,(HL)		;  and test that one
+	INC	HL		;  for a chain
+	LD	H,(HL)
+	LD	L,A
+	JR	CLSFILS
+CLSFIL1	BIT	7,(HL)		;A file?
+	RET	Z		;Ret if not
+	LD	DE,FCBFIL	;Pt to fcb area
+	PUSH	DE
+	LD	BC,32
+	LDIR			;Fill from device vector
+	POP	DE		;Recover start
+	@@CLOSE			;Close the file
+	RET			;Ret with Z, NZ status
+;
+;	Routine to fix up a system DCB
+;
+FIXDCB	BIT	4,(HL)		;If routed, recover the
+	JR	Z,FIX1		;  original data from
+	PUSH	HL		;  DCB+3 to DCB+5
+	LD	D,H		;DCB start to DE
+	LD	E,L
+FIX0	INC	L		;Pt to old stored
+	INC	L		;  information
+	INC	L
+	LD	BC,3
+	LDIR			;Xfer to DCB
+	POP	HL
+	RES	4,(HL)		;Reset Routed bit
+	JR	FIXDCB
+FIX1	BIT	5,(HL)		;If linked, recover the
+	JR	Z,FIX2		;  original data from
+	PUSH	HL		;  the LINK DCB source &
+	INC	L		;  clear the LINK DCB
+	LD	E,(HL)		;P/u the LINK vector
+	INC	L
+	LD	D,(HL)
+	POP	HL		;Recover DCB ptr
+	PUSH	HL
+	EX	DE,HL		;Link to HL, DCB to DE
+	PUSH	HL		;Save for clearing
+	LD	BC,3
+	LDIR
+	POP	HL
+	LD	B,8
+	IF	@BLD631
+FIX1A	LD	(HL),C		;<631>Clear the LINK DCB (C=0)
+	ELSE
+FIX1A	LD	(HL),0		;Clear the LINK DCB
+	ENDIF
+	INC	L
+	DJNZ	FIX1A
+	POP	HL		;Rcvr DCB pointer
+	JR	FIXDCB
+FIX2	BIT	6,(HL)		;If filtered, recover the
+	RET	Z		;  original data by
+	PUSH	HL		;  swapping back the
+	LD	D,H
+	LD	E,L
+	INC	L		;  1st three bytes with
+	LD	A,(HL)		;  the FILTER DCB
+	INC	L
+	LD	H,(HL)
+	LD	L,A
+	LD	BC,4		;HL now points to the
+	ADD	HL,BC		;  entry point. Get its
+	LD	C,(HL)		;  DCB address by peeking
+	INC	C		;  past the name field
+	ADD	HL,BC
+	LD	A,(HL)		;Get low-order
+	INC	HL
+	LD	H,(HL)		;Get hi-order
+	LD	L,A
+	PUSH	HL		;If DCB is itself, then
+	SBC	HL,DE		;  bring in the NIL
+	POP	HL
+	JR	Z,FIX0
+	LD	B,3		;  else swap the 1st three
+FIX2A	LD	C,(HL)		;  bytes of the DCBs
+	LD	A,(DE)
+	LD	(HL),A
+	LD	A,C
+	LD	(DE),A
+	INC	L
+	INC	E
+	DJNZ	FIX2A
+	POP	HL
+	JR	FIXDCB
+;
+;	Data area
+;
+	IF	@BLD631
+PRMTBL$	DB	80H		;<631>
+	DB	93H		;<631>
+	DB	'LRL'		;<631>
+LRLBYT	DB	0		;<631>
+	DW	LRLPRM+1	;<631>
+	DB	54H		;<631>
+	DB	'DATE'		;<631>
+DATBYT	DB	0		;<631>
+	DW	DATPRM+1	;<631>
+	DB	0		;<631>
+	ENDIF
+SPCREQ$	DB	'Device spec required',CR
+	IF	@BLD631
+	ELSE
+	DC	32,0		;Patch space
+	ENDIF
+FCBDEV	DB	0
+	DS	31
+FCBFIL	DB	0
+	DS	31
+;
+	END	RESET
+

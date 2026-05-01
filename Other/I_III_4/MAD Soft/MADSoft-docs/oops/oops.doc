@@ -1,0 +1,198 @@
+OOPS                            (c) 1989 M.A.D. Software. All Rights Reserved.
+
+OOPS is an utility that provides a convenient method of correcting a  mistyped
+command  without  retyping  the  entire  command.   (The command that is to be
+corrected must still be on the screen for OOPS to be used.)
+
+OOPS can be also used to change the filenames or options of previous commands.
+This  is useful when performing repeated operations on different files or with
+different parameters.
+
+To use OOPS, simply type:       OOPS [ENTER]
+If OOPS is installed as the Immediate Execution Program (IEP),  then  use  the
+command:        * [ENTER]
+
+Using the [UP-ARROW] or [DOWN-ARROW] keys, move the cursor to  the  line  that
+you  want  to  edit.  When the cursor is over the desired line, press [ENTER],
+[F3], or [.].  ([ENTER] clears the screen below the line to be  edited,  while
+[F3] and [.] do not.)
+
+Once a line has been selected, it may be edited by using  the  same  functions
+that  are  available in the EDIT command in BASIC.  These are described in de-
+tail with examples in the TRSDOS 6 Disk System  Owners  Manual.   This  manual
+should  have  come with your system, but can be ordered from Radio Shack, #26-
+0316.  A quick summary of each command is provided below.
+
+[ENTER]         Submits the command to the  operating  system  command  inter-
+                preter.
+
+[BREAK]         Exits OOPS without performing any operation.  If OOPS is in  a
+                special  mode,  the first [BREAK] exits the special mode and a
+                second [BREAK] exits OOPS.  You can tell if you are in a  spe-
+                cial  mode  by looking at the bottom-right part of the screen.
+                For example, if you see the word
+
+[I]             Enter insertion mode.  Characters will be inserted in front of
+                the  character  currently  under the cursor.  Pressing [ENTER]
+                submits the command to the system.   Pressing  [F3],  [BREAK],
+                [SHIFT][UP-ARROW]  or any other control character exits insert
+                mode.
+
+[X]             Enters insertion mode, but positions the cursor at the end  of
+                the line.  See the [I] command for more information.
+
+[H] or [T]      Deletes all characters to the right of the cursor, and  enters
+                insert mode.  See the [I] command.
+
+[S]             Searches for the next character that is entered and moves  the
+                cursor  to  that position.  If the character that is specified
+                is not found to the right of the cursor, the cursor  is  moved
+                to the end of the line. The search is case-sensitive; in other
+                words, if you search for the letter 't', the uppercase  letter
+                'T' will not be found by the search.
+
+[C]             Changes the character under the cursor to the  next  character
+                that is typed.  The cursor moves one position to the right.
+
+[D]             Deletes the character under the cursor and moves the  text  on
+                the right of the cursor to the left to fill the hole.
+
+                                   Page  1
+
+
+
+
+
+
+[K]             Searches for the next character that is typed and deletes  the
+                characters  between  the  current  position  and  the  search-
+                character.  If the character is not found, no  characters  are
+                deleted.  If the character to search for is [ENTER], the char-
+                acters to the right of the cursor are deleted.   As  with  the
+                Search command, the search is case-sensitive.
+
+[0] thru [9]    The numeric keys allow you to specify a repetition count.  For
+                example,  pressing [5][S][X] causes OOPS to move the cursor to
+                the 5th occurrence of the letter 'x'.  A repeat value  from  2
+                to  79  can  be entered.  As the digits are entered, they will
+                appear in the status area at the bottom of  the  screen.   The
+                following commands can be repeated:
+                        [S]             Search Mode
+                        [K]             Kill (Delete String) Mode
+                        [D]             Delete Mode
+                        [C]             Change Mode
+                        [SPACE]         Move Cursor Right
+                        [RIGHT-ARROW]   Move Cursor Right
+                        [LEFT-ARROW]    Move Cursor Left
+                In the case of the change command ([C]), the  count  remaining
+                in  the repeat is displayed at the bottom of the screen as the
+                changes are made.
+
+                Commands not listed above reset the repeat count  to  zero  if
+                one was specified.
+
+                If the repeat rate causes the command to be performed  an  in-
+                valid  number of times, the command is performed until the end
+                of the line is reached, then the  remaining  repeat  count  is
+                discarded.   For  example,  attempting to delete 90 characters
+                will only delete the number of characters on the line.
+
+[.]             Allows one or both digits of the repeat value  to  be  erased.
+                This  can  be done until an edit command is entered.  The last
+                digit (ones' digit) is the first removed.
+
+[U]             Aborts all changes made so far and restores the  line  to  its
+                original state.  The cursor is positioned to column 1.
+
+[F1] or [L]     Moves the cursor to the column 1.
+
+[F2]            Moves the cursor one column past the  last  character  on  the
+                line.
+
+[LEFT-ARROW]    Moves the cursor one position to the left.
+
+[RIGHT-ARROW]   Moves the cursor one position to the right.
+
+[F3]            Exits any special mode OOPS may be in.  These are displayed at
+                the  bottom-right  of the screen.  If OOPS is not in a special
+                mode when [F3] is pressed, it is ignored.
+
+
+
+
+
+
+
+                                   Page  2
+
+
+
+
+
+
+Technical Information
+
+OOPS runs in the library overlay area and does not disturb memory below 0x2600
+or above 0x2FFF on the Model 4.  The Model III version loads at 0x5800.
+
+Programs may invoke OOPS, but OOPS will not return control to them.
+
+The display state is not altered by OOPS;  therefore, if  the  cursor  is  off
+when  OOPS is executed, it will not be very usable.  Reverse video text cannot
+be edited reliably, and may not be recognized by the command interpreter.
+
+The Model 4/4P/4D version of OOPS must be used with  LS-DOS  6.2.0  or  later.
+The Model III version of OOPS works with LDOS 5.x and TRSDOS 1.x.
+
+To install OOPS as the Immediate Execution Program (IEP) in  LS-DOS,  use  the
+command:
+
+        COPY OOPS/CMD SYS13/SYS:0 (C=N)
+
+Once done, OOPS can be invoked by typing:       * [ENTER]
+
+OOPS utilizes the @VDCTL SVC in LS-DOS or a scan of video memory in Model  III
+mode  to  read old commands from the screen, thus allowing it to edit commands
+other than the last command entered.  The command must still be on the  screen
+for  OOPS  to  be  able  to  access it.  The edited command is supplied to the
+operating system via the @CMNDI call or SVC.
+
+---
+If you need more information on OOPS or if you want to obtain  the  LDOS  5.x/
+TRSDOS  1.x  version,  please  write  to M.A.D. Software, P.O. Box 331323, Ft.
+Worth Texas, 76163.  Be sure to include a Self-Addressed-Stamped-Envelope when
+requesting information.
+---
+904014
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                   Page  3
+
+
+
+
+
+

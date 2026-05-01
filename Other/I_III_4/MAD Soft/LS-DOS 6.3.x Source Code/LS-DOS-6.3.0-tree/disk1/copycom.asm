@@ -1,0 +1,1 @@
+; COPYCOM - File for Copyright COMment block;	COM	'<*(C) 1982,3,4,6 by LSI*>'

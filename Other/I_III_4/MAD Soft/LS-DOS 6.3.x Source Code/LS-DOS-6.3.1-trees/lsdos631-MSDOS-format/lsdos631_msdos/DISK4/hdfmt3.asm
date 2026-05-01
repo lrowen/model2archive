@@ -1,0 +1,378 @@
+;HDFMT3/ASM - HARD FORMAT module - 02/07/84
+;Adjusted for WD1010 controller 12/12/83
+	IF	TRS!PDC
+;Driver to handle FMT command w/WD controller
+	IF	TRS
+HARDWP	EQU	0C0H
+HDCONT	EQU	0C1H
+DATA	EQU	0C8H		;Data transfer port
+	ENDIF
+	IF	PDC
+DATA	EQU	78H
+	ENDIF
+;*=*=*
+;       Calling Sequence
+;        B  => disk command
+;        C  => logical drive number
+;        D  => logical cylinder number
+;        E  => logical sector number
+;        HL => sector I/O buffer address
+;        IY => drive code table address
+;*=*=*
+;       bit 2 => wait enable
+;       bit 3 => device enable
+;       bit 4 => software reset
+;*=*=*
+ERROR	EQU	DATA+1		;Error code port
+WRP	EQU	DATA+1		;Write precompensation port
+SECNT	EQU	DATA+2		;Sector count
+SECNO	EQU	DATA+3		;Sector number port
+CYLLO	EQU	DATA+4		;Cylinder lo
+CYLHI	EQU	DATA+5		;Cylinder hi
+SDH	EQU	DATA+6		;Size/Drive/Head port
+STATUS	EQU	DATA+7		;Status port
+COMMAND	EQU	DATA+7		;Command port
+;*=*=*
+;       Western Digital Controller OP codes
+;
+; 0001rrrr - Restore drive
+; 0111rrrr - Seek sector/head/cyl
+; 0010d000 - Read sector
+; 00110000 - Write sector
+; 01010000 - Format track
+;
+;       rrrr = step rate
+;       d    = 0=programmed I/O, 1=DMA
+;*=*=*
+;     Driver start
+;*=*=*
+FMTDVR
+;*=*=*
+	IF	TRS
+	LD	A,(IY+3)	;P/u drive address
+	AND	3		;  & remove other junk
+	LD	C,A		;Save for counter
+	IN	A,(HARDWP)	;P/u the front panel WP
+	DB	0DCH		;Ignore next 2 by CALL C,
+ALIGN	RLCA			;Align hard WP bit to b7
+	DEC	C		;  according to drive
+	JR	NZ,ALIGN	;  address
+	OR	(IY+3)		;Merge software WP
+	ENDIF
+;
+	IF	PDC
+	LD	A,(IY+3)	;Just dct bit
+	ENDIF
+;
+	AND	10000000B	;Mask all but bit 7
+	SLA	A		;Write prot to carry
+	JR	NC,DFMT
+	LD	A,15		;WP error
+	OR	A
+	RET
+;
+;*=*=*
+;       Disk FORMAT routine
+;*=*=*
+DFMT	PUSH	HL
+	PUSH	DE
+	LD	A,(IY+7)	;P/u max sector/track
+	LD	B,A
+	AND	1FH
+	LD	E,A		;Set it for controller
+	XOR	B		;Get # of heads into
+	RLCA			;  register B for
+	RLCA			;  loop count of # of
+	RLCA			;  tracks to format in
+	INC	A		;Bump for zero offset
+	BIT	5,(IY+4)	;  this cylinder
+	JR	Z,$+3		;Double the count if
+	ADD	A,A		;  double cylindering
+	LD	B,A		;
+;
+DFMT1	PUSH	BC		;Save loop counter
+	PUSH	DE		;Save sector #
+	CALL	SETUPF		;Go to it
+	PUSH	HL		;Save pointer
+	LD	A,(HL)		;P/u sector count
+	OUT	(SECNT),A
+	INC	HL		;Point to buffer
+	LD	A,50H		;Set the FORMAT OP code
+	CALL	DOCMD		;Do the command
+	POP	HL
+	POP	DE
+	POP	BC
+	JR	NZ,WRERR
+;
+	LD	A,20H		;Bump sector # for next
+	ADD	A,E		;  head in cylinder
+	LD	E,A		;Pass to sector reg
+	DJNZ	DFMT1		;Loop all heads this cyl
+	XOR	A		;No error today
+	JR	NOERROR		;Exit
+;
+WRERR	LD	HL,WRTBL	;Point to error xlate
+;
+ENDERR
+	IF	TRS
+	CALL	WD1010		;Clear controller
+	ENDIF
+	IN	A,(ERROR)	;Grab error code
+ERR1	RLCA			;Find error TYPE
+	INC	HL		;Bump counter
+	JR	NC,ERR1		;Loop for error byte
+	LD	A,(HL)		;P/u error code
+;
+NOERROR	EQU	$
+ERREXIT	POP	DE
+	POP	HL
+	OR	A		;Set flag
+	IF	TRS
+WD1010	PUSH	AF
+	IN	A,(STATUS)
+	AND	00000010B
+	JR	Z,CLEAN
+	LD	A,10H
+	OUT	(HDCONT),A
+	LD	A,0CH
+	OUT	(HDCONT),A
+CLEAN	POP	AF
+	ENDIF
+	RET
+;*=*=*
+;       LDOS error conversion table
+; Bit  Error            RD   WR
+;  7  Bad block detect   7   14
+;  6  CRC - Data field   4   12
+;  5  CRC - ID field     1    9
+;  4  ID not found       5   13
+;  3  Not used          127 127
+;  2  Aborted command    8    8
+;  1  TR000 error        2   10
+;  0  DAM not found      3   11
+;*=*=*
+WRTBL	EQU	$-1
+	DB	14,12,9,13,127,8,10,11
+;*=*=*
+;       SETUP disk
+;       IY= DCT
+;       D = Cylinder # (0-202)
+;       E = Sector # (0-255)
+;*=*=*
+SETUPF	EQU	$		;Wait until not busy
+;*=*=*
+;       Select routine
+;*=*=*
+	PUSH	HL		;Save buffer pointer
+;*=*=*
+;       Recalc cyl, sector to head, sector, cyl
+;*=*=*
+RECALC	LD	L,D		;Xfer cylinder
+	LD	H,0
+;
+	BIT	5,(IY+4)	;Double track?
+	JR	Z,$+3		;Go if not
+	ADD	HL,HL		;Cyl * 2
+;*****
+;       Check on track advance
+;*****
+	LD	A,(IY+7)	;P/u sectors/track
+	PUSH	DE
+	LD	D,A		;Hang on to value
+	AND	1FH		;Strip off other data
+	LD	E,A
+	INC	E		;Adj for zero offset
+	LD	C,E		;Keep sec per track
+	XOR	D		;Get # of heads
+	RLCA			;Shift heads to 0-2
+	RLCA
+	RLCA
+	INC	A		;Adjust for zero offset
+	PUSH	BC
+	CALL	MULTEA@
+	POP	BC
+	DEC	A		;Adjust for compare
+	POP	DE		;Rcvr sector
+	CP	E		;Is sector on this track?
+	JR	NC,REC1		;Bypass if yes
+	CPL			;Else subtract off a
+	ADD	A,E		; track's # of sectors
+	LD	E,A		;Reset sector #
+	INC	HL		;  and bump cyl #
+REC1	LD	A,C
+	PUSH	DE
+	CALL	DIVEA@		;Sector#/sectors per head
+	POP	DE
+	LD	D,A		;Xfer head # needed
+	LD	A,(IY+4)	;P/u starting head
+	AND	0FH		;Strip off other data
+	ADD	A,D		;Add in relative head
+	LD	D,A		;Point to physical head
+;*****
+;       Xfer head, sector, & cylinder data to WDC
+;*****
+	LD	A,(IY+3)	;Grab the drive select
+	AND	3
+	RLCA			;Shift to bits 3-4
+	RLCA
+	RLCA
+	OR	D		;Merge in head select
+	OUT	(SDH),A		;Transfer to WDC
+	LD	A,0FH		;For 256 byte sectors
+	OUT	(SECNO),A
+	LD	A,L
+	OUT	(CYLLO),A
+	LD	A,H
+	OUT	(CYLHI),A
+	POP	HL		;Rcvr buffer pointer
+	RET
+;*=*=*
+;       Routine to pass WRITE Command to WDC & do it
+;*=*=*
+DOCMD	OUT	(COMMAND),A	;  & pass to WDC
+;
+	LD	BC,0<8!DATA	;Set length &port
+	OTIR			;Output the data
+DWR1	EX	(SP),HL		;Delay time to settle
+	EX	(SP),HL		; the controller
+;
+DWR2	IN	A,(STATUS)	;Wait until controller
+	RLCA			;  is no longer busy
+	JR	C,DWR2
+	IN	A,(STATUS)	;Read command end status
+	AND	1		;NZ=error
+	RET
+	ENDIF
+;
+DCTPTR	DW	0		;Posn of DCT for drive
+LOCK$	DB	'Lock out track manually <Y/N> ? ',3
+PHYHD$	DB	'Enter physical head number <'
+PHYD1$	DB	' -'
+PHYD2$	DB	' > ',3
+PHYTR$	DB	'Enter physical track number <1  -'
+PHYT1$	DB	'     > ',3
+	IF	RAM		;Use CLIENT/ASM
+;DB for FORM$ and HELLO$
+FORM$	DB	'$HD1'
+HELLO$	DB	'TRSFORM6 - W/D 1000/1010 - Hard Drive Formatter',LF
+	DB	'Version '
+*GET	CLIENT:3
+	ELSE			;Use macro definition if 5.1 ver.
+	LOGON
+	ENDIF
+MPWBUF	DB	'          '	; must be 9 chars
+PRMERR$	DB	'Parameter error ',CR
+HARD$	DB	'This format for Hard Drive only.',CR
+NOTZER$	DB	'Hard drive cannot be drive 0.',CR
+WHDRV$	DB	'Which drive is to be used ? ',3
+DSKNAM$	DB	'Disk Pack name ? ',3
+BADNAM$	DB	'Invalid Disk Pack name.',CR
+MPW$	DB	'Master password ? ',3
+CANTWR$	DB	'Write protected disk.',CR
+HASDAT$	DB	'Disk contains data -- ',3
+NOFMT$	DB	'Non-standard format.',CR
+CANTRD$	DB	'Unreadable directory.',CR
+NODIR$	DB	'Non-initialized directory.',CR
+PACKID$	DB	'Name=XXXXXXXX  Date=MM/DD/YY',CR
+OLDMPW$	DB	'  Enter its Master Password'
+	DB	' or <BREAK> to abort: ',3
+;
+	IF	LDI
+LAST$	DB	LF,'*** Preparing to format ENTIRE '
+	DB	'hard drive ***',LF
+	DB	'Are you sure you want to format it? ',3
+FMTG$	DB	'Formatting...',CR
+	ENDIF
+;
+	IF	LSI
+ALTLO$	DB	LF,'Inhibiting Alternate cylinder <#77>...',CR
+	ENDIF
+;
+	IF	TRS!PDC
+DIAG$	DB	LF,'Inhibiting Diagnostic Cylinder <#01>...',CR
+	ENDIF
+;
+DBL$	DB	LF,'Note: Each cylinder equals 2 physical'
+	DB	' tracks.',LF,CR
+FMTCYL$	DB	29,'Formatting cylinder    ',3
+VERCYL$	DB	29,'Verifying  cylinder    ',3
+STAR$	DB	'*   ',3
+NOCYL$	DM	'No cylinders available for directory.',CR
+DIRCYL$	DB	'Directory will be placed on cylinder '
+DIRASC$	DB	'000',CR
+IPLSYS$	DB	LF,'Initializing SYSTEM information ',3
+FMTCAO$	DB	LF,'Formatting complete',CR
+BADMPW$	DB	'Invalid master password - '
+FMTABT$	DB	'Format aborted.',CR
+SURE?$	DB	'Are you sure you want to format it <Y,N>? ',3
+NOTFMT$	DB	'Can''t, Disk Pack not formatted.',CR
+DIFDVR$	DB	'Formatter incompatible with disk driver.',CR
+ILLEG$	DB	'Drive is disabled.',CR
+;
+	IF	RAM		;Use new param format
+PARMTBL	DB	'o'!80H
+	DB	73H,'MPW',0
+	DW	MPWPARM+1
+	DB	74H,'NAME',0
+	DW	NPARM+1
+	DB	56H,'SYSTEM',0
+	DW	SYSPRM+1
+	DB	56H,'VERIFY',0
+	DW	VERPRM+1
+	DB	76H,'NOSTOP',0
+	DW	NOSTOP
+	ELSE
+PARMTBL	DB	'MPW   '
+	DW	MPWPARM+1
+	DB	'NAME  '
+	DW	NPARM+1
+	DB	'N     '
+	DW	NPARM+1
+	DB	'SYSTEM'
+	DW	SYSPRM+1
+	DB	'S     '
+	DW	SYSPRM+1
+	DB	'VERIFY'
+	DW	VERPRM+1
+	DB	'V     '
+	DW	VERPRM+1
+	DB	'NOSTOP'
+	DW	NOSTOP
+	ENDIF
+	NOP			;End of table
+;*****
+;       Formatting data and tables
+;*****
+BOOTDIR	DB	5EH,0,0,0,0,'BOOT    SYS',0F6H,37H
+	DB	0F5H,9CH,5,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1
+DIRDIR	DB	5DH,0,0,0,0,'DIR     SYS',0F6H,37H
+	DB	96H,42H,10,0,11H,1,-1,-1,-1,-1,-1,-1,-1,-1
+FMTDCT	DS	10
+SECCYL	DS	1		;# of sectors per cyl
+SECTRK	DS	1		;# of sectors per trk
+;
+	IF	MTI!TRS!PDC
+SKEWDAT	DB	32		;# sectors in table
+	DB	0,0,0,4,0,8,0,12,0,16,0,20,0,24,0,28
+	DB	0,1,0,5,0,9,0,13,0,17,0,21,0,25,0,29
+	DB	0,2,0,6,0,10,0,14,0,18,0,22,0,26,0,30
+	DB	0,3,0,7,0,11,0,15,0,19,0,23,0,27,0,31
+	ENDIF
+;
+;*=*=*
+;       Patch area
+;*=*=*
+	ORG	$<-8+1<+8
+GATBUF	DS	203		;GAT sector buffer
+	DB	RLS,0,0,0,0	;Ver, cyl exc, type, pswd
+	DB	'        MM/DD/YY'
+	DC	32,0
+BOOT1	DS	208		;BOOT 1
+	DB	'Copyright(C)1982'
+	DB	'Logical Systems '
+	DB	'Incorporated (P)'
+HITBUF	DS	256
+CR	EQU	0DH
+LF	EQU	0AH
+	END	FORMAT
+

@@ -1,0 +1,132 @@
+;SOUND/ASM - LS-DOS 6.2
+;
+;	Contains IPL, PAUSE, SOUND, and DECHEX routines
+;	Will be loaded into lowcore area along with SYSRES
+;
+*MOD
+SNDPORT	EQU	90H
+	ORG	STACK$
+	DW	00		;Stack gaurd
+;
+;	Pause routine
+;
+@PAUSE	PUSH	BC		;Save the count
+;	SRL	B		;Adjust for WAIT STATES
+;	RR	C
+	LD	A,(SFLAG$)	;If system (FAST)
+	BIT	3,A		;  then double it
+	CALL	NZ,CDLOOP	;Call if fast
+	POP	BC		;Restore the count
+CDLOOP	DEC	BC		;Count down routine
+	LD	A,B
+	OR	C
+	JR	NZ,CDLOOP
+	RET
+;
+;	@SOUND SVC-104 - Operates sound generator
+;	B => sound function
+;	Bits 0-2 <0-7> = note # (0 highest)
+;	Bits 3-7 <0-31> = relative sound duration
+;	All regs except A left unchanged
+;	Z-flag set on exit
+;	Note that interrupts disabled during duration
+;
+@SOUND	PUSH	BC		;Save registers
+	PUSH	HL
+	LD	A,B		;P/u sound data
+	AND	7		;  & strip off duration
+	RLCA			;Adj for 2-byte fields
+	LD	HL,SNDTAB
+	LD	C,A
+	LD	A,B		;Pick up duration data
+	LD	B,0		;Index into tone table
+	ADD	HL,BC		;  to get note-on/off
+	LD	C,(HL)		;P/u note-on/off data
+	INC	HL
+	LD	L,(HL)		;P/u note duration
+	RRCA			;Rotate sound duration
+	RRCA			;  into bits 0-4
+	RRCA
+	AND	1FH		;Strip off sound #
+	INC	A		;Adjust for offset
+	LD	H,A		;Set sound counter
+	LD	A,(SFLAG$)	;If fast, double values
+	AND	8H
+	JR	Z,$?1
+	SLA	H
+	SLA	L
+	SLA	C
+$?1	DI			;Can't interrupt timing
+$?2	PUSH	HL		;Save note duration
+$?3	LD	B,C		;Play tone
+	LD	A,1		;Hold output high
+	OUT	(SNDPORT),A	;  for count of (B)
+	DJNZ	$
+	LD	B,C		;Hold output low for
+	INC	A		;  for count of (B)
+	OUT	(SNDPORT),A
+	DJNZ	$
+	DEC	L		;Dec the duration
+	JR	NZ,$?3
+	POP	HL		;Get sound/note durations
+	DEC	H		;Count down the sound
+	JR	NZ,$?2		;  duration counter
+	EI			;Restore interrupts
+	POP	HL
+	POP	BC
+	RET
+;
+;	Note table
+;
+SNDOFF	EQU	180		;Sound duration offset
+TONER	EQU	28
+SNDTAB	DB	108-TONER	;Note 0 (highest)
+	DB	0-SNDOFF
+	DB	114-TONER
+	DB	252-SNDOFF
+	DB	120-TONER
+	DB	248-SNDOFF
+	DB	126-TONER
+	DB	244-SNDOFF
+	DB	135-TONER
+	DB	240-SNDOFF
+	DB	142-TONER
+	DB	236-SNDOFF
+	DB	149-TONER
+	DB	232-SNDOFF
+	DB	156-TONER	;Note 7 (lowest)
+	DB	228-SNDOFF
+SNDLEN	EQU	$-@SOUND
+;
+;	Process decimal assignment
+;
+@DECHEX	LD	BC,0		;Init value to zero
+DEC1	LD	A,(HL)		;P/u a char
+	SUB	30H		;Cvrt to binary
+	RET	C		;Return if < "0"
+	CP	10		;Ck for bad decimal
+	RET	NC		;Ret if not 0-9
+	PUSH	BC		;Exchange BC & HL
+	EX	(SP),HL		;  & save HL on stack
+	ADD	HL,HL		;Multiply by 10
+	ADD	HL,HL
+	ADD	HL,BC
+	ADD	HL,HL
+	LD	B,0		;Merge in new digit
+	LD	C,A		;New digit to C
+	ADD	HL,BC		;  & add it in
+	LD	B,H		;Current value to BC
+	LD	C,L
+	POP	HL		;Recover HL pointer
+	INC	HL
+	JR	DEC1		;Loop
+;
+;	Special Boot code to be moved to 4300h by IPL
+;
+BOOTCOD	DI			;Boot stub for @IPL to
+	XOR	A		;  to move to 4300h
+	OUT	(@OPREG),A
+	RST	0
+BOOTLEN	EQU	$-BOOTCOD
+;
+

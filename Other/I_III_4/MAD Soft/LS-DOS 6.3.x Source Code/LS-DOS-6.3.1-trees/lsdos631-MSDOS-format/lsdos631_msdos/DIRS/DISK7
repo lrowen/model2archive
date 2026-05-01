@@ -1,0 +1,27 @@
+Drive :6  SRC631D7   40 Cyl, DDEN, Free =  195.00K /   360.00K,  Date 25-May-98
+Filespec    MOD Attr   Prot  LRL  #Recs  EOF  File Size  Ext  Mod Date   Time
+-------------------------------------------------------------------------------
+BASIC62/CMD            FULL   256    85   79     22.50K    1   1-May-85  12:00a
+CMDFILE6/CMD           FULL   256    10  215      3.00K    1   1-Jul-87  12:00a
+EDAS/CMD               FULL   256    58  200     15.00K    1   1-Jul-87  12:00a
+GENISAM3/CMD           FULL   256     5   19      1.50K    1   1-Jul-87  12:00a
+GENISAM4/CMD           FULL   256     5   44      1.50K    1   1-Apr-98  11:56p
+HELPG60/CMD            FULL   256    12  210      3.00K    1  22-Jul-83  12:00a
+LDOS60/EQU             FULL   256    10   98      3.00K    1  25-May-98   4:08p
+LDOS60/REF             FULL   256    43  157     12.00K    1  25-May-98   4:08p
+LED62/CMD              FULL   256    25   33      7.50K    1  16-Nov-83  12:00a
+LSFM/CMD        P      EXEC   256    42   33     10.50K    1   1-Jul-87  12:00a
+MAKBAS/CMD             FULL   256     4   17      1.50K    1   1-Jul-87  12:00a
+MODELA/III             FULL   256    57  250     15.00K    1   1-Jul-87  12:00a
+NEWB/EQU               FULL   256     2   70      1.50K    1  25-May-98   4:40p
+NEWB/REF               FULL     6   591  216      4.50K    1  25-May-98   4:40p
+SERIALH/CMD            FULL   256    21  220      6.00K    1  18-Sep-86  12:00a
+SERIALL/CMD            FULL   256    22   24      6.00K    1   1-Jul-87  12:00a
+SYS0/EQU               FULL   256    22   55      6.00K    1  25-May-98   4:13p
+SYS0/REF               FULL   256    60  198     15.00K    1  25-May-98   4:12p
+SYS5/EQU               FULL   256    26  211      7.50K    1  25-May-98   4:16p
+SYS5/REF               FULL   256    34   97      9.00K    1  25-May-98   4:16p
+XREF/CMD               FULL   256    10    9      3.00K    1   1-Jul-87  12:00a
+===============================================================================
+                    21 files of  23 selected,   154.50K
+

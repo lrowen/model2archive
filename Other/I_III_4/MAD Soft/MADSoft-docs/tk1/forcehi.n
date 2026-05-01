@@ -1,0 +1,108 @@
+.if t  .po 1.0i
+.ds ]W May 15th, 1993\"
+.TH FORCEHI U1 "" "LS-DOS 6 - Utilities 1"
+.ig
+FORCEHI troff documentation \- Version 1(1) 15\-May\-93
+Copyright 1993 M. A. D. Software, All Rights Reserved.
+  	 Copyright 1990,1993 M. A. D. Software, All Rights Reserved.
+..
+.SH \fBName\fR
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+.de IN
+.if t  .in +0.5i
+.if n  .in +0.6i
+..
+.de OU
+.if t  .in -0.5i
+.if n  .in -0.6i
+..
+.de TI
+.if t  .ti -0.5i
+.if n  .ti -0.6i
+..
+.de IX
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 1.0i 1.5i 2.5i 3.5i 4.5i 5.5i
+.if t  .in +0.5i
+.if n  .in +1.0i
+..
+.de OX
+.if t  .in -0.5i
+.if n  .in -1.0i
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+..
+.de TX
+.if t  .ti -0.5i
+.if n  .ti -1.0i
+..
+.br
+FORCEHI \- Reserves low memory so that drivers or filters can be forced
+into high memory.
+.SH \fBSyntax\fR
+.br
+.B forcehi
+[
+.BI \-qrf?h 
+] [
+.I ;\ next\ command
+]
+.SH Description
+.br
+
+.I Forcehi
+allows the user to lock low memory so that any drivers or filters that are
+subsequently loaded will be forced to use high memory instead of low
+memory.  Since low memory is a limited resource and some drivers can
+only be loaded into low memory, \fIforcehi\fR can be used to force
+drivers and filters that can be run in high memory to use high memory,
+leaving low memory available for the drivers that require it.
+
+\fIForcehi\fR accepts several options.  Options are specified by single characters,
+and they may be entered in upper or lowercase.  Options are always preceded by
+a hyphen (a "\-").  If you are specifying multiple options, you can specify
+the options in any of these formats:
+.br
+	\-a \-b \-c   or   \-abc   or   \-a \-bc   or  \-ab \-c
+
+The options are:
+.IP \fB\-q\fR 5
+This option causes \fIforcehi\fR to run silently.  No messages are displayed
+if everything works like it should.  If errors occur, they are reported.
+.IP \fB\-r\fR 5
+By default, \fIforcehi\fR will reserve low memory so that no other drivers
+can be loaded there.  The \fB-r\fR option releases any memory that was
+reserved by \fIforcehi\fR.
+.IP \fB\-f\fR 5
+Similar to the \fB-q\fR, except that \fIforcehi\fR will not display any
+messages, even if the requested action fails.
+.IP \fB\-?\ or\ \-h\fR
+Displays the help message.
+.IP \fI;\ next\ command\fR
+After \fIforcehi\fR completes, the remainder of the command line is executed
+as a second command.  The command \fBforcehi;set *cl com\fR will reserve all of
+low memory,
+and then the RS-232 driver will be loaded.
+
+.if n  .bp
+.SH \fBNotes\fR
+\fIForcehi\fR will not cause a driver that can only run in low memory to be
+usable in high memory.
+
+The \fIsysgen(L)\fR command should not be used while \fIforcehi\fR has memory
+reserved.  You can determine if \fIforcehi\fR is holding memory by using
+the \fImapmem\fR(U1) command to examine the contents of memory.
+.SH \fBFiles\fR
+No files are accessed by \fIforcehi\fR.
+
+
+If you need more information on \fIforcehi\fR(U1),
+please write to M.A.D. Software, P.O. Box 331323, Ft. Worth Texas,
+76163.  Please include a Self\-Addressed\-Stamped\-Envelope when requesting
+information.
+.br
+\-\-\-\-\-\-
+.br
+305151
+

@@ -1,0 +1,49 @@
+Drive :6  SRC631D5   40 Cyl, DDEN, Free =    0.00K /   360.00K,  Date 25-May-98
+Filespec    MOD Attr   Prot  LRL  #Recs  EOF  File Size  Ext  Mod Date   Time
+-------------------------------------------------------------------------------
+KIDVR/ASM              FULL   256    44  120     12.00K    1   1-Jul-87  12:00a
+KIDVR2/ASM             FULL   256    31  147      9.00K    1   1-Jul-87  12:00a
+KIDVRFG/ASM            FULL   256    54  106     13.50K    1   1-Jul-87  12:00a
+KSM/ASM                FULL   256    33   25      9.00K    1   1-Jul-87  12:00a
+LCOMM/ASM              FULL   256    90  180     22.50K    1   1-Jul-87  12:00a
+LCOMMA/ASM             FULL   256    19  240      6.00K    1   1-Jul-87  12:00a
+LCOMMGET/ASM           FULL   256     1   33      1.50K    1   1-Jul-87  12:00a
+LDOSDCT/ASM            FULL   256    22  109      6.00K    1   3-May-98  10:44p
+LOADER/ASM             FULL   256    49   49     13.50K    1   1-Jul-87  12:00a
+LOADER2/ASM            FULL   256    49   61     13.50K    1   1-Jul-87  12:00a
+LOG/ASM                FULL   256     9   98      3.00K    1   1-Jul-87  12:00a
+LOGO/ASM               FULL   256     9  251      3.00K    1   1-Jul-87  12:00a
+LOGO2/ASM              FULL   256     5  136      1.50K    1   1-Jul-87  12:00a
+LOWCORE/ASM            FULL   256    16  208      4.50K    1  24-May-98   9:35p
+LOWCORE2/ASM           FULL   256    21  153      6.00K    1   1-Jul-87  12:00a
+LSILOGO/ASM            FULL   256     4  108      1.50K    1  15-Mar-98   3:16p
+MAKBAS/ASM             FULL   256    13  237      4.50K    1   1-Jul-87  12:00a
+MEMDISK/ASM            FULL   256     5  192      1.50K    1  22-May-98  11:39p
+MEMDISKA/ASM           FULL   256    80  196     21.00K    1  23-May-98  12:16a
+MEMDISKB/ASM           FULL   256    26   76      7.50K    1   1-Jul-87  12:00a
+MEMDISKC/ASM           FULL   256    18  209      4.50K    1   1-Jul-87  12:00a
+MULDIV/ASM             FULL   256     8  123      3.00K    1   1-Jul-87  12:00a
+NEWB/ASM               FULL   256    60   77     15.00K    2   1-Jul-87  12:00a
+PARAM/ASM              FULL   256    36  252      9.00K    1   3-May-98  12:18a
+PATCH/ASM              FULL   256    49  189     13.50K    1   1-Jul-87  12:00a
+PATCHA/ASM             FULL   256    64  185     16.50K    1   1-Jul-87  12:00a
+PRDVR/ASM              FULL   256     6  252      1.50K    1  28-Apr-98  11:03p
+PRDVR2/ASM             FULL   256     6  199      1.50K    1   1-Jul-87  12:00a
+RECUT/ASM              FULL   256    63   32     16.50K    1   1-Jul-87  12:00a
+REPAIR/ASM             FULL   256    32  234      9.00K    1   1-Jul-87  12:00a
+RSLOGO/ASM             FULL   256     7  231      3.00K    1   1-Jul-87  12:00a
+RSLOGO2/ASM            FULL   256     3  110      1.50K    1   1-Jul-87  12:00a
+RSLOGOA/ASM            FULL   256     7  235      3.00K    1  30-Apr-85  12:00a
+RSLOGOB/ASM            FULL   256     9  251      3.00K    1   1-Jul-87  12:00a
+RSLOGOX/ASM            FULL   256     9  242      3.00K    1  30-Apr-85  12:00a
+SERIAL/ASM             FULL   256     2  174      1.50K    1   1-Jul-87  12:00a
+SERIAL2/ASM            FULL   256    68  140     18.00K    1   1-Jul-87  12:00a
+SYS1/ASM               FULL   256    38   32     10.50K    1   2-May-98  11:25p
+SYS10/ASM              FULL   256    16   33      4.50K    1   1-Jul-87  12:00a
+SYS3/ASM               FULL   256    52  107     13.50K    2  15-Mar-98  10:39p
+SYS4/ASM               FULL   256    46  107     12.00K    1   1-Jul-87  12:00a
+SYS5/ASM               FULL   256     1  128      1.50K    1   1-Jul-87  12:00a
+SYS5A/ASM              FULL   256    94   49     24.00K    1  15-Mar-98  10:59p
+===============================================================================
+                    43 files of  45 selected,   349.50K
+

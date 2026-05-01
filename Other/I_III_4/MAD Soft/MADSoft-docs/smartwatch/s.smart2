@@ -1,0 +1,83 @@
+.sp .5i
+.ps 14p
+.vs 14p
+.nf
+\fBPin 6 of U45 to 
+pin 22 of the SMARTWATCH
+
+
+Pin 21 of "4.2" chip
+in U5 to pin 20 of the
+"A" ROM.
+
+Pin 18 of the "A" ROM
+to center pin of 
+JP8/JP9 jumper clip
+
+
+
+Pin out of socket
+
+Pin out of socket
+
+Pin out of socket
+
+Pin out of socket
+
+Pin out of socket
+
+Pin out of socket
+
+Pin out of socket
+
+
+Pin 22 of XDROM to
+SMARTWATCH socket
+position 18.
+
+\fBPin 6 of U45 to 
+pin 22 of the SMARTWATCH
+
+
+Pin 21 of "4.2" chip
+in U5 to pin 20 of the
+"A" ROM.
+
+Pin 18 of the "A" ROM
+to center pin of 
+JP8/JP9 jumper clip
+
+
+
+Pin out of socket
+
+Pin out of socket
+
+Pin out of socket
+
+Pin out of socket
+
+Pin out of socket
+
+Pin out of socket
+
+Pin out of socket
+
+
+Pin 22 of XDROM to
+SMARTWATCH socket
+position 18.
+
+
+Pin 20 of SMARTWATCH
+to pin 22 of SMARTWATCH
+
+
+Pin 26 of SMARTWATCH
+to pin 28 of SMARTWATCH
+
+
+
+
+
+

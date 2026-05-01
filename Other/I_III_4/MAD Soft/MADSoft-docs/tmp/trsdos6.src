@@ -1,0 +1,201 @@
+;	TRSDOS 6.0 SVC Equate File	by fdiv 31-Jan-83
+;	Revised 22-Mar-83 fdiv
+
+
+@abort:	equ	21		;Abort This Program
+@ABORT:	equ	21
+@adtsk:	equ	29		;Add A Task To System Scheduler
+@ADTSK:	equ	29
+@bank:	equ	102		;Memory Bank Switching
+@BANK:	equ	102
+@bksp:	equ	61		;Backspace A File One Logical Record
+@BKSP:	equ	61
+@break:	equ	103		;Set Break Vector
+@BREAK:	equ	103
+@chnio:	equ	20		;Pass Control To Next Module In Device Chain
+@CHNIO:	equ	20
+@ckbrkc:equ	106		;Check Break Flag
+@CKBRKC:equ	106
+@ckdrv:	equ	33		;Check Drive Status
+@CKDRV:	equ	33
+@cktsk:	equ	28		;Check task status
+@CKTSK:	equ	28
+@ckeof:	equ	62		;Check for End-Of-File
+@CKEOF:	equ	62
+@close:	equ	60		;Close a File or Device
+@CLOSE:	equ	60
+@cls:	equ	105		;Clear the screen
+@CLS:	equ	105
+@cmndi:	equ	24		;Execute Command with Return To System
+@CMNDI:	equ	24
+@cmndr:	equ	25		;Execute Command and Return To Program
+@CMNDR:	equ	25		;(if possible)
+@ctl:	equ	5		;Output a Control Byte
+@CTL:	equ	5
+@date:	equ	18		;Get The Date
+@DATE:	equ	18
+@dcinit	equ	42		;Issue a FDC Restore Command
+@DCINIT	equ	42
+@dcres:	equ	43		;Issue a FDC Restore Command
+@DCRES:	equ	43
+@dcstat	equ	40		;Test To See If Drive is Assigned in DCT
+@DCSTAT	equ	40
+@debug:	equ	27		;Enter The Debugger
+@DEBUG:	equ	27
+@dechex	equ	96		;Convert Decimal ASCII To Binary
+@DECHEX	equ	96
+@dirrd:	equ	87		;Directory Record Read
+@DIRRD:	equ	87
+@dirwr:	equ	88		;Directory Record Write
+@DIRWR:	equ	88
+@div8:	equ	93		;8 Bit Divide
+@DIV8:	equ	93
+@div16:	equ	94		;16 Bit by 8 Bit Divide
+@DIV16:	equ	94
+@dodir:	equ	34		;Do Directory Display / Buffer
+@DODIR:	equ	34
+@dsp:	equ	2		;Display Character
+@DSP:	equ	2
+@dsply:	equ	10		;Display Message
+@DSPLY:	equ	10
+@error:	equ	26		;Get Text To An Error Number
+@ERROR:	equ	26
+@exit:	equ	22		;Exit To TRSDOS
+@EXIT:	equ	22
+@fext:	equ	79		;Set Up Default File Extension
+@FEXT:	equ	79
+@flags:	equ	101		;Point IY To System Flag Area
+@FLAGS:	equ	101
+@fname:	equ	80		;Get The Name Of The File With This FCB
+@FNAME:	equ	80
+@fspec:	equ	78		;Test A Filespec Format
+@FSPEC:	equ	78
+@get:	equ	3		;Get One Byte From A Device Or File
+@GET:	equ	3
+@gtdcb:	equ	82		;Get Device Control Block (DCB) Address
+@GTDCB:	equ	82
+@gtdct:	equ	81		;Get Drive Control Table (DCT) Address
+@GTDCT:	equ	81
+@gtmod:	equ	83		;Get Memory Module Header
+@GTMOD:	equ	83
+@hdfmt:	equ	52		;Write A Track
+@HDFMT:	equ	52
+@hexdec	equ	97		;Convert Binary To Decimal ASCII
+@HEXDEC	equ	97
+@hex8:	equ	98		;Convert 1 Byte To Hex ASCII
+@HEX8:	equ	98
+@hex16:	equ	99		;Convert 2 Bytes To Hex ASCII
+@HEX16:	equ	99
+@high$:	equ	100		;Read Or Set High$ or Low$
+@HIGH$:	equ	100
+@init:	equ	58		;Open Or Create a File
+@INIT:	equ	58
+@ipl:	equ	0		;Reboot The System
+@IPL:	equ	0
+@kbd:	equ	8		;Scan The Keyboard And Return Any Character
+@KBD:	equ	8
+@key:	equ	1		;Scan Keyboard, Wait For Character
+@KEY:	equ	1
+@keyin:	equ	9		;Accept a Line Of Input
+@KEYIN:	equ	9
+@kltsk:	equ	32		;Kill A Scheduler Task
+@KLTSK:	equ	32
+@load:	equ	76		;Load Program File
+@LOAD:	equ	76
+@loc:	equ	63		;Calculate Current Logical Record Number
+@LOC:	equ	63
+@lof:	equ	64		;Calculate The EOF Logical Record Number
+@LOF:	equ	64
+@loger:	equ	11		;Issue Log Message
+@LOGER:	equ	11
+@logot:	equ	12		;Display And Log Message
+@LOGOT:	equ	12
+@msg:	equ	13		;Send Message To Device
+@MSG:	equ	13
+@mul8:	equ	90		;8 Bit Multiplication
+@MUL8:	equ	90
+@mul16	equ	91		;16 Bit Multiplication
+@MUL16	equ	91
+@open:	equ	59		;Open An Existing File Or Device
+@OPEN:	equ	59
+@param:	equ	17		;Parse Parameter String
+@PARAM:	equ	17
+@pause:	equ	16		;Suspend Program Execution
+@PAUSE:	equ	16
+@peof:	equ	65		;Position To End Of File
+@PEOF:	equ	65
+@posn:	equ	66		;Position To a Specific Record Number
+@POSN:	equ	66
+@print:	equ	14		;Prints Message Line
+@PRINT:	equ	14
+@prt:	equ	6		;Send a Byte To The Printer
+@PRT:	equ	6
+@put:	equ	4		;Write a Byte To A File Or Device
+@PUT:	equ	4
+@ramdir	equ	35		;Get Directory Record Or Free Space
+@RAMDIR	equ	35
+@rdhdr:	equ	48		;Read An ID Header
+@RDHDR:	equ	48
+@rdsec:	equ	49		;Read A Sector
+@RDSEC:	equ	49
+@rdssc:	equ	85		;Read A System Sector
+@RDSSC:	equ	85
+@rdtrk:	equ	51		;Reads an entire track
+@RDTRK:	equ	51
+@read:	equ	67		;Read A Record
+@READ:	equ	67
+@remov:	equ	57		;Remove (kill) A File
+@kill:	equ	57
+@REMOV:	equ	57
+@KILL:	equ	57
+@renam:	equ	56		;Changes a Files Name or Extension
+@RENAM:	equ	56
+@rew:	equ	68		;Rewind File To Beginning
+@REW:	equ	68
+@rmtsk:	equ	30		;Remove Task From Scheduler
+@RMTSK:	equ	30
+@rptsk:	equ	31		;Replace Task Vector
+@RPTSK:	equ	31
+@rread:	equ	69		;Re-read Current Sector
+@RREAD:	equ	69
+@rslct:	equ	47		;Test For Drive Busy
+@RSLCT:	equ	47
+@rstor:	equ	44		;Issue FDC Restore Command
+@RSTOR:	equ	44
+@run:	equ	77		;Run Program
+@RUN:	equ	77
+@rwrit:	equ	70		;Re-Write A Sector
+@RWRIT:	equ	70
+@seek:	equ	46		;Seek A Cylinder
+@SEEK:	equ	46
+@seeksc	equ	71		;Seek A Cylinder & Sector
+@SEEKSC	equ	71
+@skip:	equ	72		;Skip A Record
+@SKIP:	equ	72
+@slct:	equ	41		;Select A New Drive
+@SLCT:	equ	41
+@sound:	equ	104		;Sound Generation
+@SOUND:	equ	104
+@stepi:	equ	45		;Issue FDC Step In Command
+@STEPI:	equ	45
+@time:	equ	19		;Gets System Time
+@TIME:	equ	19
+@vdctl:	equ	15		;Video Functions
+@VDCTL:	equ	15
+@ver:	equ	73		;Write & Verify A Record
+@VER:	equ	73
+@vrsec:	equ	50		;Verify Sector
+@VRSEC:	equ	50
+@weof:	equ	74		;Update Directory Now
+@WEOF:	equ	74
+@where:	equ	7		;Returns address of caller
+@WHERE:	equ	7
+@write:	equ	75		;Write a record
+@WRITE:	equ	75
+@wrsec:	equ	53		;Write a Sector
+@WRSEC:	equ	53
+@wrssc:	equ	54		;Write a System Sector
+@WRSSC:	equ	54
+@wrtrk:	equ	55		;Write a Track
+@WRTRK:	equ	55
+

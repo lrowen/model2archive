@@ -1,0 +1,354 @@
+;SYSRES2/ASM - LDOS 6.2.0 - 01/03/84
+*LIST	OFF
+;
+;	revised 09/28/83 for Mod II	- kjw
+;
+	TITLE	<SYSRES - LDOS 6.2>
+*GET	COPYCOM:3
+LF	EQU	10
+CR	EQU	13
+*GET	LDOS60/EQU:2
+	SUBTTL	<'System low core assignments>'
+	PAGE	OFF
+;*=*=*
+;	LDOS 6.2 Low Core RAM storage assignments
+;	Copyright (C) 1982 by Logical Systems, Inc.
+;*=*=*
+START$	EQU	0
+	ORG	0+START$
+;*=*=*
+;	Page 0 - RST's, data, and buffers
+;*=*=*
+@RST00	JP	@IPL		;re-boot
+	NOP
+	NOP
+	DB	0,0,0		;CP/M emulator SVC
+@RST08	RET
+	DW	0
+SVCRET$	DW	0		;Return address from SVC
+LSVC$	DB	0		;Last SVC executed
+FDDINT$	NOP			;NOP or DI (F3H) here
+	RET			;go back now
+@RST10	RET
+	DW	0
+USTOR$	DS	5		;User storage area
+@RST18	RET
+	DW	0
+PDRV$	DB	7EH		;Current drive, physical
+PHIGH$	DW	0		;Physical HIGH$
+LOW$	DW	3000H		;Lowest usable memory
+@RST20	RET
+	DW	0
+LDRV$	DB	0		;Current drive, logical
+JDCB$	DW	0		;Saved FCB pointer
+JRET$	DW	0		;Saved I/O return address
+@RST28	JP	RST28		;System SVC processor
+TIMSL$	DB	55H		;fast=55, slow=FF
+TIMER$	DB	0		;RTC counter
+TIME$	DC	3,0		;SS:MM:HH storage area
+@RST30	JP	@DEBUG		;DEBUG call address
+DATE$	DS	5		;YY/DD/MM/packed
+@RST38	JP	RST38@		;Interrupt RST
+OSRLS$	DB	00H		;OS Release #
+;*=*=*
+;	INTIM$ stores the image read from RDINTSTATUS*
+;*=*=*
+INTIM$	DB	0		;Interrupt latch image
+;*=*=*
+;	INTMSK$ masks the image read from RDINTSTATUS*
+;	LDOS 6.x permits only RS-232 RCV INT, IOBUS INT,
+;	and RTC INT to be used by the TASKER off of RST38
+;*=*=*
+INTMSK$	DB	2CH		;Mask for INTIM$
+;*=*=*
+;	INTVC$ stores the eight vectors associated
+;	with the INTIM$ bit assignments
+;*=*=*
+INTVC$	DW	$M2VECS,$M2VECS	;Mode 2 interrupt table
+	DW	RSRET,RSRET	;SIO receive vectors
+	DW	RETINST,RETINST,RETINST,RETINST
+;*=*=*
+;	TCB$ stores the TCB vectors for task slots 0-11
+;*=*=*
+TCB$	DS	24		;Interrupt task vectors
+;*=*=*
+;	NMI vector used as real time clock interrupt
+;*=*=*
+@NMI	JP	NMISERV		;real time clock
+;*=*=*
+;	OVRLY$ stores the system's overlay request #
+;*=*=*
+OVRLY$	DB	0		;current overlay resident
+;*=*=*
+;	FLGTAB$ stores 26 flags and images. A pointer
+;	to this table is obtained from SVC-@FLAGS
+;*=*=*
+FLGTAB$	EQU	$
+;
+;*=*=*
+;	AFLAG$ - Start CYL for Allocation search
+;*=*=*
+AFLAG$	DB	02		;AFLAG
+	DB	0		;BFLAG
+;*=*=*
+;	CFLAG$ assignments:
+;	 0 - Cannot change HIGH$ via SVC-100
+;	 1 - @CMNDR in execution
+;	 2 - @KEYIN request from SYS1
+;	 3 - system request for drivers, filters, DCTs
+;	 4 - @CMNDR to only execute LIB commands
+;	 5 - Sysgen inhibit bit
+;*=*=*
+CFLAG$	DB	0		;Condition flag
+;*=*=*
+;	DFLAG$ assignments:
+;	 0 - SPOOL is active
+;	 1 - TYPE ahead is active
+;	 2 - VERIFY is on
+;	 3 - reserved
+;	 4 - MemDISK active
+;	 5 - reserved
+;	 6 - KSM active
+;	 7 - accept graphics in screen print
+;*=*=*
+DFLAG$	DB	2		;Device flag (TYPE)
+;*=*=*=*
+; 	EFLAG$ - Assignments: (sys13 usage)
+;	use only bits 4, 5 and 6 to indicate user
+; 	entry code to be passed to SYS13. SYS13
+; 	will be executed from SYS1 if this byte
+;	is NON/0, bit 4, 5 and 6 will be merged into
+;	the SYS13 (1000,1111b) overlay request
+;
+EFLAG$	DB	0		;Flag E
+FEMSK$	DB	0		;Port FE mask
+	DC	2,0		;Flags G-H
+;*=*=*=*
+; 	IFLAG$ - Assignments: (INTERNATIONAL)
+;	 0 - FRENCH
+;	 1 - GERMAN
+;	 2 - SWISS
+;	 3 -
+;	 4 - 
+;	 5 - 
+;	 6 - Special DMP mode ON/OFF
+;	 7 - '7' bit mode ON/OFF
+;*=*=*=*
+IFLAG$	EQU	$
+	IF	@FRENCH
+	DB	01000001B
+	ENDIF
+	IF	@GERMAN
+	DB	01000010B
+	ENDIF
+	IF	@USA
+	DB	0
+	ENDIF
+	DB	0		;Flag J
+;*=*=*
+;	KFLAG$ assignments:
+;	 0 - BREAK latch
+;	 1 - PAUSE latch
+;	 2 - ENTER latch
+;	 3 - reserved
+;	 4 - reserved
+;	 5 - CAPs lock
+;	 6 - reserved
+;	 7 - character in TYPE ahead
+;*=*=*
+KFLAG$	DB	0		;Keyboard flag
+;*=*=*
+;	LFLAG$ assignments:
+;	 0 - inhibit step rate question in FORMAT
+;	 4 - inhibit 8" query in FLOPPY/DCT
+;	 5 - inhibit # sides question in FORMAT
+;	 6 - skip RTC task
+;	 7 - video inhibit
+;*=*=*
+LFLAG$	DB	00H		;LDOS feature inhibit
+;*=*=*
+;	MODOUT$ mask assignments:
+;
+;	0-4 = bank number
+;	5   = video blank
+;	6   = RTC enable
+;	7   = video enable
+;*=*=*
+	IF	@INTL
+MODOUT$	DB	21H		;MODOUT international
+	ELSE
+MODOUT$	DB	21H		;MODOUT port image (FAST)
+	ENDIF
+;
+NFLAG$	DB	0		;Flag N
+;*=*=*
+;	OPREG$ memory management image port
+;	 0 - SEL0 - Select map overlay bit 0
+;	 1 - SEL1 - Select map overlay bit 1
+;	 2 - 80/64 - 1 = 80 x 24
+;	 3 - Invert video
+;	 4 - MBIT0 - memory map bit 0
+;	 5 - MBIT1 - memory map bit 1
+;	 6 - FXUPMEM - fix upper memory
+;	 7 - PAGE - page 1K video RAM (set for 80x24)
+;
+;	NOTE:	bit 3 supported ONLY in Mod II
+;
+;*=*=*
+OPREG$	DB	00H		;Memory management image
+PFLAG$	DB	0		;printer flag
+	DB	0		;qflag undefined
+RFLAG$	DB	8		;disk I/O retry flag
+;*=*=*
+;	SFLAG$ assignments:
+;	 0 - inhibit file open bit
+;	 1 - set to 1 if bit-2 set & EXEC file opened
+;	 2 - set by @RUN to permit load of EXEC file
+;	 3 - SYSTEM (FAST)
+;	 4 - BREAK key disabled
+;	 5 - JCL active
+;	 6 - force extended error messages
+;	 7 - DEBUG to be turned on after load
+;*=*=*
+SFLAG$	DB	8		;System flag (FAST)
+;
+;	Machine TFLAG$ assignments
+;
+;	02	= trs80 Mod 2
+;	04	= trs80 Mod 4
+;	12	= trs80 Mod 12
+;	16	= trs80 Mod 16
+;
+	IF	@MOD2
+TFLAG$	DB	12		;default 2/12/16
+	ELSE
+	ERR	'Undefined Machine type in TFLAG$'
+	DB	0
+	ENDIF
+UFLAG$	DB	0		;UFLAG$ (undefined)
+;*=*=*
+;	Video FLAG$ assignments:
+;	 0-3 - used to count 8 interrupts for blink
+;	 4 - display CLOCK
+;	 5 - cursor blink toggle bit
+;	 6 - Inhibit blinking cursor (user)
+;	 7 - Inhibit RTC video access
+;*=*=*
+VFLAG$	DB	0		;Blinking cursor, clock
+;*=*=*
+;	WRINT$ - interrupt mask register
+;	 0 - enable 1500 baud rising edge
+;	 1 - enable 1500 baud falling edge
+;	 2 - enable real time clock (!)
+;	 3 - enable I/O bus interrupts
+;	 4 - enable RS-232 transmit interrupts
+;	 5 - enable RS-232 receive data interrupts
+;	 6 - enable RS-232 error interrupt
+;*=*=*
+WRINT$	DB	4		;WRINTMASK port image
+	DC	3,0		;Flags X-Z
+;*=*=*
+;	Contents are high-order byte of SVC table
+;*=*=*
+	DB	SVCTAB$<-8	;MSB of SVC table
+;*=*=*
+;	OSVER$ stores the operating system version
+;*=*=*
+OSVER$	DB	62H		;OS version #
+;*=*=*
+;	Vector for config initialization
+;*=*=*
+@ICNFG	RET			;Initialization config
+	DW	0
+;*=*=*
+;	Chain vector for KI task processor
+;*=*=*
+@KITSK	RET			;Keyboard task routine
+	DW	0
+;*=*=*
+;	System File Control Block for overlays
+;*=*=*
+SFCB$	DB	80H,0,0		;System /SYS FCB
+	DW	SBUFF$
+	DB	0
+	DW	0,0,0,-1,0,-1,-1
+;*=*=*
+;	32-byte DEBUG save area
+;*=*=*
+DBGSV$	DS	32
+;*=*=*
+;	Job Control Language File Control Block
+;*=*=*
+JFCB$	DC	3,0
+	DW	SBUFF$
+	DS	27
+;*=*=*
+;	System Command Line file control block
+;*=*=*
+CFCB$	EQU	$		;Command Interpreter FCB
+CFGFCB$	DB	'CONFIG/SYS.CCC:0',3
+	DS	15
+;*=*=*
+;	Page 1 - System Supervisor Call Table
+;*=*=*
+SVCTAB$	EQU	$
+	IFNE $,100H
+	ERR	'SVCTBL location violation'
+	ENDIF
+;******
+;	Initial version
+;******
+MAXCOR$	EQU	2400H+START$
+MINCOR$	EQU	3000H+START$
+	ORG	@BYTEIO
+;*=*=*
+;	file positioning routines - MUST BE FIRST
+;*=*=*
+	SUBTTL	'<File positioning subroutines>'
+	PAGE	OFF
+*GET	FILPOSN:3
+CORE$	DEFL	$
+	ORG	CRTBGN$+13
+	DB	'TRSDOS 06.02.00'
+	IF	@USA
+	DB	' '
+	ENDIF
+	IF	@GERMAN
+	DB	'D'
+	ENDIF
+	IF	@FRENCH
+	DB	'F'
+	ENDIF
+	DB	'- Copyright 1983 '
+	DB	'Logical Systems Inc.'
+	ORG	CRTBGN$+80+14
+	DB	'All Rights Reserved. '
+	DB	'Licensed to Tandy Corporation.'
+;	DB	'NOT for public distribution !!'
+	ORG	CORE$
+;*=*=*
+;	get the system loader
+;*=*=*
+	SUBTTL	'<System Loader and associated routines>'
+	PAGE	OFF
+*GET	LOADER2:3
+	SUBTTL	'<System front end & task processor>'
+	PAGE	OFF
+*GET	TASKER2:3
+	IFGT	$,1D00H+START$
+	ERR	'SYSRES memory overflow
+	ENDIF
+CORE$	DEFL	$
+	ORG	CORE$
+	ORG	1D00H+START$
+SBUFF$	EQU	$
+	DS	256		;Page disk I/O buffer
+DIRBUF$	EQU	MAXCOR$-256	;Another file buffer
+;*=*=*
+;	get the system initialization module
+;*=*=*
+OVERLAY	EQU	$
+*GET	SYSINIT2:3
+*GET	LOGO2/ASM:3		;sign on logo
+	END	OVERLAY
+

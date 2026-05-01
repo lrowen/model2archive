@@ -1,0 +1,4 @@
+*GET	LCOMM
+	SUBTTL	<>
+	END	LCOMM
+

@@ -1,0 +1,1 @@
+; LSI "BASIC" LS-DOS Sign-on file 10/22/83;	ORG	7*80+CRTBGN$+29;	DB	'*******************'	DS	61	DB	'*                 *'	DS	61	DB	'*  W E L C O M E  *'	DS	61	DB	'*                 *'	DS	61	DB	'*       t o       *'	DS	61	DB	'*                 *'	DS	61	DB	'*   L S - D O S   *'	DS	61	DB	'*                 *'	DS	61	DB	'*******************'

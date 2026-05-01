@@ -1,0 +1,492 @@
+.if t  .po 1.0i
+.ds ]W May 15th, 1993\"
+.TH MORE U1 "" "LS-DOS 6 - Utilities 1"
+.ig
+MORE troff documentation \- Version 1(2) 20\-Jun\-93
+Copyright 1993 M. A. D. Software, All Rights Reserved.
+..
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+.de IN
+.if t  .in +0.5i
+.if n  .in +0.6i
+..
+.de OU
+.if t  .in -0.5i
+.if n  .in -0.6i
+..
+.de TI
+.if t  .ti -0.5i
+.if n  .ti -0.6i
+..
+.de IX
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 1.0i 1.5i 2.5i 3.5i 4.5i 5.5i
+.if t  .in +0.5i
+.if n  .in +1.0i
+..
+.de OX
+.if t  .in -0.5i
+.if n  .in -1.0i
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+..
+.de TX
+.if t  .ti -0.5i
+.if n  .ti -1.0i
+..
+.SH \fBName\fR
+.br
+MORE \- Displays the contents of a file one screen at a time.
+.SH \fBSyntax\fR
+.br
+.B more
+[
+.BI \-cdflsurw!?h
+] [
+.I \-n
+] [
+.I +linenumber
+] [
+.I +/pattern
+]
+.if n  .br
+[
+.I wildspec
+][
+.I :drivespec
+]... [< \fIfile\fR\ |\ \fIdevice\fR ]
+.br
+[>[>]
+.I file\ |\ device
+] [
+.I ;\ next\ command
+]
+.SH Description
+.br
+
+.I More
+acts as a filter that allows text to be viewed one screen at a time.  By
+default, \fImore\fR pauses when the screen has been filled with 
+text. \fIMore\fR then displays the "--More--" command prompt at the bottom
+of the screen.  If the user presses \fB<SPACE>\fR, another page (screen full)
+of text is displayed.  Pressing \fB<ENTER>\fR causes the next line of text
+to be displayed.  The number of lines of text displayed when these keys are
+pressed is adjustable.  There are numerous other commands available at
+the --More-- prompt, and these are described below.
+
+.I More
+can accept multiple files at once, and these are displayed in the
+order specified.  When a \fIwildspec\fR is specified, all
+files that match the \fIwildspec\fR will be displayed.  If a \fIdrivespec\fR
+is specified, only files on that particular drive or drives will be displayed.
+If the \fIdrivespec\fR and \fIwildspec\fR are both omitted, \fImore\fR will read
+data from standard-in device (normally the keyboard) and displays the data
+that is read.
+The output of \fImore\fR can also be redirected
+out to a device or a file.
+
+.I More
+accepts several options.  Options are usually specified by single characters,
+and they may be entered in upper or lowercase.  Options are always
+preceded by a hyphen (a "-").  If you are specifying multiple options, you
+can specify the options in any of these formats:
+.br
+	-a -b -c   or   -abc   or   -a -bc   or  -ab -c
+
+The options are:
+.IP \fB\-c\fR 5
+Each page of text is displayed by starting at the top of the screen and
+erasing the old text on each line just before new text is placed on that
+line.  By default, \fImore\fR scrolls the text from the previous page up so
+that it disappears off the top of the screen, and the new text is added at
+the bottom.
+
+.IP \fB\-d\fR 5
+The --More-- prompt will also display brief a help message each time it is
+displayed.  This is useful with users who are unfamiliar with \fImore\fR.
+Note that "?" can be pressed at the --More-- prompt to receive help
+at all times.
+
+.IP \fB\-f\fR 5
+This option instructs \fImore\fR to count logical lines instead of screen
+lines.  If all the lines of text are shorter than 81 lines, you will
+not be able to see a difference.  This option is useful if the
+file contains backspace or control-character sequences that might
+confuse \fImore\fR about the true length of lines in the file.
+
+.IP \fB\-l\fR 5
+CONTROL-L will not be treated as a special character.  By default,
+a CONTROL-L causes the --More-- prompt to be displayed immediately,
+just as though the end of the current page had been reached. 
+
+.IP \fB\-s\fR 5
+When specified, duplicate blank lines are not displayed. For
+example, if a file contains three blank lines in a row, only one
+blank line will be displayed.  This is useful for looking at
+documents that are formatted for printing and have multiple blank
+lines at the top and bottom of each page.
+
+.if t  .bp
+.IP \fB\-u\fR 5
+Normally \fImore\fR displays text that is underlined in reverse video.
+This option disables this translation.
+
+.IP \fB\-r\fR 5
+This option causes control characters to be displayed as a caret
+("^") and a letter.  For example, CONTROL-C would be displayed as
+^C.  By default, \fImore\fR ignores non-carriage control characters.
+
+.IP \fB\-w\fR 5
+A warning message will be displayed when all files have been displayed and
+\fImore\fR is about to exit.  This is useful when \fImore\fR is invoked from
+another program or batch file that might clear the screen before the contents
+can be read.  The prompt "--No More--" waits for the user to press a key
+before \fImore\fR exits.
+
+.IP \fB\-!\fR 5
+Causes \fImore\fR to ignore any default settings that are specified in
+the \fBDEFAULTS/MAD\fR file.  \fIMore\fR will also ignore any options that
+are specified to the left of the \fB-!\fR option.  Note that the
+\fBDEFAULTS/MAD\fR file is accessed even if the \fB-!\fR option is specified.
+
+.IP \fB\-\?\fR\ or\ \fB\-h\fR 5
+Displays the help message.
+
+.IP \fB\-\fIn\fR 5
+\fIn\fR is an integer that specifies the number of lines that \fImore\fR
+will display per page instead of the default.  If the number is larger
+than 23, some lines will scroll off the screen before the --More-- prompt
+is displayed.
+
+.IP \fB+\fIlinenumber\fR
+When specified, \fImore\fR skips this many lines in the first file
+specified before it begins to display the file contents.
+
+.IP \fB+/\fIpattern\fR
+When specified, \fImore\fR will search through the first file that is
+specified looking for the pattern.  When the pattern is found, \fImore\fR
+will begin displaying the file at that point.  \fIMore\fR displays up to four
+lines in front of the point where the match occurs to provide some context.
+
+If the \fIpattern\fR is not found, the message \fB"Pattern not found"\fR is
+displayed.  If a filename was specified to \fImore\fR, \fImore\fR
+repositions to the beginning of the current file after the search fails.
+If \fImore\fR was reading from the standard input or from a redirected file,
+\fImore\fR remains positioned at the end of the file.
+
+\fIPatterns\fR may include all types of wildcards.  Wildcards are discussed
+in the \fIwildspec\fR documentation, below.
+You may also place an uparrow (^) at the start of the \fIpattern\fR.
+The uparrow means that the \fIpattern\fR must match text at the start
+of lines in the file.  For example, if the \fIpattern\fR was "^ine":
+.br
+.IN
+This line would not match the pattern,
+.br
+ine But this line would.
+.br
+.OU
+
+By default, the \fIpattern\fR will match text anywhere in a line.
+
+The \fIpattern\fR is case-sensitive, so upper and lowercase characters must
+match the \fIpattern\fR exactly.  The \fIpattern\fR can specify upper or
+lowercase for certain characters if needed by using \fIranges\fR.
+
+.if t  .bp
+Multiple \fIpatterns\fR can also be specified by placing <CLEAR><SPACE>
+character between each \fIpattern\fR.  For example the \fIpattern\fR
+ABC<CLEAR><SPACE>xyz  would locate any occurrence of the sequence "ABC"
+or the sequence "xyz".
+
+.if n  .bp
+.IP \fIwildspec\fR
+A \fIwildspec\fR specifies one or more files that are to be examined
+in alphabetical order.  A \fIwildspec\fR may contain none or more of
+the following wildcard characters:
+
+.IN
+.TI
+\(**	The * matches zero or more characters in the specified
+position.  For example, the \fIwildspec\fR A*Z will match any
+of the following filenames:
+.br
+.ce
+AZ		ABZ
+.br
+.ce
+ABCDEFGZ	ABC/XYZ
+.br
+Note that unlike a LS-DOS/TRSDOS 6 \fIpartspec\fR(L), the filename
+and extension are treated as a single unit.  A single * will match files
+with and without extensions.
+
+.TI
+%	The % matches exactly one character.  So A%C matches:
+.br
+.ce
+ABC		AXC
+.br
+The file AC will not match the A%C pattern.
+
+.KS
+.TI
+\[\ ]	Ranges specify multiple characters that may appear in
+a given position in the filenames being tested.  There
+are two formats that can be combined:
+.br
+.IX
+.TX
+[abc]	These specific characters are acceptable in this
+position in the filename.  So A[BC5]D would match:
+.br
+.ce
+ABD		ACD		A5D
+.br
+
+.TX
+[b\-e]	The characters in this ASCII range are acceptable
+in this position in the filename.  A[E\-J]X matches:
+.br
+.ce
+AEX		AFX		AGX
+.br
+.ce
+AHX		AIX		AJX
+.br
+Numbers can also be included in ranges, but the first value
+of the range must always have a lower ASCII value than the second
+value.
+.br
+.TX
+[!...]	The ! excludes all files that match characters in this
+position.  So A[!DKP]D will match all filenames that
+start with an "A", end with a "D", and the second
+character is any character except "D", "K", or "P".
+.br
+.KE
+.sp
+.OX
+Combinations of ranges are also allowed.  A[1\-3ABD]X would
+allow these filenames:
+.br
+.ce
+A1X		A2X		A3X
+.br
+.ce
+AAX		ABX		ADX
+.br
+
+.OU
+Any lowercase characters in the \fIwildspec\fR are converted to uppercase
+before the comparison is performed.
+.if n  .bp
+.IP \fI:drivespec\fR 5
+The \fIdrivespec\fR specifies one or more logical drives that should
+be scanned for files that match the file \fIwildspec\fR.  The % and *
+will examine all enabled drives.  A range can also be used.
+For example, :[2\-47] will search for files on drives 2, 3, 4 and 7.
+
+If the \fIdrivespec\fR is not specified and a \fIwildspec\fR is, all drives
+are searched for files that match the file \fIwildspec\fR and all files
+that match will be displayed.  So if the command \fBmore sample/txt\fR is
+used and the file SAMPLE/TXT exists on four different logical drives,
+all four files will be displayed.
+
+.IP \fB<\ \fIfile\ |\ device\fR 5
+If a file or device is specified, \fImore\fR will read the data from the
+file or device until the end-of-file is detected or an error occurs.  This is
+known as \fIredirected input\fR.  For example, if you specify
+.if t  .br
+\fB< *KI\fR or do not specify a \fIwildspec\fR,
+characters will be read from the keyboard until <BREAK> is pressed.  These
+characters will not be echoed.
+
+Redirected input will override any wildspecs that are specified.
+
+.IP \fB>\fR[\fB>\fR]\ \fIfile\ |\ device\fR 5
+By specifying a file or device, the
+output is sent to the specified file or device instead of the
+display.  This is known as \fIredirected output\fR.
+For example, the command \fBmore a*:5 > all/a:0\fR places the contents
+of the files from logical drive 5 with names that start
+with the letter 'a' in the file \fBALL/A:0\fR.  If >> is used, the output
+will be appended to any existing contents of the file.
+\fIFilespecs\fR for redirection may not specify a password.
+
+.IP \fI;\ next\ command\fR
+After \fImore\fR completes, the remainder of the command line is executed
+as a second command.  The command \fBmore x:1;date\fR will display the
+contents of the specified file, and then the date will be displayed.  
+
+.IP <SHIFT>@
+When pressed during output to the display, the output will pause.
+Pressing any other key resumes output.  Pressing
+this key is ignored when output is redirected.
+
+
+.SH \fB\s+2--More-- Prompt Commands\fR\s-2
+.br
+.sp
+.sp
+When the --More-- prompt is displayed, numerous commands can be
+specified.  These allow you to skip to the next file, skip further
+down the current file, even search for a particular string within
+the file.  With the exception of the "/" command, no characters
+are echoed while the command is being entered.  
+
+Some of the commands optionally accept a decimal value \fIi\fR.
+
+.IP [\fIi\fR]\fB<SPACE>\fR
+When the \fB<SPACE>\fR key is pressed, another screen worth of information
+is displayed.  By default, 22 new lines are displayed each time so
+that one line from the previous screen will remain in the screen.
+If a decimal value is specified, it will set the number of lines
+that are displayed each time the \fB<SPACE>\fR key is pressed from now on.
+
+.IP [\fIi\fR]\fB<ENTER>\fR
+This command causes one more line of the file to be displayed.  If
+a number is specified, it changes the number of lines the \fB<ENTER>\fR
+key displays.  The command  \fB7<ENTER>\fR causes the \fB<ENTER>\fR to display
+seven more lines each time it is pressed.
+
+.IP [\fIi\fR]\fB<CTRL-D>\fR
+Similar to the \fB<SPACE>\fR key, except that 11 more lines are
+displayed.  This default can be changed by specifying a new value.
+
+.if t  .bp
+.IP [\fIi\fR]\fBs\fR
+The specified number of lines are skipped and then a new page of
+text is displayed.  For example if the --More-- prompt pauses at
+line 23 of a file and you type \fB500s\fR, the listing will resume at
+line 524.
+
+.IP [\fIi\fR]\fBf\fR
+This skips forward in the file by the specified number of screens of text.  
+
+.IP [\fIi\fR]\fB/\fIpattern\fR
+Searches forward in the current file looking for a line that contains
+text that matches the \fIpattern\fR.  Wildcards and the uparrow (^) can be
+used in the \fIpattern\fR.  Multiple patterns can also be used
+(see \fB+/\fIpattern\fR for an example).  When a line is found that matches
+the \fIpattern\fR, the listing resumes four lines above the line containing
+the match.  If the search started fewer than four lines from the location
+where a match to the pattern is found, all the intervening lines are displayed.
+
+If a decimal value is specified, \fImore\fR will search for the \fInth\fR
+occurrence of the specified pattern.
+
+If the pattern cannot be found, \fImore\fR will display the error
+"\fBPattern not found\fR".  If \fImore\fR was reading from a file, it will
+reposition to the location in the file that \fImore\fR was at when
+the search was started.  If \fImore\fR was reading from a standard input (*SI)
+or a redirected input and the \fIpattern\fR could not be found, \fImore\fR
+will terminate when the end of the input data is reached.
+
+.IP [\fIi\fR]\fBn\fR
+When the \fBn\fR command is specified, \fImore\fR will start a search using
+the last pattern that was specified with the \fB/\fR command.  A decimal
+value will cause the search to look for the \fInth\fR occurrence of the
+pattern.
+
+.IP \fB=\fR
+Will display the current line number.  All --More-- commands are accepted
+even though the
+.if t  .br
+--More-- prompt isn't visible.  To redisplay the --More--
+prompt, press \fB<BACKSPACE>\fR or any other invalid character.
+
+.IP \fB.\fR
+Causes \fImore\fR to repeat the last command that accessed the file.
+
+.IP \fBq\fR
+Causes \fImore\fR to exit, regardless of how many more files are to be
+displayed.  \fImore\fR exits with a "no error" condition.  Any additional
+commands specified on the \fImore\fR command line are not executed.
+
+.IP \fB<BREAK>\fR
+Like the \fBq\fR command, \fImore\fR will exit.  \fIMore\fR exits
+with an abort error condition and will not execute any additional commands
+on the \fImore\fR command line.
+
+.sp
+.if n  .bp
+.OU
+The following commands are not available when reading from a streaming
+device.  This includes reading from standard in or from a redirected file.
+.IN
+
+.if n  .bp
+.IP \fB\'\fR
+
+\fIMore\fR positions back to where the last search started.  For example,
+if you used the \fB/\fR command to search for something and the wrong
+search string was specified, the \fB'\fR command will back up to the
+place in the file you were at when the last search started.
+
+.IP \fB:f\fR
+Displays the current filename and line number.  Similar to the \fB=\fR
+command.
+
+.if t  .bp
+.IP [\fIi\fR]\fB:n\fR
+Advances to the next file when multiple files are specified.  If there are
+no more files, \fImore\fR exits (unless the \fB-w\fR option was specified).
+If a number is specified, the specified number of files are skipped.  If the
+command \fBMORE A B C D\fR was used and in the middle of reading file
+\fBA\fR you gave the command \fB2:n\fR, \fImore\fR would skip to the file
+named \fBC\fR.  By default, \fB:n\fR goes forward to the very next file.
+
+.IP [\fIi\fR]\fB:p\fR
+Moves to the previous file when multiple files are specified.  If there
+are no previous files, \fImore\fR goes to the first file specified.
+If a number is provided, \fImore\fR skips back that number of files.
+The command \fB0:p\fR goes to the start of the current file.  By default,
+\fB:p\fR goes back one file.
+
+
+.SH \fBFiles\fR
+\fIMore\fR reads the \fBDEFAULTS/MAD\fR file and uses any default options that
+are specified there.  For example, if you wanted \fImore\fR to always
+display control characters,
+the following entry in the \fBDEFAULTS/MAD\fR file would do this:
+.IN
+.IN
+MORE \-R
+.br
+.OU
+.OU
+Options in the \fBDEFAULTS/MAD\fR file are ignored if the \fB\-!\fR option
+is specified on the command line.
+
+.if n  .bp
+You may make copies of \fImore\fR with different names.  When examining the
+\fBDEFAULTS/MAD\fR file, the name used to invoke the program will be used to
+locate the default entries.  For example, if you made copies of \fBMORE/CMD\fR
+and named them \fBSHOW/CMD\fR and \fBVIEW/CMD\fR, you could add the following
+lines to the \fBDEFAULTS/MAD\fR file:
+.IN
+.IN
+SHOW -R
+.br
+VIEW -S
+.br
+.OU
+.OU
+.fi
+When \fIshow\fR is run, any non-carriage control characters in the files would
+be displayed as ^character, and \fIview\fR would eliminate excessive blank
+lines in the files it displays.
+
+.if n  .bp
+If you need more information on \fImore\fR(U1) or if you want to obtain the
+LDOS 5.3
+version, please write to M.A.D. Software, P.O. Box 331323, Ft. Worth Texas,
+76163.  Please include a Self\-Addressed\-Stamped\-Envelope when requesting
+information.
+.br
+\-\-\-\-\-\-
+.br
+306182
+

@@ -1,0 +1,538 @@
+;GENISAM/ASM - 02/27/83
+;*=*=*
+; Generates ISAM file for SYS6 & SYS7 & SYS8
+;	copyright (c) 1980, Roy Soltoff
+;*****
+	TITLE	<GENISAM - V5.1>
+*GET	BUILDVER/ASM:3
+DOS5	EQU	@@1
+DOS6	EQU	.NOT.DOS5
+LF	EQU	10
+CR	EQU	13
+;
+	IF	DOS5
+@GET	EQU	13H
+@PUT	EQU	1BH
+@DSP	EQU	33H
+@KEYIN	EQU	40H
+KB7	EQU	3840H
+@EXIT	EQU	402DH
+@ABORT	EQU	4030H
+@ERROR	EQU	4409H
+@FSPEC	EQU	441CH
+@INIT	EQU	4420H
+@OPEN	EQU	4424H
+@CLOSE	EQU	4428H
+@READ	EQU	4436H
+@WRITE	EQU	4439H
+@POSN	EQU	4442H
+@DSPLY	EQU	4467H
+@PEOF	EQU	4448H
+	ORG	5200H
+	ENDIF
+;
+*GET	SVCMAC
+	IF	DOS6
+	ORG	3000H
+	ENDIF
+;
+START	LD	HL,CPYMSG
+	IF	DOS5
+	CALL	@DSPLY
+	ENDIF
+	IF	DOS6
+	@@DSPLY
+	ENDIF
+	LD	HL,ISAMFILE$
+	IF	DOS5
+	CALL	@DSPLY
+	ENDIF
+	IF	DOS6
+	@@DSPLY
+	ENDIF
+	LD	HL,LINEBUF
+	IF	DOS5
+	LD	B,31
+	CALL	@KEYIN
+	ENDIF
+	IF	DOS6
+	LD	BC,31<8
+	@@KEYIN
+	ENDIF
+	JP	C,GOTBRK
+	PUSH	HL		;save ptr
+	LD	DE,PROPMSG+2
+	LD	B,6
+ST1	LD	A,(HL)
+	CP	'/'		;found EXT?
+	JR	Z,ST2
+	INC	HL
+	LD	(DE),A
+	INC	DE
+	DJNZ	ST1
+ST2	POP	HL
+	LD	DE,ISAMFCB
+	IF	DOS5
+	CALL	@FSPEC
+	ENDIF
+	IF	DOS6
+	@@FSPEC
+	ENDIF
+	JP	NZ,GOTERR
+;*****
+;	init the isam output file
+;*****
+	LD	HL,ISAMBUF
+	LD	B,0
+	IF	DOS5
+	CALL	@INIT
+	ENDIF
+	IF	DOS6
+	@@INIT
+	ENDIF
+	JP	NZ,GOTERR
+;*****
+;	prompt for map table file
+;*****
+	LD	HL,MAPMSG	;prompt for map file
+	IF	DOS5
+	CALL	@DSPLY
+	ENDIF
+	IF	DOS6
+	@@DSPLY
+	ENDIF
+	LD	HL,LINEBUF	;get filespec
+	IF	DOS5
+	LD	B,31
+	CALL	@KEYIN
+	JP	C,GOTBRK
+	LD	A,CR
+	CALL	@DSP
+	ENDIF
+	IF	DOS6
+	LD	BC,31<8
+	@@KEYIN
+	JP	C,GOTBRK
+	LD	C,CR
+	@@DSP
+	ENDIF
+	LD	DE,MAPFCB
+	IF	DOS5
+	CALL	@FSPEC
+	ENDIF
+	IF	DOS6
+	@@FSPEC
+	ENDIF
+	JP	NZ,GOTERR
+	LD	B,0
+	LD	HL,MAPBUF	;set buffer area
+	IF	DOS5
+	CALL	@OPEN
+	ENDIF
+	IF	DOS6
+	@@FLAGS
+	SET	0,(IY+'S'-'A')
+	@@OPEN
+	ENDIF
+	JP	NZ,GOTERR
+;*****
+;	read map size
+;*****
+	CALL	@GET
+	JP	NZ,GOTERR
+	CALL	GETVAL
+	CP	CR-30H
+	JP	NZ,FMTERR
+	LD	A,L
+	LD	(MAPSIZE+1),A
+;*****
+;	generate proprietary message to isam
+;*****
+	LD	HL,PROPMSG	;Bypass header
+PROP1	LD	A,(HL)
+	INC	HL
+	CP	CR
+	JR	Z,PROP2
+	CALL	PUTISAM
+	JR	PROP1
+PROP2	PUSH	DE
+	POP	IX
+	LD	IY,MAPPOSN
+	CALL	SAVPOSN
+;*****
+;	gen preliminary map table
+;*****
+MAPSIZE	LD	B,0
+	LD	HL,MAPRAM	;map table in RAM
+MAP1	LD	A,8		;set type code
+	LD	(HL),A
+	INC	HL
+	CALL	@PUT
+	LD	A,6		;set field length
+	LD	(HL),A
+	INC	HL
+	CALL	@PUT
+	XOR	A		;set overlay #
+	LD	(HL),A
+	INC	HL
+	CALL	@PUT
+	LD	(HL),A
+	INC	HL
+	CALL	@PUT		;xfer addr
+	LD	(HL),A
+	INC	HL
+	CALL	@PUT
+	LD	(HL),A
+	INC	HL
+	CALL	@PUT		;lo-order POSN
+	LD	(HL),A
+	INC	HL
+	CALL	@PUT		;hi-order POSN
+	LD	(HL),A
+	INC	HL
+	CALL	@PUT		;offset byte
+	DJNZ	MAP1
+	LD	A,10
+	LD	(HL),A		;show table end
+	CALL	ENDOVERLAY+2
+	CALL	ENDOVERLAY
+MAP2	LD	IY,CURPOSN
+	LD	DE,ISAMFCB
+	CALL	SAVPOSN
+;*****
+;	grab filespec from the map file
+;*****
+	LD	DE,MAPFCB	;point to control block
+	LD	HL,LINEBUF
+	PUSH	HL
+GOT0	CALL	@GET		;grab a byte
+	JR	Z,GOTOK
+	CP	1CH		;eof
+	JP	NZ,GOTERR
+	JP	ALLDONE
+GOTOK	CP	','
+	JR	Z,GOT1
+	LD	(HL),A
+	INC	HL
+	JR	GOT0
+GOT1	LD	(HL),CR
+	POP	HL
+	LD	DE,LIBFCB
+	IF	DOS5
+	CALL	@FSPEC
+	ENDIF
+	IF	DOS6
+	@@FSPEC
+	ENDIF
+	JP	NZ,GOTERR
+	PUSH	DE
+	LD	HL,PROCMSG
+	IF	DOS5
+	CALL	@DSPLY
+	ENDIF
+	IF	DOS6
+	@@DSPLY
+	ENDIF
+	POP	HL
+	PUSH	HL
+	IF	DOS5
+	CALL	@DSPLY
+	LD	A,CR
+	CALL	@DSP
+	ENDIF
+	IF	DOS6
+	@@DSPLY
+	LD	C,CR
+	@@DSP
+	ENDIF
+	LD	B,0
+	POP	DE
+	LD	HL,LIBBUF
+	IF	DOS5
+	CALL	@OPEN
+	ENDIF
+	IF	DOS6
+	PUSH	IY
+	@@FLAGS
+	SET	0,(IY+'S'-'A')
+	POP	IY
+	@@OPEN
+	ENDIF
+	JP	NZ,GOTERR
+;*****
+;	read codes from map file & update core map
+;*****
+	LD	HL,MAPRAM
+RMAP0	LD	DE,MAPFCB
+	CALL	@GET		;overlay number
+	JP	NZ,GOTERR
+	PUSH	HL		;save mapram pointer
+	CALL	GETVAL		;cvrt # to hex in HL
+	CP	','-30H		;ck separator
+	JP	NZ,FMTERR	;format error if not comma
+	LD	A,H		;must be < 256
+	OR	A
+	JP	NZ,FMTERR
+	LD	A,L
+	LD	(LIBCOD+1),A	;stuff code for later
+	CALL	@GET		;transfer address
+	JP	NZ,GOTERR
+	CALL	GETVAL
+	CP	','-30H		;comma or CR separator
+	JR	Z,RMAP1
+	CP	CR-30H
+	JP	NZ,FMTERR
+RMAP1	LD	(LIBTRA+1),HL	;stuff traadr for later
+	POP	HL		;rcvr mapram pointer
+	PUSH	AF		;save separator
+RMAP2	LD	A,(HL)		;look for spare entry
+	CP	10
+	JP	Z,MAPTBLERR
+	INC	HL
+	INC	HL		;advance to lib code
+	LD	A,(HL)
+	OR	A		;spare?
+	JR	Z,LIBCOD
+	INC	HL		;advance to next table pos
+	INC	HL
+	INC	HL
+	INC	HL
+	INC	HL
+	INC	HL
+	JR	RMAP2
+LIBCOD	LD	(HL),0
+	INC	HL
+LIBTRA	LD	DE,0		;p/u traadr
+	LD	(HL),E
+	INC	HL
+	LD	(HL),D
+	INC	HL
+	EX	DE,HL
+	LD	HL,CURPOSN
+	LD	BC,3
+	LDIR
+	EX	DE,HL
+	POP	AF		;rcvr separator
+	CP	CR-30H
+	JR	Z,COPY0		;do copy if end of line
+	JR	RMAP0
+COPY0	CALL	GETLIB
+	CP	1
+	JR	Z,COPY2
+	CP	2
+	JP	Z,COPY4		;finished reading lib
+	CALL	GETLIB		;get comment length
+	LD	B,A
+COPY1	CALL	GETLIB
+	DJNZ	COPY1
+	JR	COPY0
+;*****
+;	read type code 1 - start of block
+;*****
+COPY2	CALL	PUTISAM
+	CALL	GETLIB		;grab length
+	LD	B,A
+	CALL	PUTISAM
+	CALL	GETLIB		;grab lo-order load addr
+	DEC	B
+	CALL	PUTISAM
+	CALL	GETLIB		;grab hi-order load addr
+	DEC	B
+	CALL	PUTISAM
+COPY3	CALL	GETLIB		;transfer load block
+	CALL	PUTISAM
+	DJNZ	COPY3
+	JR	COPY0
+COPY4	CALL	ENDOVERLAY
+	JP	MAP2
+;*****
+;	end of map file, gen complete map to disk
+;*****
+ALLDONE	LD	HL,GENMSG
+	IF	DOS5
+	CALL	@DSPLY
+	ENDIF
+	IF	DOS6
+	@@DSPLY
+	ENDIF
+	LD	HL,(MAPPOSN)
+	LD	C,L
+	LD	B,H
+	LD	DE,ISAMFCB
+	IF	DOS5
+	CALL	@POSN
+	ENDIF
+	IF	DOS6
+	@@POSN
+	ENDIF
+	JP	NZ,GOTERR
+	PUSH	DE
+	POP	IX
+	LD	A,(MAPPOSN+2)
+	LD	(IX+5),A	;position file to map
+	LD	HL,MAPRAM	;point to ram table
+	LD	A,(HL)		;get type code
+ALLD1	CP	10		;end of table?
+	JR	Z,ALLD3
+	LD	B,8		;8-byte field
+ALLD2	CALL	@PUT
+	JP	NZ,GOTERR
+	INC	HL
+	LD	A,(HL)
+	DJNZ	ALLD2
+	JR	ALLD1
+ALLD3
+	IF	DOS5
+	CALL	@PEOF
+	ENDIF
+	IF	DOS6
+	@@PEOF
+	ENDIF
+	LD	A,2
+	CALL	@PUT
+	LD	A,2
+	CALL	@PUT
+	XOR	A
+	CALL	@PUT
+	XOR	A
+	CALL	@PUT
+	IF	DOS5
+	CALL	@CLOSE
+	ENDIF
+	IF	DOS6
+	@@CLOSE
+	ENDIF
+	LD	HL,FINMSG
+	IF	DOS5
+	CALL	@DSPLY
+	JP	@EXIT
+	ENDIF
+	IF	DOS6
+	@@DSPLY
+	LD	HL,0
+	@@EXIT
+	ENDIF
+;*****
+;	routine to read in a hex value in ASCII digit
+;	form (any # of digits) and convert to binary
+;	   A => first digit passed
+;*****
+GETVAL	LD	HL,0		;INIT AT ZERO
+	CALL	CVB		;convert digit to binary
+	RET	C		;RET IF BAD INPUT
+	ADD	HL,HL		;MULTIPLY CURRENT
+	ADD	HL,HL		;value by 16
+	ADD	HL,HL
+	ADD	HL,HL
+	OR	L		;INSERT THE 0-15 ->
+	LD	L,A		;low nybble
+	CALL	@GET		;get next digit
+	JP	NZ,GOTERR
+	JR	GETVAL+3
+CVB	SUB	30H	;CVRT EXPECTED DIGIT TO BINARY
+	RET	C
+	ADD	A,0E9H	;CK FOR > F
+	RET	C
+	ADD	A,6	;CHG (E9 - EF) TO (EF - 05)
+	JR	C,ATOF
+	ADD	A,7	;CHG (EF - FF) TO (F6 - 06)
+	RET	C	;ERROR IF (3A - 3F) OR (: TO ?)
+ATOF	ADD	A,10	;CHG (0 - 6) TO (10 - 16)
+	OR	A	;OR (F6 - FF) TO (0 - 9)
+	RET
+SAVPOSN	LD	C,(IX+10)	;p/u NRN lo order
+	LD	B,(IX+11)	;p/u NRN hi order
+	LD	A,(IX+5)	;p/u NRN offset
+	LD	(IY+2),A
+	OR	A		;If on boundary,
+	JR	Z,SAVP1		;  don't decrement NRN
+	DEC	BC		;adjust for zero offset
+SAVP1	LD	(IY+0),C
+	LD	(IY+1),B
+	RET
+ENDOVERLAY	LD	A,4
+	CALL	PUTISAM
+	LD	A,1
+	CALL	PUTISAM
+	XOR	A
+	JP	PUTISAM
+GETLIB	LD	DE,LIBFCB
+	CALL	@GET
+	RET	Z
+	JR	GOTERR
+PUTISAM	LD	DE,ISAMFCB
+	CALL	@PUT
+	IF	DOS5
+	PUSH	AF
+	LD	A,(KB7)		;test break
+	AND	4
+	JR	NZ,GOTBRK
+	POP	AF
+	ENDIF
+	RET	Z
+GOTERR	OR	40H
+	IF	DOS5
+	JP	@ERROR
+	ENDIF
+	IF	DOS6
+	LD	C,A
+	@@ERROR
+	ENDIF
+;
+	IF	DOS6
+@PUT	PUSH	BC
+	LD	C,A
+	@@PUT
+	POP	BC
+	RET
+@GET
+	@@GET
+	RET
+	ENDIF
+GOTBRK	LD	HL,GOTBRK$
+	DB	0DDH
+FMTERR	LD	HL,FMTERR$
+	DB	0DDH
+MAPTBLERR	LD	HL,TBLERR$
+	IF	DOS5
+ERREXIT	CALL	@DSPLY
+	JP	@ABORT
+	ENDIF
+	IF	DOS6
+ERREXIT
+	@@LOGOT
+	LD	HL,0FFFFH
+	@@EXIT
+	ENDIF
+CPYMSG	DB	LF,'LDOS ISAM file generator - Version 5.1'
+	DB	LF,'Copyright (C) 1980, Roy Soltoff, '
+	DB	'All rights reserved',CR
+ISAMFILE$ DB LF,'What is the name of the ISAM file? >',3
+MAPMSG DB 'What is the name of the MAP data file? >',3
+GOTBRK$	DB	LF,'Break aborted',CR
+PROPMSG	DB	5,6,'      ',1FH
+	DB	PROCMSG-$-2
+;	DB	'Copyright 1986 MISOSYS, Inc., All rights reserved',CR
+	IF	@BLD631
+	DB	'(C) 1982-4,6,90 MISOSYS',CR		;<631>
+	ELSE
+	DB	'Copyright (C) 1987 by Logical Systems, Incorporated',CR
+	ENDIF
+PROCMSG	DB	'Processing overlay ',3
+GENMSG	DB	LF,'Generating Library Map',CR
+FINMSG	DB	'ISAM generation completed',CR
+FMTERR$	DB	LF,'*** Format error in MAP data ***',CR
+TBLERR$	DB	LF,'*** MAP table overflowed ***',CR
+MAPPOSN	DS	3
+CURPOSN	DS	3
+ISAMFCB	DS	32
+MAPFCB	DS	32
+LIBFCB	DS	32
+LINEBUF	DS	32
+	ORG	$<-8+1<8
+ISAMBUF	DS	256
+MAPBUF	DS	256
+LIBBUF	DS	256
+MAPRAM	EQU	$
+	END	START
+

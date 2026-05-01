@@ -1,0 +1,250 @@
+.DT
+.TH WC U1 "" "LS-DOS 6 - Utilities 1"
+.ig
+WC troff documentation \- Version 1(1) 15\-May\-93
+Copyright 1993 M. A. D. Software, All Rights Reserved.
+  	 Copyright 1992,1993 M. A. D. Software, All Rights Reserved.
+..
+.SH \fBName\fR
+.br
+WC \- Counts the characters, words and lines in a file.
+.SH \fBSyntax\fR
+.br
+.B wc
+[
+.BI \-cwlp!?h
+] [
+.I wildspec
+][
+.I :drivespec
+]...
+[\fB<\fR
+.I file\ |\ device
+] [\fB>\fR[\fB>\fR]
+.I file\ |\ device
+] [
+.I ;\ next\ command
+]
+.SH Description
+.br
+
+.I Wc
+reads the contents of the specified files and reports on the number of
+characters, words and lines that each file contains.  When more than one
+file is examined, a total is also displayed.
+
+\fIWc\fR accepts several options.  Options are specified by single characters,
+and they may be entered in upper or lowercase.  Options are always preceded by
+a hyphen (a "\-").  If you are specifying multiple options, you can specify
+the options in any of these formats:
+.br
+	\-a \-b \-c   or   \-abc   or   \-a \-bc   or  \-ab \-c
+
+The options are:
+.IP \fB\-c\fR 5
+Displays the number of characters present in the file.
+.IP \fB\-w\fR 5
+Displays the number of words present in the file.  Words are considered
+to be blank- or carriage-control-separated groups of characters.
+.IP \fB\-l\fR 5
+Displays the number of lines present in the file.  \fIWc\fR counts the
+sequence 0x0d 0x0a (CR/LF) as a single line, but all other combinations
+of 0x0d and/or 0x0a are counted as two lines.
+.IP \fB\-p\fR
+Output of \fIwc\fR is routed through the \fImore\fR(U1) utility.  The screen
+will pause once 23 lines of text have been displayed.  The \fImore\fR(U1) prompt
+("\fL\-\-More\-\-\fR") allows you to advance or search through the remainder
+of the output.  See the \fImore\fR(U1) command for additional information on
+the options that \fImore\fR(U1) provides.  The \fB\-p\fR option is ignored if the
+output is redirected.
+.IP \fB\-!\fR
+Causes \fIwc\fR to ignore any default settings that are specified in
+the \fBDEFAULTS/MAD\fR file.  \fIWc\fR will also ignore any options that are
+specified to the left of the \fB\-!\fR option.  Note that the \fBDEFAULTS/MAD\fR
+file is accessed even if the \fB\-!\fR option is specified.
+.IP \fB\-?\ or\ \-h\fR
+Displays the help message.
+.IP \fIwildspec\fR
+A \fIwildspec\fR specifies none or more files that are to be examined
+in alphabetical order.  A \fIwildspec\fR may contain none or more of
+the following wildcard characters:
+
+.in +3.6m
+.ti -3.6m
+\(**	The * matches zero or more characters in the specified
+position.  For example, the \fIwildspec\fR A*Z will match any
+of the following filenames:
+.br
+.ce
+AZ		ABZ
+.br
+.ce
+ABCDEFGZ	ABC/XYZ
+.br
+Note that unlike a LS-DOS/TRSDOS 6 \fIpartspec\fR(L), the filename
+and extension are treated as a single unit.  A single * will match files
+with and without extensions.
+
+.ti -3.6m
+%	The % matches exactly one character.  So A%C matches:
+.br
+.ce
+ABC		AXC
+.br
+The file AC will not match the A%C pattern.
+
+.KS
+.ti -3.6m
+\[\ ]	Ranges specify multiple characters that may appear in
+a given position in the filenames being tested.  There
+are two formats that can be combined:
+.br
+.in +3.6m
+.ti -3.6m
+[abc]	These specific characters are acceptable in this
+position in the filename.  So A[BC5]D would match:
+.br
+.ce
+ABD		ACD		A5D
+.br
+.ti -3.6m
+[b\-e]	The characters in this ASCII range are acceptable
+in this position in the filename.  A[E\-J]X matches:
+.br
+.ce
+AEX		AFX		AGX
+.br
+.ce
+AHX		AIX		AJX
+.br
+Numbers can also be included in ranges, but the first value
+of the range must always have a lower ASCII value than the second
+value.
+.br
+.ti -3.6m
+[!...]	The ! excludes all files that match characters in this
+position.  So A[!DKP]D will match all filenames that
+start with an "A", end with a "D", and the second
+character is any character except "D", "K", or "P".
+.br
+.KE
+.sp
+.in -3.6m
+Combinations of ranges are also allowed.  A[1\-3ABD]X would
+allow these filenames:
+.br
+.ce
+A1X		A2X		A3X
+.br
+.ce
+AAX		ABX		ADX
+.br
+
+.in -3.6m
+Any lowercase characters in the \fIwildspec\fR are converted to uppercase
+before the comparison is performed.
+
+.IP \fI:drivespec\fR 5
+The \fIdrivespec\fR specifies one or more logical drives that should
+be scanned for files that match the file \fIwildspec\fR.  The % and *
+will examine all enabled drives.  A range can also be used.
+For example, :[2\-47] will search for files on drives 2, 3, 4 and 7.
+
+If the \fIdrivespec\fR is not specified and a \fIwildspec\fR is, all drives
+are searched for files that match the file \fIwildspec\fR and all files
+that match will be displayed.  So if the command \fBwc sample/txt\fR is
+used and the file SAMPLE/TXT exists on four different logical drives,
+all four files will be examined.
+
+.IP \fB<\ \fIfile\ |\ device\fR 5
+If a file or device is specified, \fIwc\fR will read the data from the
+file or device until the end-of-file is detected or an error occurs.  This is
+known as \fIredirected input\fR.  For example, if you specify \fB< *KI\fR,
+characters will be read from the keyboard until <BREAK> is pressed.  These
+characters will not be echoed.
+
+Redirected input will override any wildspecs that are specified.
+
+.IP \fB>\fR[\fB>\fR]\ \fIfile\ |\ device\fR 5
+By specifying a file or device, the
+output is sent to the specified file or device instead of the
+display.  This is known as \fIredirected output\fR.
+For example, the command \fBwc a*:5 > count:0\fR places the size
+information for a list of files from logical drive 5 with names that start
+with the letter 'a' in the file \fBCOUNT:0\fR.  If >> is used, the output
+will be appended to any existing contents of the file.
+\fIFilespecs\fR for redirection may not specify a password.
+
+.IP \fI;\ next\ command\fR
+After \fIwc\fR completes, the remainder of the command line is executed
+as a second command.  The command \fBwc x:1;date\fR will display the
+size information for the specified file, and then the date will be displayed.  
+
+.IP <SHIFT>@
+When pressed during output to the display, the output will pause.
+Pressing any other key resumes output.  Pressing
+this key is ignored when output is redirected.
+
+.SH \fBNotes\fR
+When the \fB\-l\fR, \fB\-w\fR, and \fB\-c\fR options are used, they are
+position dependent.  The first option specified will have its value
+displayed first.  For example, if you specified \fB\-lc\fR, the
+number of lines would be the first item displayed, followed by the number
+of characters. 
+
+If the same option appears more than once, that information is displayed
+as many times as the option is specified, in the order that the options
+were specified.  
+
+If the \fB\-l\fR, \fB\-w\fR, and \fB\-c\fR options are not specified
+at all, the default options \fB\-lwc\fR is used automatically.
+
+If \fIwc\fR is not able to read a file because it is password protected,
+only the character total will be displayed.  The fields for line and
+width will be marked with a "-", and an error message will be displayed
+after the filename to indicate what the problem was.
+
+\fIWc\fR accepts filespecs using the "/" or "." to separate the filename
+extension.  Because of this, files with passwords cannot be specified.
+
+\fIWc\fR can be run on executable and other non-ASCII files.  The
+character count will always be correct, but the word and line count
+will probably have no relevance.
+
+.SH \fBFiles\fR
+\fIWc\fR reads the \fBDEFAULTS/MAD\fR file and uses any default options that
+are specified there.  For example, if you wanted \fIWc\fR to display only
+the word count,
+the following entry in the \fBDEFAULTS/MAD\fR file would do this:
+.in +7.2m
+WC \-W
+.br
+.in -7.2m
+Options in the \fBDEFAULTS/MAD\fR file are ignored if the \fB\-!\fR option
+is specified on the command line.
+
+You may make copies of \fIwc\fR with different names.  When examining the
+\fBDEFAULTS/MAD\fR file, the name used to invoke the program will be used to
+locate the default entries.  For example, if you made copies of \fBWC/CMD\fR
+and named them \fBWORDS/CMD\fR and \fBLINES/CMD\fR, you could add the following
+lines to the \fBDEFAULTS/MAD\fR file:
+.in +7.2m
+WORDS -W
+.br
+LINES -L
+.br
+.in -7.2m
+Now, when \fIwords\fR is run, only the number of words in the file will be
+displayed, and when \fIlines\fR is run, it would just display the number of
+lines in the file.
+
+
+If you need more information on \fIwc\fR(U1) or if you want to obtain the
+LDOS 5.3
+version, please write to M.A.D. Software, P.O. Box 331323, Ft. Worth Texas,
+76163.  Please include a Self\-Addressed\-Stamped\-Envelope when requesting
+information.
+.br
+\-\-\-\-\-\-
+.br
+305151

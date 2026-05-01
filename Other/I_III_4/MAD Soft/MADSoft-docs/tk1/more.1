@@ -1,0 +1,594 @@
+
+
+
+     MMMMOOOORRRREEEE((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              MMMMOOOORRRREEEE((((UUUU1111))))
+
+
+
+     NNNNaaaammmmeeee
+          MORE - Displays the contents of a file one screen at a time.
+
+     SSSSyyyynnnnttttaaaaxxxx
+          mmmmoooorrrreeee [ ----ccccddddffffllllssssuuuurrrrwwww!!!!????hhhh ] [ -_n ] [ +_l_i_n_e_n_u_m_b_e_r ] [ +/_p_a_t_t_e_r_n ]
+          [ _w_i_l_d_s_p_e_c ][ :_d_r_i_v_e_s_p_e_c ]... [< _f_i_l_e | _d_e_v_i_c_e ]
+          [>[>] _f_i_l_e | _d_e_v_i_c_e ] [ ; _n_e_x_t _c_o_m_m_a_n_d ]
+
+     DDDDeeeessssccccrrrriiiippppttttiiiioooonnnn
+          _M_o_r_e acts as a filter that allows text to be viewed one
+          screen at a time.  By default, _m_o_r_e pauses when the screen
+          has been filled with text. _M_o_r_e then displays the "--More--"
+          command prompt at the bottom of the screen.  If the user
+          presses <<<<SSSSPPPPAAAACCCCEEEE>>>>, another page (screen full) of text is
+          displayed.  Pressing <<<<EEEENNNNTTTTEEEERRRR>>>> causes the next line of text to
+          be displayed.  The number of lines of text displayed when
+          these keys are pressed is adjustable.  There are numerous
+          other commands available at the --More-- prompt, and these
+          are described below.
+
+          _M_o_r_e can accept multiple files at once.  When a _w_i_l_d_s_p_e_c is
+          specified, all files that match the _w_i_l_d_s_p_e_c will be
+          displayed.  If a _d_r_i_v_e_s_p_e_c is specified, only files on that
+          particular drive or drives will be displayed.  If the
+          _d_r_i_v_e_s_p_e_c and _w_i_l_d_s_p_e_c are both omitted, _m_o_r_e will read data
+          from standard-in device (normally the keyboard) and displays
+          the data that is read.  The output of _m_o_r_e can also be
+          redirected out to a device or a file.
+
+          _M_o_r_e accepts several options.  Options are usually specified
+          by single characters, and they may be entered in upper or
+          lowercase.  Options are always preceded by a hyphen (a "-").
+          If you are specifying multiple options, you can specify the
+          options in any of these formats:
+                -a -b -c   or   -abc   or   -a -bc   or  -ab -c
+
+          The options are:
+
+          ----cccc   Each page of text is displayed by starting at the top
+               of the screen and erasing the old text on each line
+               just before new text is placed on that line.  By
+               default, _m_o_r_e scrolls the text from the previous page
+               up so that it disappears off the top of the screen, and
+               the new text is added at the bottom.
+
+
+          ----dddd   The --More-- prompt will also display brief a help
+               message each time it is displayed.  This is useful with
+               users who are unfamiliar with _m_o_r_e.  Note that "?" can
+               be pressed at the --More-- prompt to receive help at
+               all times.
+
+
+
+
+     Page 1                                             May 15th, 1993
+
+
+
+
+
+
+     MMMMOOOORRRREEEE((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              MMMMOOOORRRREEEE((((UUUU1111))))
+
+
+
+          ----ffff   This option instructs _m_o_r_e to count logical lines
+               instead of screen lines.  If all the lines of text are
+               shorter than 81 lines, you will not be able to see a
+               difference.  This option is useful if the file contains
+               backspace or control-character sequences that might
+               confuse _m_o_r_e about the true length of lines in the
+               file.
+
+
+          ----llll   CONTROL-L will not be treated as a special character.
+               By default, a CONTROL-L causes the --More-- prompt to
+               be displayed immediately, just as though the end of the
+               current page had been reached.
+
+
+          ----ssss   When specified, duplicate blank lines are not
+               displayed. For example, if a file contains three blank
+               lines in a row, only one blank line will be displayed.
+               This is useful for looking at documents that are
+               formatted for printing and have multiple blank lines at
+               the top and bottom of each page.
+
+
+          ----uuuu   Normally _m_o_r_e displays text that is underlined in
+               reverse video.  This option disables this translation.
+
+
+          ----rrrr   This option causes control characters to be displayed
+               as a caret ("^") and a letter.  For example, CONTROL-C
+               would be displayed as ^C.  By default, _m_o_r_e ignores
+               non-carriage control characters.
+
+
+          ----wwww   A warning message will be displayed when all files have
+               been displayed and _m_o_r_e is about to exit.  This is
+               useful when _m_o_r_e is invoked from another program or
+               batch file that might clear the screen before the
+               contents can be read.  The prompt "--No More--" waits
+               for the user to press a key before _m_o_r_e exits.
+
+
+          ----!!!!   Causes _m_o_r_e to ignore any default settings that are
+               specified in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file.  _M_o_r_e will also
+               ignore any options that are specified to the left of
+               the ----!!!! option.  Note that the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file is
+               accessed even if the ----!!!! option is specified.
+
+
+          ----???? or ----hhhh
+               Displays the help message.
+
+
+
+
+
+     Page 2                                             May 15th, 1993
+
+
+
+
+
+
+     MMMMOOOORRRREEEE((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              MMMMOOOORRRREEEE((((UUUU1111))))
+
+
+
+          ----_n   _n is an integer that specifies the number of lines that
+               _m_o_r_e will display per page instead of the default.  If
+               the number is larger than 23, some lines will scroll
+               off the screen before the --More-- prompt is displayed.
+
+
+          ++++_l_i_n_e_n_u_m_b_e_r
+               When specified, _m_o_r_e skips this many lines in the first
+               file specified before it begins to display the file
+               contents.
+
+
+          ++++////_p_a_t_t_e_r_n
+               When specified, _m_o_r_e will search through the first file
+               that is specified looking for the pattern.  When the
+               pattern is found, _m_o_r_e will begin displaying the file
+               at that point.  _M_o_r_e displays up to four lines in front
+               of the point where the match occurs to provide some
+               context.
+
+               If the _p_a_t_t_e_r_n is not found, the message """"PPPPaaaatttttttteeeerrrrnnnn nnnnooootttt
+               ffffoooouuuunnnndddd"""" is displayed.  If a filename was specified to
+               _m_o_r_e, _m_o_r_e repositions to the beginning of the current
+               file after the search fails.  If _m_o_r_e was reading from
+               the standard input or from a redirected file, _m_o_r_e
+               remains positioned at the end of the file.
+
+               _P_a_t_t_e_r_n_s may include all types of wildcards.  Wildcards
+               are discussed in the _w_i_l_d_s_p_e_c documentation, below.
+               You may also place an uparrow (^) at the start of the
+               _p_a_t_t_e_r_n.  The uparrow means that the _p_a_t_t_e_r_n must match
+               text at the start of lines in the file.  For example,
+               if the _p_a_t_t_e_r_n was "^ine":
+                     This line would not match the pattern,
+                     ine But this line would.
+
+               By default, the _p_a_t_t_e_r_n will match text anywhere in a
+               line.
+
+               The _p_a_t_t_e_r_n is case-sensitive, so upper and lowercase
+               characters must match the _p_a_t_t_e_r_n exactly.  The _p_a_t_t_e_r_n
+               can specify upper or lowercase for certain characters
+               if needed by using _r_a_n_g_e_s.
+
+               Multiple _p_a_t_t_e_r_n_s can also be specified by placing
+               <CLEAR><SPACE> character between each _p_a_t_t_e_r_n.  For
+               example the _p_a_t_t_e_r_n ABC<CLEAR><SPACE>xyz  would locate
+               any occurrence of the sequence "ABC" or the sequence
+               "xyz".
+
+
+
+
+
+
+     Page 3                                             May 15th, 1993
+
+
+
+
+
+
+     MMMMOOOORRRREEEE((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              MMMMOOOORRRREEEE((((UUUU1111))))
+
+
+
+          _w_i_l_d_s_p_e_c
+               A _w_i_l_d_s_p_e_c specifies one or more files that are to be
+               examined in alphabetical order.  A _w_i_l_d_s_p_e_c may contain
+               none or more of the following wildcard characters:
+
+               *     The * matches zero or more characters in the
+                     specified position.  For example, the _w_i_l_d_s_p_e_c
+                     A*Z will match any of the following filenames:
+                                      AZ          ABZ
+                                    ABCDEFGZ    ABC/XYZ
+                     Note that unlike a LS-DOS/TRSDOS 6 _p_a_r_t_s_p_e_c(L),
+                     the filename and extension are treated as a
+                     single unit.  A single * will match files with
+                     and without extensions.
+
+               %     The % matches exactly one character.  So A%C
+                     matches:
+                                      ABC         AXC
+                     The file AC will not match the A%C pattern.
+
+               [ ]   Ranges specify multiple characters that may
+                     appear in a given position in the filenames being
+                     tested.  There are two formats that can be
+                     combined:
+                     [abc]     These specific characters are
+                               acceptable in this position in the
+                               filename.  So A[BC5]D would match:
+                               ABD            ACD                 A5D
+
+                     [b-e]     The characters in this ASCII range are
+                               acceptable in this position in the
+                               filename.  A[E-J]X matches:
+                               AEX            AFX                 AGX
+                               AHX            AIX                 AJX
+                               Numbers can also be included in ranges,
+                               but the first value of the range must
+                               always have a lower ASCII value than
+                               the second value.
+                     [!...]    The ! excludes all files that match
+                               characters in this position.  So
+                               A[!DKP]D will match all filenames that
+                               start with an "A", end with a "D", and
+                               the second character is any character
+                               except "D", "K", or "P".
+
+                     Combinations of ranges are also allowed.
+                     A[1-3ABD]X would allow these filenames:
+                                A1X         A2X         A3X
+                                AAX         ABX         ADX
+
+               Any lowercase characters in the _w_i_l_d_s_p_e_c are converted
+               to uppercase before the comparison is performed.
+
+
+
+     Page 4                                             May 15th, 1993
+
+
+
+
+
+
+     MMMMOOOORRRREEEE((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              MMMMOOOORRRREEEE((((UUUU1111))))
+
+
+
+          :_d_r_i_v_e_s_p_e_c
+               The _d_r_i_v_e_s_p_e_c specifies one or more logical drives that
+               should be scanned for files that match the file
+               _w_i_l_d_s_p_e_c.  The % and * will examine all enabled drives.
+               A range can also be used.  For example, :[2-47] will
+               search for files on drives 2, 3, 4 and 7.
+
+               If the _d_r_i_v_e_s_p_e_c is not specified and a _w_i_l_d_s_p_e_c is,
+               all drives are searched for files that match the file
+               _w_i_l_d_s_p_e_c and all files that match will be displayed.
+               So if the command mmmmoooorrrreeee ssssaaaammmmpppplllleeee////ttttxxxxtttt is used and the file
+               SAMPLE/TXT exists on four different logical drives, all
+               four files will be displayed.
+
+
+          <<<< _f_i_l_e | _d_e_v_i_c_e
+               If a file or device is specified, _m_o_r_e will read the
+               data from the file or device until the end-of-file is
+               detected or an error occurs.  This is known as
+               _r_e_d_i_r_e_c_t_e_d _i_n_p_u_t.  For example, if you specify <<<< ****KKKKIIII or
+               do not specify a _w_i_l_d_s_p_e_c, characters will be read from
+               the keyboard until <BREAK> is pressed.  These
+               characters will not be echoed.
+
+               Redirected input will override any wildspecs that are
+               specified.
+
+
+          >>>>[>>>>] _f_i_l_e | _d_e_v_i_c_e
+               By specifying a file or device, the output is sent to
+               the specified file or device instead of the display.
+               This is known as _r_e_d_i_r_e_c_t_e_d _o_u_t_p_u_t.  For example, the
+               command mmmmoooorrrreeee aaaa****::::5555 >>>> aaaallllllll////aaaa::::0000 places the contents of the
+               files from logical drive 5 with names that start with
+               the letter 'a' in the file AAAALLLLLLLL////AAAA::::0000.  If >> is used, the
+               output will be appended to any existing contents of the
+               file.  _F_i_l_e_s_p_e_c_s for redirection may not specify a
+               password.
+
+
+          ; _n_e_x_t _c_o_m_m_a_n_d
+               After _m_o_r_e completes, the remainder of the command line
+               is executed as a second command.  The command mmmmoooorrrreeee
+               xxxx::::1111;;;;ddddaaaatttteeee will display the contents of the specified
+               file, and then the date will be displayed.
+
+
+          <SHIFT>@
+               When pressed during output to the display, the output
+               will pause.  Pressing any other key resumes output.
+               Pressing this key is ignored when output is redirected.
+
+
+
+
+     Page 5                                             May 15th, 1993
+
+
+
+
+
+
+     MMMMOOOORRRREEEE((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              MMMMOOOORRRREEEE((((UUUU1111))))
+
+
+
+         --------MMMMoooorrrreeee-------- PPPPrrrroooommmmpppptttt CCCCoooommmmmmmmaaaannnnddddssss
+
+
+               When the --More-- prompt is displayed, numerous
+               commands can be specified.  These allow you to skip to
+               the next file, skip further down the current file, even
+               search for a particular string within the file.  With
+               the exception of the "/" command, no characters are
+               echoed while the command is being entered.
+
+               Some of the commands optionally accept a decimal value
+               _i.
+
+
+          [_i]<<<<SSSSPPPPAAAACCCCEEEE>>>>
+               When the <<<<SSSSPPPPAAAACCCCEEEE>>>> key is pressed, another screen worth
+               of information is displayed.  By default, 22 new lines
+               are displayed each time so that one line from the
+               previous screen will remain in the screen.  If a
+               decimal value is specified, it will set the number of
+               lines that are displayed each time the <<<<SSSSPPPPAAAACCCCEEEE>>>> key is
+               pressed from now on.
+
+
+          [_i]<<<<EEEENNNNTTTTEEEERRRR>>>>
+               This command causes one more line of the file to be
+               displayed.  If a number is specified, it changes the
+               number of lines the <<<<EEEENNNNTTTTEEEERRRR>>>> key displays.  The command
+               7777<<<<EEEENNNNTTTTEEEERRRR>>>> causes the <<<<EEEENNNNTTTTEEEERRRR>>>> to display seven more lines
+               each time it is pressed.
+
+
+          [_i]<<<<CCCCTTTTRRRRLLLL----DDDD>>>>
+               Similar to the <<<<SSSSPPPPAAAACCCCEEEE>>>> key, except that 11 more lines
+               are displayed.  This default can be changed by
+               specifying a new value.
+
+
+          [_i]ssss The specified number of lines are skipped and then a
+               new page of text is displayed.  For example if the --
+               More-- prompt pauses at line 23 of a file and you type
+               555500000000ssss, the listing will resume at line 524.
+
+
+          [_i]ffff This skips forward in the file by the specified number
+               of screens of text.
+
+
+          [_i]////_p_a_t_t_e_r_n
+               Searches forward in the current file looking for a line
+               that contains text that matches the _p_a_t_t_e_r_n.  Wildcards
+               and the uparrow (^) can be used in the _p_a_t_t_e_r_n.
+
+
+
+     Page 6                                             May 15th, 1993
+
+
+
+
+
+
+     MMMMOOOORRRREEEE((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              MMMMOOOORRRREEEE((((UUUU1111))))
+
+
+
+               Multiple patterns can also be used (see ++++////_p_a_t_t_e_r_n for
+               an example).  When a line is found that matches the
+               _p_a_t_t_e_r_n, the listing resumes four lines above the line
+               containing the match.  If the search started fewer than
+               four lines from the location where a match to the
+               pattern is found, all the intervening lines are
+               displayed.
+
+               If a decimal value is specified, _m_o_r_e will search for
+               the _n_t_h occurrence of the specified pattern.
+
+               If the pattern cannot be found, _m_o_r_e will display the
+               error "PPPPaaaatttttttteeeerrrrnnnn nnnnooootttt ffffoooouuuunnnndddd".  If _m_o_r_e was reading from a
+               file, it will reposition to the location in the file
+               that _m_o_r_e was at when the search was started.  If _m_o_r_e
+               was reading from a standard input (*SI) or a redirected
+               input and the _p_a_t_t_e_r_n could not be found, _m_o_r_e will
+               terminate when the end of the input data is reached.
+
+
+          [_i]nnnn When the nnnn command is specified, _m_o_r_e will start a
+               search using the last pattern that was specified with
+               the //// command.  A decimal value will cause the search
+               to look for the _n_t_h occurrence of the pattern.
+
+
+          ====    Will display the current line number.  All --More--
+               commands are accepted even though the --More-- prompt
+               isn't visible.  To redisplay the --More-- prompt, press
+               <<<<BBBBAAAACCCCKKKKSSSSPPPPAAAACCCCEEEE>>>> or any other invalid character.
+
+
+          ....    Causes _m_o_r_e to repeat the last command that accessed
+               the file.
+
+
+          qqqq    Causes _m_o_r_e to exit, regardless of how many more files
+               are to be displayed.  _m_o_r_e exits with a "no error"
+               condition.  Any additional commands specified on the
+               _m_o_r_e command line are not executed.
+
+
+          <<<<BBBBRRRREEEEAAAAKKKK>>>>
+               Like the qqqq command, _m_o_r_e will exit.  _M_o_r_e exits with an
+               abort error condition and will not execute any
+               additional commands on the _m_o_r_e command line.
+
+
+
+
+
+
+
+
+
+     Page 7                                             May 15th, 1993
+
+
+
+
+
+
+     MMMMOOOORRRREEEE((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              MMMMOOOORRRREEEE((((UUUU1111))))
+
+
+
+         The following commands are not available when reading from a
+         streaming device.  This includes reading from standard in or
+         from a redirected file.
+
+           ''''   _M_o_r_e positions back to where the last search started.
+               For example, if you used the //// command to search for
+               something and the wrong search string was specified,
+               the '''' command will back up to the place in the file you
+               were at when the last search started.
+
+
+          ::::ffff   Displays the current filename and line number.  Similar
+               to the ==== command.
+
+
+          [_i]::::nnnn
+               Advances to the next file when multiple files are
+               specified.  If there are no more files, _m_o_r_e exits
+               (unless the ----wwww option was specified).  If a number is
+               specified, the specified number of files are skipped.
+               If the command MMMMOOOORRRREEEE AAAA BBBB CCCC DDDD was used and in the middle
+               of reading file AAAA you gave the command 2222::::nnnn, _m_o_r_e would
+               skip to the file named CCCC.  By default, ::::nnnn goes forward
+               to the very next file.
+
+
+          [_i]::::pppp
+               Moves to the previous file when multiple files are
+               specified.  If there are no previous files, _m_o_r_e goes
+               to the first file specified.  If a number is provided,
+               _m_o_r_e skips back that number of files.  The command 0000::::pppp
+               goes to the start of the current file.  By default, ::::pppp
+               goes back one file.
+
+
+
+     FFFFiiiilllleeeessss
+          _M_o_r_e reads the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file and uses any default
+          options that are specified there.  For example, if you
+          wanted _m_o_r_e to always display control characters, the
+          following entry in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file would do this:
+                      MORE -R
+          Options in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file are ignored if the ----!!!!
+          option is specified on the command line.
+
+
+
+
+
+
+
+
+
+
+
+     Page 8                                             May 15th, 1993
+
+
+
+
+
+
+     MMMMOOOORRRREEEE((((UUUU1111))))             LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111              MMMMOOOORRRREEEE((((UUUU1111))))
+
+
+
+          You may make copies of _m_o_r_e with different names.  When
+          examining the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file, the name used to invoke the
+          program will be used to locate the default entries.  For
+          example, if you made copies of MMMMOOOORRRREEEE////CCCCMMMMDDDD and named them
+          SSSSHHHHOOOOWWWW////CCCCMMMMDDDD and VVVVIIIIEEEEWWWW////CCCCMMMMDDDD, you could add the following lines to
+          the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file:
+                      SHOW -R
+                      VIEW -S
+          When _s_h_o_w is run, any non-carriage control characters in the
+          files would be displayed as ^character, and _v_i_e_w would
+          eliminate excessive blank lines in the files it displays.
+
+
+          If you need more information on _m_o_r_e(U1) or if you want to
+          obtain the LDOS 5.3 version, please write to M.A.D.
+          Software, P.O. Box 331323, Ft. Worth Texas, 76163.  Please
+          include a Self-Addressed-Stamped-Envelope when requesting
+          information.
+          ------
+          306182
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 9                                             May 15th, 1993
+
+
+

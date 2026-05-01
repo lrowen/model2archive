@@ -1,0 +1,198 @@
+
+
+
+     MMMMAAAAPPPPMMMMEEEEMMMM((((UUUU1111))))           LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111            MMMMAAAAPPPPMMMMEEEEMMMM((((UUUU1111))))
+
+
+
+     NNNNaaaammmmeeee
+          MAPMEM - Displays memory module information
+
+     SSSSyyyynnnnttttaaaaxxxx
+          mmmmaaaappppmmmmeeeemmmm [ ----ddddeeeemmmmpppprrrrsssstttt!!!!????hhhh ] [ >>>>[>>>>]]]] _f_i_l_e | _d_e_v_i_c_e ]
+          [ ; _n_e_x_t _c_o_m_m_a_n_d ]
+
+     DDDDeeeessssccccrrrriiiippppttttiiiioooonnnn
+          _M_a_p_m_e_m displays one or more tables describing the drivers
+          and other memory modules that are present in memory.  These
+          modules are identified by function and are displayed in one
+          of three categories: disk drivers, character drivers or
+          filters, and other modules.
+
+          By default, _m_a_p_m_e_m displays four sections of information.
+          The first is a summary indicating how much low and high RAM
+          is available and how much low RAM was available when the
+          system booted.  The next section shows the drivers that are
+          used for each enabled logical drive.  The third section
+          displays the drivers and filters that are connected to each
+          character device.
+
+          The final section displays memory modules that are not
+          directly accessed as a logical drive or character device.
+          These modules may contain patches to the system, or contain
+          code shared by one or more of the other drives.  There are
+          other possible uses for these memory modules.
+
+          When a memory module is displayed, the following information
+          is displayed:
+          1.    The starting address of the memory module in
+                hexadecimal.
+          2.    The ending address of the memory module in
+                hexadecimal.
+          3.    The length of the memory module (in hexadecimal or
+                decimal).
+          4.    The name of the memory module.
+          5.    A short description of the purpose of the memory
+                module.
+
+          _M_a_p_m_e_m accepts several options.  Options are specified by
+          single characters, and they may be entered in upper or
+          lowercase.  Options are always preceded by a hyphen (a "-").
+          If you are specifying multiple options, you can specify the
+          options in any of these formats:
+                -a -b -c   or   -abc   or   -a -bc   or  -ab -c
+
+          The options are:
+
+          ----dddd   The length of memory modules is displayed in decimal.
+               By default the value is displayed in hexadecimal.
+
+
+
+
+     Page 1                                             May 15th, 1993
+
+
+
+
+
+
+     MMMMAAAAPPPPMMMMEEEEMMMM((((UUUU1111))))           LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111            MMMMAAAAPPPPMMMMEEEEMMMM((((UUUU1111))))
+
+
+
+          ----eeee   Displays only the memory modules that are used with
+               character devices.  This includes character drivers
+               like *PR and *KI, as well as character filters.
+
+          ----mmmm oooorrrr ----ssss
+               Displays the memory summary only.
+
+          ----pppp   The output is routed through the _m_o_r_e(U1) utility.  If
+               the output of _m_a_p_m_e_m exceeds one screen, the screen
+               will pause once every 23 lines.  See the _m_o_r_e(U1)
+               command for additional information on the options that
+               _m_o_r_e(U1) provides.  The ----pppp option is ignored if the
+               output is redirected.
+
+          ----rrrr   Displays only the memory modules that are used for disk
+               access.  This includes floppy, hard disk and RAM
+               logical drives.  (Ignored if ----llll or ----xxxx is specified.)
+
+          ----tttt   The headers that are normally displayed are omitted
+               from output.
+
+          ----!!!!   Causes _m_a_p_m_e_m to ignore any default settings that are
+               specified in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file.  _M_a_p_m_e_m will also
+               ignore any options that are specified to the left of
+               the ----!!!! option.  Note that the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file is
+               accessed even if the ----!!!! option is specified.
+
+          ----???? oooorrrr ----hhhh
+               Displays the help message.
+
+          >>>>[>>>>] _f_i_l_e | _d_e_v_i_c_e
+               By specifying a file or device, the output is sent to
+               the specified file or device instead of the display.
+               This is known as _r_e_d_i_r_e_c_t_e_d _o_u_t_p_u_t.  For example, the
+               command mmmmaaaappppmmmmeeeemmmm >>>> ssssttttaaaatttteeee::::0000 stores the output of _m_a_p_m_e_m in
+               the file SSSSTTTTAAAATTTTEEEE::::0000.  If >>>>>>>> is used, _m_a_p_m_e_m will append
+               the output of _m_a_p_m_e_m to the existing contents of the
+               specified file or device.  _F_i_l_e_s_p_e_c_s for redirection
+               may not specify a password.
+
+          ; _n_e_x_t _c_o_m_m_a_n_d
+               After _m_a_p_m_e_m completes, the remainder of the command
+               line is executed as a second command.  The command
+               mmmmaaaappppmmmmeeeemmmm;;;;ttttiiiimmmmeeee will display memory information, and then
+               the time will be displayed.
+
+          <SHIFT>@
+               When pressed during output to the display, the output
+               will pause.  Pressing any other key resumes output.
+               Pressing this key is ignored when output is redirected.
+
+
+
+
+
+     Page 2                                             May 15th, 1993
+
+
+
+
+
+
+     MMMMAAAAPPPPMMMMEEEEMMMM((((UUUU1111))))           LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111            MMMMAAAAPPPPMMMMEEEEMMMM((((UUUU1111))))
+
+
+
+     NNNNooootttteeeessss
+          Memory modules that _m_a_p_m_e_m displays in the "other" category
+          may actually be one of the parts of a disk or character
+          driver.  This is often done to share code that is used in
+          other drivers.  The _D_i_s_k_D_i_s_k product creates one small
+          memory module for each logical drive and a single, larger
+          memory module that contains code that is shared by all the
+          DiskDisk logical drives.
+
+          _M_a_p_m_e_m relies on the headers of the various memory modules
+          that are present on the system to be formatted correctly.
+          If these are corrupted, _m_a_p_m_e_m may display warnings or
+          display incorrect information.
+
+
+     FFFFiiiilllleeeessss
+          _M_a_p_m_e_m reads the MMMMAAAAPPPPMMMMEEEEMMMM////IIIINNNNIIII file to provide the descriptions
+          of the memory modules that are displayed.  The user may add
+          additional descriptions to this file if needed.  A maximum
+          of 50 entries may be placed in the MMMMAAAAPPPPMMMMEEEEMMMM////IIIINNNNIIII file.  The
+          descriptions are limited to 35 characters. See the
+          MMMMAAAAPPPPMMMMEEEEMMMM////IIIINNNNIIII file for formatting details.
+
+          _M_a_p_m_e_m also examines the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file and uses any
+          default options that are specified there.  For example, if
+          you wanted _m_a_p_m_e_m to omit the headers by default, the
+          following entry in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file would do this:
+                      MAPMEM -T
+          Options in the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file are ignored if the ----!!!!
+          option is specified on the command line.
+
+          You may make copies of _m_a_p_m_e_m with different names.  When
+          examining the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file, the name used to invoke the
+          program will be used to locate the default entries.  For
+          example, if you made copies of MMMMAAAAPPPPMMMMEEEEMMMM////CCCCMMMMDDDD and named them
+          DDDDRRRRIIIIVVVVEEEESSSS////CCCCMMMMDDDD and RRRRAAAAMMMM////CCCCMMMMDDDD, you could add the following lines to
+          the DDDDEEEEFFFFAAAAUUUULLLLTTTTSSSS////MMMMAAAADDDD file:
+                      DRIVES -R
+                      RAM -S
+          When _d_r_i_v_e_s is run, information on active logical drives
+          would be displayed and nothing else.  When _r_a_m is run, the
+          information on RAM availability would be displayed and
+          nothing else.
+
+
+          If you need more information on _m_a_p_m_e_m(U1) or if you want to
+          obtain the LDOS 5.3 version, please write to M.A.D.
+          Software, P.O. Box 331323, Ft. Worth Texas, 76163.  Please
+          include a Self-Addressed-Stamped-Envelope when requesting
+          information.
+          ------
+          305151
+
+
+
+     Page 3                                             May 15th, 1993
+
+
+

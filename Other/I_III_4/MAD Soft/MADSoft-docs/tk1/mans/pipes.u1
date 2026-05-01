@@ -1,0 +1,462 @@
+
+
+
+     PPPPIIIIPPPPEEEESSSS((((UUUU1111))))            LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111             PPPPIIIIPPPPEEEESSSS((((UUUU1111))))
+
+
+
+     NNNNaaaammmmeeee
+          PIPES - Executes one or more commands from a single command
+          line.
+
+     SSSSyyyynnnnttttaaaaxxxx
+          ppppiiiippppeeeessss [ ----ssssnnnnrrrreeee????hhhh ] [ ----dddd _d_r_i_v_e_n_u_m_b_e_r ] _p_r_o_g_r_a_m #_1
+          [ |||| _p_r_o_g_r_a_m #_2 ] ...  [ |||| _p_r_o_g_r_a_m #_n ] [< _f_i_l_e | _d_e_v_i_c_e ]
+          [>[>] _f_i_l_e | _d_e_v_i_c_e ] [ ; _n_e_x_t _c_o_m_m_a_n_d _g_r_o_u_p ]
+
+     DDDDeeeessssccccrrrriiiippppttttiiiioooonnnn
+          _P_i_p_e_s executes one or more commands or programs from a
+          single command line.  Each command to be executed is
+          separated by a semicolon (';;;;') or a pipe ('||||').  Separating
+          commands with semicolons allows you to specify several LS-
+          DOS commands or program names using a single command line.
+
+          When the ppppiiiippppeeee operator ('||||') is used instead of a semicolon,
+          the text from one program that would normally be displayed
+          is stored on disk and is provided as input to the next
+          program that is specified.  The output of the second program
+          can then be "piped" to a third program, and so on.  For
+          example, if you would like to search through a directory
+          display using the standard LS-DOS _d_i_r(L) command, you can
+          use a command like:    ppppiiiippppeeeessss ddddiiiirrrr ::::0000 ((((nnnn)))) |||| mmmmoooorrrreeee
+          In this example, the output of the LS-DOS library command
+          _d_i_r(_L) is intercepted and written to a file instead of being
+          displayed, as originally programmed.  Then the second
+          program, the _m_o_r_e(U1) program, is run and when it reads from
+          what it thinks is the keyboard, it is actually reading the
+          data from _d_i_r(L) that has been stored in a file.  Because
+          _m_o_r_e(U1) is the last program is this "pipeline", its output
+          goes to the display.
+
+          Pipes are a powerful technique that allows compound programs
+          to be created.  This is done by connecting smaller programs
+          together.  These programs are unaware of the other programs
+          they are passing data to and from, and this means that many
+          existing programs and commands can be used without having to
+          modify them.
+
+          The idea for _p_i_p_e_s comes from the *NIX operating system, and
+          is a standard feature in all versions.  In the *NIX
+          implementation, each program specified on the command line
+          is run simultaneously, so as soon as the first program
+          produces data, the second program can read it.  Since LS-DOS
+          is not a multi-tasking operating system, each program must
+          run entirely before the next program can be started and
+          allowed to see the data from the first program.  This
+          creates a few restrictions in how _p_i_p_e_s can be used, but
+          these are minor.
+
+
+
+
+
+     Page 1                                             May 15th, 1993
+
+
+
+
+
+
+     PPPPIIIIPPPPEEEESSSS((((UUUU1111))))            LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111             PPPPIIIIPPPPEEEESSSS((((UUUU1111))))
+
+
+
+          _P_i_p_e_s accepts several options.  Options are usually
+          specified by single characters, and they may be entered in
+          upper or lowercase.  Options are always preceded by a hyphen
+          (a "-").  If you are specifying multiple options, you can
+          specify the options in any of these formats:
+                -a -b -c   or   -abc   or   -a -bc   or  -ab -c
+
+          The options are:
+
+          ----dddd _d_r_i_v_e_n_u_m_b_e_r
+               Specifies what logical drive _p_i_p_e_s should use for the
+               temporary files it creates.
+
+          ----ssss   When the first program attempts to read from the
+               keyboard (the *KI device), ppppiiiippppeeeessss will provide a <SPACE>
+               (ASCII 0x20) character to the program instead of
+               actually letting it read the keyboard.  No matter how
+               many times the program tries to read the keyboard, it
+               will always receive a <SPACE> character instead.  This
+               option is useful if the program being executed pauses
+               the display and is simply looking for a character to
+               allow it continue.  By default, the LS-DOS command
+               _d_i_r(L) does this.
+
+          ----nnnn   Same as ----ssss, except a <NULL> (ASCII 0x00) is supplied to
+               the program.
+
+          ----rrrr   Same as ----ssss, except a <ENTER> (ASCII 0x0D) is supplied
+               to the program.
+
+          ----eeee   Similar to ----ssss, except that when the program tries to
+               read the keyboard, it will always receive an end-of-
+               file error (ASCII 0x1C).  Some programs will exit when
+               they see an EOF, and this may be desirable.
+
+          ----???? or ----hhhh
+               Displays the help message.
+
+          <<<< _f_i_l_e | _d_e_v_i_c_e
+               If a file or device is specified, when the first
+               program specified tries to read data from the keyboard,
+               _p_i_p_e_s will provide data from the file or device until
+               the end-of-file is detected or an error occurs.  This
+               is known as _r_e_d_i_r_e_c_t_e_d _i_n_p_u_t. _F_i_l_e_s_p_e_c_s for redirection
+               may not specify a password.
+
+
+
+
+
+
+
+
+
+
+     Page 2                                             May 15th, 1993
+
+
+
+
+
+
+     PPPPIIIIPPPPEEEESSSS((((UUUU1111))))            LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111             PPPPIIIIPPPPEEEESSSS((((UUUU1111))))
+
+
+
+          >>>>[>>>>] _f_i_l_e | _d_e_v_i_c_e
+               By specifying a file or device, the output of the last
+               program before the end of the line or before a
+               semicolon (';;;;') is sent to the specified file or device
+               instead of the display.  This is known as _r_e_d_i_r_e_c_t_e_d
+               _o_u_t_p_u_t. For example, the command ppppiiiippppeeeessss lllliiiibbbb >>>> lllliiiibbbbtttteeeexxxxtttt::::0000
+               places the text from the _l_i_b(L) command in the file
+               LLLLIIIIBBBBTTTTEEEEXXXXTTTT::::0000.  If >> is used, the output will be appended
+               to any existing contents of the file.  _F_i_l_e_s_p_e_c_s for
+               redirection may not specify a password.
+
+          |||| _p_r_o_g_r_a_m
+               The pipe symbol ('||||') indicates the end of one program
+               specification, and the start of the next.  Unlike the
+               semicolon symbol (';;;;'), the pipe symbol ('||||') instructs
+               _p_i_p_e_s to store all of the output of the program on the
+               left of the pipe symbol, and provide that data to the
+               program on the right of the pipe symbol.  On the Model
+               4, 4D or 4P keyboard, the pipe symbol is produced by
+               holding down the <CLEAR> key, then hold down the
+               <SHIFT> key, then press the </> key.
+
+          ;;;; _n_e_x_t _c_o_m_m_a_n_d _g_r_o_u_p
+               When _p_i_p_e_s encounters a semicolon (';;;;'), all options
+               and redirection resets.  Then the remaining command
+               line is examined for new options, program names, pipes,
+               and any new redirection specifications.  A single
+               command line for _p_i_p_e_s can have as many semicolon-
+               separated commands as desired.
+
+
+     NNNNooootttteeeessss
+          Pipes works by loading a driver into high memory that
+          intercepts I/O to the *DO, *SI, and the *KI devices.  _P_i_p_e_s
+          also intercepts the @EXIT and @ABORT supervisor calls.  When
+          _p_i_p_e_s is invoked, it examines the command line up to the
+          first semicolon it finds, looking for any redirection
+          specifications.  Then it goes back to the start of the
+          command line looking for any options.  When a program
+          specification is found, that program is executed with the
+          input and output routed as specified. Here are some examples
+          of how _p_i_p_e_s interprets different command lines:
+
+                ppppiiiippppeeeessss pppprrrrooooggggrrrraaaammmm1111 <<<< ffffiiiilllleeeeaaaa >>>> ffffiiiilllleeeebbbb
+
+          PPPPRRRROOOOGGGGRRRRAAAAMMMM1111 is executed.  If PPPPRRRROOOOGGGGRRRRAAAAMMMM1111 tries to read data from
+          the keyboard, the data is actually read from FFFFIIIILLLLEEEEAAAA.
+          Anything that PPPPRRRROOOOGGGGRRRRAAAAMMMM1111 wants to display is stored in FFFFIIIILLLLEEEEBBBB.
+          Note that the <<<< and >>>> specifications, plus any other
+          parameters that are used by _p_i_p_e_s are not passed to the
+          programs being executed.
+
+
+
+
+     Page 3                                             May 15th, 1993
+
+
+
+
+
+
+     PPPPIIIIPPPPEEEESSSS((((UUUU1111))))            LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111             PPPPIIIIPPPPEEEESSSS((((UUUU1111))))
+
+
+
+                ppppiiiippppeeeessss ----ssss pppprrrrooooggggrrrraaaammmm1111 >>>> ffffiiiilllleeeeaaaa
+
+          PPPPRRRROOOOGGGGRRRRAAAAMMMM1111 is executed.  If PPPPRRRROOOOGGGGRRRRAAAAMMMM1111 tries to read a character
+          from the keyboard, it will always get a <SPACE> character.
+          Any output from PPPPRRRROOOOGGGGRRRRAAAAMMMM1111 is stored in FFFFIIIILLLLEEEEAAAA.
+
+                ppppiiiippppeeeessss ddddaaaatttteeee ;;;; ddddeeeevvvviiiicccceeee ((((bbbb====yyyyeeeessss)))) >>>> ffffiiiilllleeeeaaaa ;;;; lllliiiibbbb
+
+          The programs _d_a_t_e(L), _d_e_v_i_c_e(L) and _l_i_b(L) are executed in
+          that order.  The output of _d_a_t_e(L) and _l_i_b(L) goes to the
+          display since they are not redirected.  The output of
+          _d_e_v_i_c_e(L) is stored in FFFFIIIILLLLEEEEAAAA.  The parameter to the
+          _d_e_v_i_c_e(L) program is passed just as it was present on a
+          normal LS-DOS command line.
+
+                ppppiiiippppeeeessss ddddaaaatttteeee >>>> ffffiiiilllleeeeaaaa ;;;; ttttiiiimmmmeeee >>>>>>>> ffffiiiilllleeeeaaaa
+
+          The programs _d_a_t_e(L) and _t_i_m_e(L) are executed in that order.
+          The output of _d_a_t_e(L) is stored in the file FFFFIIIILLLLEEEEAAAA, and the
+          output of _t_i_m_e(L) is appended to the contents of FFFFIIIILLLLEEEEAAAA.
+
+                ppppiiiippppeeeessss lllliiiibbbb |||| wwwwcccc
+
+          The library command lib(L) is executed and the display
+          output is stored on disk.  Then the program _w_c(U1) is
+          executed and reads the data from _l_i_b(L) that was stored.
+          Since _w_c is at the end of the pipeline and there is no
+          redirection, its output is sent to the display.
+          Note that the spaces around the |||| and ;;;; in these examples
+          are optional.  The command ppppiiiippppeeeessss lllliiiibbbb||||wwwwcccc is accepted.
+
+                ppppiiiippppeeeessss ttttiiiimmmmeeee ;;;; wwwwcccc |||| mmmmoooorrrreeee ++++////1111 <<<< ffffiiiilllleeeeaaaa >>>> ffffiiiilllleeeebbbb ;;;; ddddaaaatttteeee
+
+          The library command _t_i_m_e(L) is executed and its output is
+          sent to the display.  Then the program _w_c(U1) is executed
+          and it reads data from FFFFIIIILLLLEEEEAAAA.  The output of _w_c(U1) is
+          stored on disk.  Then the program _m_o_r_e(U1) is executed and
+          it reads the data from _w_c(U1) that was stored on disk.  The
+          output of _m_o_r_e(U1) is stored in FFFFIIIILLLLEEEEBBBB.  Finally, the _d_a_t_e(L)
+          command is executed and its output is displayed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 4                                             May 15th, 1993
+
+
+
+
+
+
+     PPPPIIIIPPPPEEEESSSS((((UUUU1111))))            LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111             PPPPIIIIPPPPEEEESSSS((((UUUU1111))))
+
+
+
+                ppppiiiippppeeeessss ----rrrr ddddiiiirrrr ::::0000 |||| mmmmoooorrrreeee ;;;; ddddiiiirrrr ::::1111
+
+          The library command _d_i_r(L) will be executed and it will
+          produce a list of files on drive 0.  This data will be
+          stored on disk.  Because the ----rrrr option is specified, each
+          time _d_i_r(L) pauses the display, it will immediately think
+          the <ENTER> key has been pressed and will display the next
+          page of files.  Once _d_i_r(L) is finished, _m_o_r_e(U1) will be
+          executed and it will display the list of files that _d_i_r(L)
+          created.  If the ----rrrr (or one of the other options) was not
+          used, _d_i_r(L) would pause and wait for a key to be pressed,
+          but since nothing is being displayed, you would not know
+          when or how many times a key needed to be pressed.  Finally,
+          the _d_i_r(L) command is executed a second time and will
+          produce a list of files on drive 1.  Because options reset
+          when a semicolon (';;;;') is encountered, the ----rrrr option from
+          earlier no longer applies and the user must press a key to
+          cause the display from the ddddiiiirrrr ::::1111 command to advance from
+          one page to the next.
+
+          Note that no matter how many programs are connected together
+          with pipes, any redirection must be specified after the last
+          program.  The redirected input only affects the program at
+          the start of the pipeline, and the redirected output only
+          affects the last program on the pipeline.
+
+          When the entire command line has been processed, or if an
+          error occurs, _p_i_p_e_s resets all the devices to their normal
+          states, and then will attempt to remove itself from high
+          memory.  If another high memory module (driver, filter, etc)
+          is loaded by one of the commands that _p_i_p_e_s has executed,
+          the memory that _p_i_p_e_s was using cannot be released.  _P_i_p_e_s
+          will reuse the unreleasable memory in later invocations.
+
+          To keep the size of _p_i_p_e_s to a minimum, it only has a
+          limited number of error messages.  When _p_i_p_e_s encounters an
+          error, it aborts immediately, and will display a message
+          containing the phrase "broken pipe".  Normally, the actual
+          cause of the error will be displayed by the operating system
+          or the program that aborted.  However, if the output of that
+          program was being sent to a pipe or was redirected, the
+          message will not be displayed.  Instead it was stored on
+          disk.  In these cases, any specific error message has been
+          stored in one of the PPPPIIIIPPPPEEEE files.
+
+
+
+
+
+
+
+
+
+
+
+     Page 5                                             May 15th, 1993
+
+
+
+
+
+
+     PPPPIIIIPPPPEEEESSSS((((UUUU1111))))            LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111             PPPPIIIIPPPPEEEESSSS((((UUUU1111))))
+
+
+
+          _P_i_p_e_s will abort if logical drive 0 (or the specified drive)
+          runs out of disk space, or is write protected.  In these
+          cases, the error message will indicate which file _p_i_p_e_s is
+          having trouble with.
+
+          _P_i_p_e_s cannot be invoked from within _p_i_p_e_s.
+
+          Ideally, all applications would read data from *SI and write
+          to *SO, which are normally routed to *KI and *DO,
+          respectively.  But unfortunately, hardly any programs do
+          this, making it difficult for a program to accept data from
+          a pipe and prompt the user at the keyboard.  Programs that
+          need to do this must read data that might be redirected from
+          *SI, and read the responses to any user prompts from *KI.
+          All the programs on the _U_t_i_l_i_t_i_e_s _D_i_s_k _1 do this.  This is
+          how mmmmoooorrrreeee(U1) can be reading data from standard input (either
+          redirected or from a pipe), and still prompt the user to
+          find out what it should do next.  _M_o_r_e(U1) and other
+          programs on the _U_t_i_l_i_t_i_e_s _D_i_s_k _1 also check to see if their
+          output has been redirected or sent into a pipe.  If it has,
+          they will not prompt the user for anything.
+
+          When you specify ----nnnn, ----ssss, ----rrrr or  ----eeee in _p_i_p_e_s, the generated
+          characters (or errors) are provided to the first program on
+          the command line (or after a semicolon) if it tries to read
+          from *KI.  Unless redirected by a <<<< specification or a pipe,
+          reading from *SI is the same as reading from *KI.  When
+          redirection does occur, programs that read from *SI will be
+          reading data from the specified file, device or pipe.
+
+          To install _p_i_p_e_s as the _I_m_m_e_d_i_a_t_e _E_x_e_c_u_t_i_o_n _P_r_o_g_r_a_m (IEP),
+          in LS-DOS, use the command:
+
+                COPY PIPES/CMD SYS13/SYS.SYSTEM6:0 (C=N)
+
+          Once done, _p_i_p_e_s can be invoked by typing an asterisk ('*')
+          instead of the word _p_i_p_e_s.
+
+
+
+     FFFFiiiilllleeeessss
+          _P_i_p_e_s creates PPPPIIIIPPPPEEEESSSS0000 and PPPPIIIIPPPPEEEESSSS1111 on logical drive 0 unless
+          you specify another drive.  These files are intentionally
+          left after _p_i_p_e_s finishes executing.  Because the space is
+          already allocated, _p_i_p_e_s can run faster the next time it is
+          invoked.  Also, if a lengthy pipeline aborts without
+          displaying anything, the files can be examined for error
+          messages that may help you determine which program had
+          problems.
+
+
+
+
+
+
+     Page 6                                             May 15th, 1993
+
+
+
+
+
+
+     PPPPIIIIPPPPEEEESSSS((((UUUU1111))))            LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111             PPPPIIIIPPPPEEEESSSS((((UUUU1111))))
+
+
+
+     CCCCrrrreeeeddddiiiitttt
+          _P_i_p_e_s for LS-DOS is based on the program MMMMCCCCMMMM written by
+          Frank Durda IV, which appeared in _T_h_e _M_i_s_o_s_y_s _Q_u_a_r_t_e_r_l_y (Vol
+          IV, No IV), and is used with permission.  The syntax of
+          pipes and redirection is based on the Berkeley CSH ("C"
+          shell, a command interpreter) for *NIX systems.
+
+
+          If you need more information on _p_i_p_e_s(U1), please write to
+          M.A.D. Software, P.O. Box 331323, Ft. Worth Texas, 76163.
+          Please include a Self-Addressed-Stamped-Envelope when
+          requesting information.
+          ------
+          307174
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 7                                             May 15th, 1993
+
+
+

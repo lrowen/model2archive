@@ -1,0 +1,55 @@
+Software License Agreement
+
+The "X" and "XD" firmware and this documentation are copyrighted with all
+rights reserved.  The user is granted a license to use the ROM or
+EPROM (hereafter called ROM) which contains the "X" or "XD" firmware
+on a single Model 4 or 4D computer system.
+
+Companies or individuals with multiple systems must obtain multiple copies
+of the firmware.    
+
+This product contains serial numbers and other traceable markings.
+The user of this product may not duplicate the ROM for any purpose.
+
+The manufacturer warrants the ROM which contains the "X" or "XD" firmware
+to be free from defects under normal use for a period of 90 days from the
+date of original purchase.  If during this 90 day period a defect in the ROM
+makes the firmware unusable, you may return it to the manufacturer for a
+replacement without charge.
+
+This warranty does not cover damage to the ROM (or the firmware within)
+caused by improper handling, bent or broken pins, improper insertion
+(including backwards insertion) or damage caused by any malfunction in
+the computer system.   It also does not cover damage caused by fire,
+flood or other acts of God.
+
+The manufacturer makes no commitment to provide any upgrade but should one
+be produced, the following upgrade policy will apply:
+
+	If an upgrade ROM becomes available during the 90 day warranty period,
+	the customer will be advised to return the ROM to the manufacturer
+	(provided the product has been registered) for replacement without
+	charge.
+
+	After 90 days, any upgrade ROM that is made available will be provided
+	at a nominal charge when the customer returns the original, working
+	ROM.
+
+Any ROM that is returned due to a defect for an in-warranty exchange or
+for an upgrade (in or out of warranty) that has a defaced or invalid
+registration number will not be accepted.
+
+Except as provided for above, the author and/or manufacturer make no
+warranties, either expressed or implied, with respect to this firmware
+or its fitness for any purpose.  This firmware is provided "as-is".  Although
+significant testing has been performed to insure this product will
+work with the systems listed, this firmware cannot be expected to work
+in systems other than those listed and on versions of operating systems
+other than the ones specified.  Other non-standard modifications to
+software, hardware or firmware can also prevent this product from
+functioning as intended.  Should the software prove defective or incompatible,
+the buyer assumes the entire cost of all necessary servicing, repair, or
+correction and any incidential or consequental damages.  The author and
+manufacturer assume no liability for direct, indirect, incidental or
+consequental damages resulting from any use of or any defects in the
+

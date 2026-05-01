@@ -1,0 +1,132 @@
+
+
+
+     FFFFOOOORRRRCCCCEEEEHHHHIIII((((UUUU1111))))          LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111           FFFFOOOORRRRCCCCEEEEHHHHIIII((((UUUU1111))))
+
+
+
+     NNNNaaaammmmeeee
+          FORCEHI - Reserves low memory so that drivers or filters can
+          be forced into high memory.
+
+     SSSSyyyynnnnttttaaaaxxxx
+          ffffoooorrrrcccceeeehhhhiiii [ ----qqqqrrrrffff????hhhh ] [ ; _n_e_x_t _c_o_m_m_a_n_d ]
+
+     DDDDeeeessssccccrrrriiiippppttttiiiioooonnnn
+          _F_o_r_c_e_h_i allows the user to lock low memory so that any
+          drivers or filters that are subsequently loaded will be
+          forced to use high memory instead of low memory.  Since low
+          memory is a limited resource and some drivers can only be
+          loaded into low memory, _f_o_r_c_e_h_i can be used to force drivers
+          and filters that can be run in high memory to use high
+          memory, leaving low memory available for the drivers that
+          require it.
+
+          _F_o_r_c_e_h_i accepts several options.  Options are specified by
+          single characters, and they may be entered in upper or
+          lowercase.  Options are always preceded by a hyphen (a "-").
+          If you are specifying multiple options, you can specify the
+          options in any of these formats:
+                -a -b -c   or   -abc   or   -a -bc   or  -ab -c
+
+          The options are:
+
+          ----qqqq   This option causes _f_o_r_c_e_h_i to run silently.  No
+               messages are displayed if everything works like it
+               should.  If errors occur, they are reported.
+
+          ----rrrr   By default, _f_o_r_c_e_h_i will reserve low memory so that no
+               other drivers can be loaded there.  The ----rrrr option
+               releases any memory that was reserved by _f_o_r_c_e_h_i.
+
+          ----ffff   Similar to the ----qqqq, except that _f_o_r_c_e_h_i will not display
+               any messages, even if the requested action fails.
+
+          ----???? oooorrrr ----hhhh
+               Displays the help message.
+
+          ; _n_e_x_t _c_o_m_m_a_n_d
+               After _f_o_r_c_e_h_i completes, the remainder of the command
+               line is executed as a second command.  The command
+               ffffoooorrrrcccceeeehhhhiiii;;;;sssseeeetttt ****ccccllll ccccoooommmm will reserve all of low memory, and
+               then the RS-232 driver will be loaded.
+
+
+
+
+
+
+
+
+
+
+     Page 1                                             May 15th, 1993
+
+
+
+
+
+
+     FFFFOOOORRRRCCCCEEEEHHHHIIII((((UUUU1111))))          LLLLSSSS----DDDDOOOOSSSS 6666 ---- UUUUttttiiiilllliiiittttiiiieeeessss 1111           FFFFOOOORRRRCCCCEEEEHHHHIIII((((UUUU1111))))
+
+
+
+     NNNNooootttteeeessss
+          _F_o_r_c_e_h_i will not cause a driver that can only run in low
+          memory to be usable in high memory.
+
+          The _s_y_s_g_e_n(_L) command should not be used while _f_o_r_c_e_h_i has
+          memory reserved.  You can determine if _f_o_r_c_e_h_i is holding
+          memory by using the _m_a_p_m_e_m(U1) command to examine the
+          contents of memory.
+
+     FFFFiiiilllleeeessss
+          No files are accessed by _f_o_r_c_e_h_i.
+
+
+          If you need more information on _f_o_r_c_e_h_i(U1), please write to
+          M.A.D. Software, P.O. Box 331323, Ft. Worth Texas, 76163.
+          Please include a Self-Addressed-Stamped-Envelope when
+          requesting information.
+          ------
+          305151
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     Page 2                                             May 15th, 1993
+
+
+

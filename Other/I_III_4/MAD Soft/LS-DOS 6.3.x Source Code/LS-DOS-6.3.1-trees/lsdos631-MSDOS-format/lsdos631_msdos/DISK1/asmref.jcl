@@ -1,0 +1,17 @@
+. ASMREF/JCL - 10/28/83 - Assemble Lib files with SYSRES calls
+edas (jcl,abort)
+l lbsysasm:3
+a lsystem:2-nl
+dt,b
+l lbsysgen:3
+a lsysgen:2-nl
+dt,b
+l lbdate:3
+a ldate:2-nl
+dt,b
+l lbdebug:3
+a ldebug:2-nl
+dt,b
+l lblib:3
+a llib:2-nl
+b

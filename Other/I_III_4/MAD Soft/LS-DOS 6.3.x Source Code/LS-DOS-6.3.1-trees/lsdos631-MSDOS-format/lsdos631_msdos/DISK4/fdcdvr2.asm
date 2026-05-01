@@ -1,0 +1,388 @@
+;FDCDVR2/ASM - 12/29/83 - Model II - 6.2
+;
+;*=*=*
+;	Change Log
+;
+; 04/29/83 - Changed retry count to 4 from 6
+; 05/27/83 - Correct to NOT set PRECOMP in SDEN
+;
+;*=*=*
+;	Model II LDOS 6.2 disk I/O routines
+;	 HL=> buffer address
+;	  D=> track desired
+;	  E=> sector desired
+;	  C=> drive desired
+;	  B=> disk primitive command
+;*****
+$FTIME	EQU	90		;floppy timeout delay
+;
+;*****
+;	Disk Driver Entry Point
+;*****
+FDCDVR	JR	FDCBGN
+	DW	FDCEND
+	DB	3,'$FD'
+;
+SWDEN	LD	A,(IY+3)	;flip the density bit
+	XOR	40H
+	LD	(IY+3),A
+	PUSH	BC		;save retry count
+	LD	BC,270FH	;set alloc to SDEN
+	BIT	6,A		;test SDEN/DDEN
+	JR	Z,SDEN
+	LD	BC,491DH	;set alloc to DDEN
+SDEN	LD	(IY+7),C
+	LD	(IY+8),B
+	POP	BC		;restore retry
+	LD	A,B		;get retry count
+	CP	3		;at 3?
+	JR	Z,RESTOR	;restore if 2 retry left
+	XOR	A		;else return Z
+	RET			;done
+;*=*=*
+;	write routine
+;*=*=*
+WROUT	LD	(DMAWR+3),HL	;save dma buffer address
+	LD	HL,DMAWR	;dma write table
+	JR	RDWR		;go common!
+;*****
+;	verify routine
+;*****
+VERFIN	LD	HL,BUCKET	;byte bucket
+	LD	A,20H		;DMA no increment
+	JR	RDINNXT		;continue
+;*****
+;	read routine
+;*****
+RDIN	LD	A,10H		;DMA increment
+RDINNXT	LD	(DMARD+9),HL	;pass I/O buffer address
+	LD	(DMARD+7),A	;set inc/no inc
+	LD	HL,DMARD	;dma read table
+;
+;	common vector for sector read/write
+;
+RDWR	CALL	TSTBSY		;wait for busy
+	RET	NZ		;go if not ready
+	LD	A,C		;get disk command
+	LD	BC,15<8+$DMA	;length + dma port
+	OTIR			;load dma registers
+	LD	HL,LCKFLG$	;lockout flag
+	LD	C,A		;save disk command
+	CALL	DCLR		;reset and get status
+	BIT	5,A		;head loaded?
+	LD	A,C		;get command
+	JR	NZ,$+4		;go if yes
+	OR	4		;else head load bit
+	BIT	4,(IY+3)	;side 0?
+	JR	Z,$+4		;go if yes
+	OR	8		;select side 1
+	SET	7,(HL)		;set DMA active flag
+	OUT	($FDCCMD),A	;issue command
+	DI			;disable M2 interrupts
+	LD	A,$DMAON	;DMA ON command
+	OUT	($DMA),A	;load DMA register
+	CALL	WAIT		;140 us delay
+;
+RDIN1	IN	A,($FDCSTA)	;read status
+	AND	81H		;busy/ready
+	DEC	A		;busy only?
+	JR	Z,RDIN1		;wait for done
+	LD	A,$DMAOFF	;DMA OFF command
+	OUT	($DMA),A	;terminate command
+	EI
+	RES	7,(HL)		;reset DMA active
+	RET			;return with status
+;*=*=*
+;	Driver start
+;*=*=*
+FDCBGN	LD	A,B		;p/u primitive request
+	AND	A		;NOP?
+	RET	Z		;Quit if so
+	CP	7
+	JP	Z,TSTBSY	;jump on TSTBSY request
+	JP	NC,IORQST	;Jump on I/O request
+	CP	6
+	JP	Z,USESEEK	;go on SEEK
+	DEC	A
+	JR	Z,SELECT	;Jump on drive select
+;
+	CP	4		;stepin?
+	JR	NZ,RESTOR	;go if not
+	LD	B,$FSTEP	;FDC command
+	CALL	STEPIN		;issue command & get stat
+	RET	NZ		;go on error
+	INC	(IY+5)		;else correct cylinder
+	XOR	A		;must set Z
+	RET			;done, exit
+;
+RESTOR	LD	B,$FHOME	;restore drive (>6ms)
+	CALL	STEPIN		;move head!
+	RET	NZ		;go if error!
+	CALL	DCLR		;reset, get status
+	CPL			;reverse bit
+	ADD	A,A		;move bit 2>3
+	AND	8		;tk0 sensor found?
+	RET	NZ		;go on error
+	LD	(IY+5),0	;else set cyl 0
+	RET			;and return OK
+;
+SELECT	CALL	TSTBSY		;Check drive status
+;
+;	check if this is a new drive
+;
+	CALL	DCLR		;reset controller
+	PUSH	AF		;Save NOT READY flag
+	PUSH	BC		;need to use
+	LD	A,(IY+4)	;get select code
+	AND	0FH		;low 4 bits only
+	LD	C,A		;save it
+	LD	A,(IY+3)	;get density bit
+	ADD	A,A		;move bit 6 -> 7 density
+	OR	7FH		;set all others
+	XOR	C		;reset select bit
+	POP	BC
+	BIT	4,(IY+3)	;select side 1?
+	JR	Z,SKIPS1	;go if not
+	RES	6,A		;set side 1
+SKIPS1	OUT	($FDCSEL),A	;select drive
+	LD	(PDRV$),A	;store port byte
+	CALL	DSEL		;init motor timeout delay
+	POP	AF		;Retrieve NOT READY bit
+	BIT	7,A		;ready?
+	RET	Z		;yes, go!
+	BIT	2,(IY+3)	;Check DELAY=on/off
+	CALL	Z,FDCDLY	;delay if on
+	CALL	DCLR		;clear and get status
+	BIT	7,A		;ready now?
+	RET	Z		;go if OK
+	LD	A,8		;'device not avail'
+	RET			;return in error
+;
+FDCDLY	PUSH	BC		;delay routine
+	LD	BC,0
+EXDLY	CALL	PAUSE@		;1/2 sec
+	POP	BC
+	XOR	A		;set Z flag
+	RET			;return with status
+;
+HEADLD	PUSH	BC		;save
+	LD	BC,5000		;40 ms head load delay
+	JR	EXDLY		;go!
+;
+DSEL	LD	A,(PDRV$)	;p/u drive
+	OUT	($FDCSEL),A	;& reselect
+	LD	A,$FTIME	;floppy timeout count
+	LD	(TIMEOUT),A	;init floppy timeout dly
+	IN	A,($FDCSTA)	;read status
+	RET			;return with it
+;*****
+;	Reselect drive while controller is busy
+;*=*=*
+TSTBSY	IN	A,($FDCSTA)	;read status
+TSTBSY2	BIT	0,A		;busy?
+	RET	Z		;nope, go!
+;
+	CALL	DSEL		;select drive
+	BIT	7,A		;ready?
+	JR	Z,TSTBSY2	;go if still ready
+	LD	A,8		;'device not avail'
+	RET			;return in error
+;*****
+;	routine to seek a track
+;*****
+USESEEK	LD	E,0		;set for sector #0
+SEEKTRK	LD	A,(PDRV$)	;get current drive #
+	AND	0FH		;select bits only
+	LD	(LSTDRV),A	;save as last for test
+;
+	CALL	SELECT		;init drive
+	LD	A,(IY+5)	;p/u current cylinder
+	OUT	($FDCTRK),A	;& set FDC to current
+	LD	A,(IY+7)	;p/u alloc data
+	AND	1FH		; get highest # sector
+	SUB	E		;Form req sector minus
+	CPL			; max, setting CY flag if
+	RES	4,(IY+3)	;init side select to 0
+	JR	NC,SETSECT	;Go if sector on side 0
+	BIT	5,(IY+4)	;If not 2-sided media,
+	JR	Z,FRCSID0	;  don't set side 1
+	SET	4,(IY+3)	;set side 1
+	DB	1EH		;Ignore next with LD E,n
+SETSECT	LD	A,E		;Restore unaltered sec #
+FRCSID0	OUT	($FDCSEC),A	;set sector & cylinder
+	LD	A,D
+	OUT	($FDCDAT),A	;set desired track
+;
+	CP	(IY+5)		;at current cyl?
+	LD	B,$FSEEK	;FDC seek
+	JR	Z,EXESEEK	;go if yes
+	LD	(IY+5),D	;update current cyl
+	SET	2,B		;set verify bit
+EXESEEK	CALL	STEPIN		;execute command
+	RET	NZ		;error!
+;
+;	check for extra head load delay
+;
+	LD	A,(IY+4)	;get current drive
+	AND	0FH		;select bits only
+	XOR	0FH		;create select code
+	SUB	0		;compare to last drive
+LSTDRV	EQU	$-1
+	RET	Z		;go if same!
+	JR	HEADLD		;else head load delay
+;
+STEPIN	CALL	SELECT		;wait till FDC finished
+	RET	NZ		;go if not ready
+	CALL	DCLR		;force interrupt, get st
+	PUSH	AF		;save
+	LD	A,(IY+3)	;get DCT data
+	AND	3		;strip all but step rate
+	OR	B
+	CALL	PASSCMD		;issue command
+	POP	AF		;restore head info
+	BIT	5,A		;head loaded?
+	CALL	Z,HEADLD	;nope, extra delay
+	CALL	TSTBSY		;wait till done
+	AND	98H		;ready, seek error?
+	RET	Z		;go if OK
+	LD	A,8		;'device not avail'
+	RET			;return in error
+;
+DCLR	LD	A,$FCLER	;force interrupt clear
+	CALL	PASSCMD		;issue command & wait
+	IN	A,($FDCSTA)	;read status register
+	RET			;and return with it
+;
+PASSCMD	OUT	($FDCCMD),A	;give FDC its command
+;
+WAIT	LD	A,0EH		;init count
+WAIT1	DEC	A		;less count
+	JR	NZ,WAIT1	;wait till done
+FDCRET	RET
+;*****
+;	I/O request handler
+;*****
+IORQST	BIT	2,A		;write command?
+	LD	BC,(RFLAG$-1)	;load B with retry flag
+	LD	C,$FREAD	;read sector command
+	JR	NZ,WRCMD	;Go if write command
+	CP	10		;verify sector?
+	JR	Z,VERFY
+	CALL	GRABNDO		;grab next code & insert
+	DB	1+7		;error code start
+	DW	RDIN
+VERFY	CALL	GRABNDO		;stuff I/O direction
+	DB	1+7		;error code start
+	DW	VERFIN
+WRCMD	BIT	7,(IY+3)	;Software WP?
+	JR	Z,WRCMD1	;Bypass if not
+	LD	A,15		;Else set WP error
+	RET
+WRCMD1	LD	C,$FWRIT	;write sector FDC command
+	CP	14		;directory sector?
+	JR	C,DOWRIT
+	LD	C,$FWRIT+1	;write protected
+	JR	Z,DOWRIT	;  if directory else
+	LD	C,$FFMT		;  write track
+DOWRIT	CALL	GRABNDO		;switch code
+	DB	9+7		;error code start
+	DW	WROUT
+;*****
+;	routine stuffs error start byte & I/O vector
+;*****
+GRABNDO	EX	(SP),HL		;save HL & get ret addr
+	LD	A,(HL)		;p/u & stuff error code
+	INC	HL		;start byte
+	LD	(ERRSTRT+1),A
+	CALL	$GETHL		;get hl from (HL)
+	LD	(CALLIO),HL	;stuff CALL vector
+	POP	HL		;Restore buffer addr
+;*****
+;	main I/O handler routine
+;*****
+RETRY	PUSH	BC		;save retry &FDC command
+	PUSH	DE		;save track/sector
+	PUSH	HL		;save buffer
+	BIT	4,C		;test for track command
+	JR	NZ,EXEIO	;go if track write
+	CALL	SEEKTRK		;seek if not track write
+	JR	NZ,EXEIOE	;go if error here
+EXEIO	CALL	0		;call I/O routine
+CALLIO	EQU	$-2		;data xfer direction
+EXEIOE	CALL	DSEL		;select, get status
+	AND	0FDH		;check error bits
+	POP	HL
+	POP	DE		;rcvr track & sector
+	POP	BC		;rcvr retry count & cmd
+	RET	Z		;ret if no error
+	BIT	2,A		;lost data?
+	JR	NZ,RETRYC	;count retries
+	PUSH	AF
+	AND	98H		;RNF/CRC/Not Ready
+	JP	M,DISKDUN	;abort if not ready
+	JR	Z,DISKDUN	;No retries if otherwise
+	BIT	4,A		;RNF?
+	PUSH	BC		;save
+	CALL	NZ,SWDEN	;  density & restore
+	POP	BC		;restore
+	JR	NZ,SWDERR	;not in system!
+	POP	AF
+RETRYC	DJNZ	RETRY		;count down retry
+	DB	6
+DISKDUN	POP	AF		;adjust ret code
+	PUSH	BC		;save!
+	LD	B,A
+ERRSTRT	LD	A,0		;start with R=1, W=9
+ERRTRAN	RLC	B
+	JR	C,ERRFND	;go if found
+	DEC	A
+	JR	NZ,ERRTRAN	;continue till found
+	LD	A,8		;force not avail error!
+ERRFND	CP	16		;device not avail on writ
+	JR	NZ,$+4		;go if not
+	LD	A,8		;adjust error code
+	OR	A		;set NZ flag
+	POP	BC		;restore
+	RET			;return error
+;
+SWDERR	EX	(SP),HL		;leave HL
+	POP	HL		;dummy pop HL
+	RET			;return NZ with err code
+;
+;	dma read/write tables
+;
+DMARD	DB	0C3H		;wr6 - reset
+	DB	08BH		;wr6 - clear status
+	DB	069H		;wr0 - portA add follows
+	DB	$FDCDAT		;fdc data register
+	DW	256		;block length
+	DB	03CH		;wr1 - portA fixed, I/O
+	DB	010H		;wr2 - portB inc, memory
+	DB	08DH		;wr4 - byte, portB follow
+	DW	0000H		;buffer address
+	DB	08AH		;wr5 - stop, rdy, high
+	DB	0CFH		;wr6 - load, start, clear
+	DB	005H		;wr0 - portA => portB
+	DB	0CFH		;wr6 - load, start, clear
+;
+DMAWR	DB	0C3H		;master reset
+	DB	08BH		;clear eob status
+	DB	079H		;portA addr follows
+	DW	0000H		;buffer address
+	DW	10672		;block length
+	DB	014H		;wr1 - portA inc, memory
+	DB	028H		;wr2 - portB fixed, I/O
+	DB	085H		;wr4 - byte, portB follow
+	DB	$FDCDAT		;fdc data register
+	DB	08AH		;wr5 - stop, ready, high
+	DB	0CFH		;wr6 - load, start, clear
+	DB	005H		;wr0 - portA => portB
+	DB	0CFH		;wr6 - load, start, clear
+;
+TIMEOUT	DB	90		;drive motor off time
+;
+BUCKET	DB	0		;dummy transfer for ver.
+;
+FDCEND	EQU	$-1
+;
+

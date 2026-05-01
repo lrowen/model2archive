@@ -1,0 +1,1185 @@
+;FILPOSN/ASM - LS-DOS 6.3
+;
+;	Entry for byte I/O from @GET & @PUT
+;
+BYTEIO	PUSH	IX
+	POP	DE		;Transfer DCB to DE
+	CALL	CKOPEN@		;Ck file open, save regs
+	SET	7,(IX+1)	;Denote byte or LRec
+	LD	A,B		;Get type code & test
+	CP	2		;For get/put
+	LD	A,C
+	JR	Z,WRCHAR	;Go on PUT
+	JR	NC,IORETZ	;Ignore if CTL
+;
+;	Get a byte from a file
+;
+RDCHAR	CALL	CKEOF1		;Ck for end of file
+	RET	NZ		;Return if at end
+	BIT	5,(IX+1)	;If buffer not current,
+	CALL	NZ,NSEC1	;  read next sector
+	RET	NZ
+	CALL	BFRPOS		;Pt to byte posn in bfr
+	LD	A,(DE)		;P/u the byte
+	INC	(IX+5)		;Inc NEXT ptr
+	CALL	Z,SET5		;Set bit 5 if zero
+	CP	A		;Set Z flag--no error
+	RET
+;
+SET5	SET	5,(IX+1)
+	RET
+;
+;	Write a byte to a file
+;
+WRCHAR	BIT	6,(IX+0)	;Prot level give write acc?
+	JP	Z,RWRIT3	;  go if not
+	PUSH	AF		;Save byte
+	BIT	5,(IX+1)	;Get next sector if
+	CALL	NZ,WRCH2	;  buffer is not current
+	JR	Z,WRCH1		;Skip if read was ok
+	EX	(SP),HL		;Pop stack but keep
+	POP	HL		;  error # in AF
+	RET
+;
+WRCH1	CALL	BFRPOS		;Next bfr byte posn
+	POP	AF
+	LD	(DE),A		;Stuff the byte
+	SET	4,(IX+1)	;Buffer contains updated data
+	INC	(IX+5)		;Inc NEXT byte
+	PUSH	AF		;Save Z or NZ flag
+	CALL	Z,SET5		;Set bit 5 if offset 0
+	CALL	CKEOF1		;Check for EOF
+	JR	NZ,ATEOFW	;Go if there
+	BIT	6,(IX+1)	;Jump if EOF set to next
+	JR	NZ,DNTSET	;  only if at EOF
+ATEOFW	LD	(IX+8),C	;Set EOF
+	LD	(IX+12),L
+	LD	(IX+13),H
+DNTSET	POP	AF		;Restore offset flag
+	JR	Z,RWRIT1	;Go to write sector if 00
+IORETZ	XOR	A		;Set Z flag--no error
+	RET
+;
+;	WRCHR needs the next sector - if UPDATE, ck EOF
+;
+WRCH2	LD	A,(IX+1)	;Ck if UPD bit set
+	AND	7		;Mask for prot level
+	CP	4		;Check for UPD
+	JR	NZ,NSEC1	;Bypass EOF ck on > UPD
+NXTSECT	CALL	CKEOF1		;Ck for end of file
+	RET	NZ		;Can't extend in update mode
+NSEC1	LD	A,(IX+1)	;Read access?
+	AND	7
+	CP	6
+	JR	NC,RWRIT3	;"Illegal access..." if not
+NSEC2	CALL	IOREC		;Calc cylinder/sector
+	RET	NZ
+	RES	5,(IX+1)	;Show buffer current
+	LD	L,(IX+3)	;P/u buffer address
+	LD	H,(IX+4)
+	CALL	@RDSEC		;Read the sector
+	JR	Z,BUMPNRN	;Go if no error
+	CP	6		;Test for prot sector
+	RET	NZ		;Quit if error not 6
+BUMPNRN	INC	(IX+10)		;Inc the NRN ptr LSB
+	JR	NZ,ZEROA@
+	INC	(IX+11)		;  and MSB if necessary
+	IF	@BLD631
+@SEEKSC:			;<631>
+	ENDIF
+ZEROA@	XOR	A
+	RET
+;
+;	Repositioning needs to write out the buffer
+;
+RWRIT@	LD	A,(IX+1)
+	AND	90H		;Test for non-sector i/o and
+	CP	90H		;  buffer contents changed
+	JR	Z,RWRIT1	;Go if conditions true
+	JR	ZEROA@		;  else no need to write
+@RWRIT	CALL	CKOPEN@		;Ck file open, save regs
+RWRIT1	CALL	GETNRN		;P/u NRN
+	LD	A,H		;Ignore if rewound
+	OR	L
+	RET	Z
+	DEC	HL		;Dec & reset NRN
+	LD	(IX+10),L
+	LD	(IX+11),H
+;
+;	Check access protection level
+;
+RWRIT2	LD	A,(IX+1)	;Get prot
+	AND	7
+	CP	5		;Update access or better?
+	JR	C,RWRIT4
+RWRIT3	LD	A,25H		;Illegal access error code
+	OR	A		;Return NZ
+	RET
+;
+RWRIT4	AND	4		;If UPDATE access, then
+	JR	Z,RWRIT5	;  can't extend if at EOF
+	CALL	CKEOF1
+	JR	NZ,RWRIT3	;  so show "Illegal access...
+RWRIT5	CALL	IOREC		;Calculate cylinder & sector
+	RET	NZ
+	LD	L,(IX+3)	;P/u buffer addr
+	LD	H,(IX+4)
+	RES	4,(IX+1)	;Altered buffer flag off
+	SET	2,(IX+0)	;Show modification done
+	CALL	@WRSEC		;  for directory mod flag
+	RET	NZ
+VEROP	LD	A,0		;Verify operation if set
+	OR	A
+	CALL	NZ,@VRSEC	;Verify if no write error
+	RET	NZ		;Return if wrt/ver error
+	CALL	BUMPNRN		;Increment NRN
+;
+;	Check if ERN to be set to NRN
+;	Should be done for byte i/o, but not random i/o
+;
+	CALL	CKEOF1		;Returns 0 if not at EOF
+	DEC	A		;Set bit 6 if retcod=0
+	AND	(IX+1)		;If IX+1, bit 6 set, then
+	AND	40H		;  don't update EOF unless at
+	JR	NZ,ZEROA@	;  or past the old EOF
+YESEOF	LD	(IX+12),L	;Update ERN
+	LD	(IX+13),H
+	BIT	3,(IX+1)	;Test if ending '!'
+	IF	@BLD631
+	JR	NZ,WEOF1	;<631>Upd dir if so
+	ELSE
+	JP	NZ,WEOF1	;Upd dir if so
+	ENDIF
+	RET
+;
+GETNRN	LD	L,(IX+10)	;Xfer NRN to HL
+	LD	H,(IX+11)
+	RET
+;
+BFRPOS	LD	A,(IX+5)	;P/u byte offset in buffer
+	ADD	A,(IX+3)	;Add to buffer lsb
+	LD	E,A
+	LD	A,(IX+4)	;  and adjust buffer MSB
+	ADC	A,0		;  if needed
+	LD	D,A		;Return DE = posn
+	RET
+	IF	@BLD631
+;<631>
+;<631>	Return formatted date, HL => user buffer
+;<631>
+@DATE	CALL	DATELO$		;<631>Call existing date code in LOWCORE
+	PUSH	HL		;<631>
+	DEC	HL		;<631>
+	DEC	HL		;<631>
+	LD	A,(HL)		;<631>
+	CP	':'		;<631>Test for decade overflow
+	JR	C,DATE1		;<631>
+	SUB	0AH		;<631>
+	LD	(HL),A		;<631>
+DATE1	POP	HL		;<631>
+	RET			;<631>
+	ELSE
+;
+;	Entry to seek next record of a file
+;
+@SEEKSC	CALL	CKOPEN@		;Link to FCB & ck if open
+	CALL	CKEOF1		;Ensure not > EOF
+	CALL	Z,IOREC		;Get track/sector data
+	RET	NZ		;Back on I/O error
+	CALL	@SEEK		;Issue seek to drive
+	XOR	A		;Ignore seek errors here
+	RET
+	ENDIF
+	IF	@BLD631
+;
+;	Entry to Write an end-of-file mark
+;<631>	This routine relocated here to allow more relative branch references.
+;
+@WEOF	CALL	CKOPEN@
+	CALL	RWRIT@		;Write buffer if needed
+WEOF1	LD	B,(IX+7)	;P/u DEC of FPDE
+	LD	C,(IX+6)	;P/u drive #
+	CALL	@DIRRD		;Read file's dir record
+	RET	NZ		;Back if read error
+	INC	L		;Pt to ERN offset
+	INC	L
+	INC	L
+	LD	A,(IX+8)	;P/u EOF offset
+	LD	(HL),A		;Put in direc
+	LD	DE,17		;Pt to EOF in dir
+	ADD	HL,DE
+	LD	A,(IX+12)	;P/u lo EOF
+	LD	(HL),A		;Put EOF in direc
+	INC	HL
+	LD	A,(IX+13)	;P/u hi EOF
+	LD	(HL),A
+	JP	@DIRWR		;Write direc and return
+	ENDIF
+;
+;	Entry to Skip record routine
+;
+@SKIP	CALL	@LOC		;Locate next record
+	INC	BC		;Step past it
+;
+;	Entry to Position to record routine
+;
+@POSN	CALL	CKOPEN@
+	SET	6,(IX+1)	;Upd eof only if NRN>EOF
+	BIT	7,(IX+1)	;Jump if sector i/o only
+	JR	Z,POSN1
+	LD	H,B		;Record ptr to HL
+	LD	L,C
+	OR	(IX+9)		;P/u LRL
+	JR	Z,POSN1		;Skip nxt if LRL=256
+	CALL	@MUL16		;Calc sector & offset
+	LD	B,H		;Physical sector =>BC
+	LD	C,L
+	LD	(IX+5),A	;Set byte ptr
+	BIT	5,(IX+1)	;Jump if buffer does not
+	JR	NZ,POSN2	;  contain current sector
+	CALL	GETNRN		;P/u the NRN
+	SCF
+	SBC	HL,BC
+	JR	Z,$CKEOF	;Pass on to CKEOF
+POSN1	LD	(IX+5),A	;Offset in buffer
+POSN2	PUSH	BC
+POSN2A	CALL	RWRIT@		;Write current if needed
+	POP	BC		;  before moving
+	RET	NZ		;Back on write error
+	LD	(IX+10),C	;NRN
+	LD	(IX+11),B
+	CALL	SET5		;Show bfr does not
+$CKEOF	JP	CKEOF1		;  contain current sector
+;
+;	Entry to force a physical read
+;
+@RREAD	CALL	CKOPEN@
+	LD	C,1		;Cause ADJUST to bump
+;				;  NRN when called
+BKSP1	CALL	GETNRN		;Get current record #
+	LD	A,H		;If file is rewound,
+	OR	L		;  then ignore the req
+	JR	Z,BKSP0		;  & force OFFSET = 0
+	DEC	HL		;Back up by 1
+	CALL	ADJ2		;RET if sector I/O only,
+				;  else bump fwd if RREAD
+				;  then back up if bit 5=0
+	PUSH	HL		;Will be popped into BC
+	JR	POSN2A		;Finish the job
+;
+;	Entry to backspace one logical record
+;
+@BKSP	CALL	CKOPEN@
+	LD	C,A		;Keep ADJUST from bumping
+	LD	B,(IX+9)	;P/u LRL
+	OR	B		;Is it a 0
+	JR	Z,BKSP1		;Go if so
+	LD	A,(IX+5)	;P/u next byte pointer
+	SUB	B		;Sub one record length
+BKSP0	LD	(IX+5),A
+	JR	C,BKSP1		;Go if crossed sec bdry
+	XOR	A		;  else all done
+	RET
+;
+;	Entry to Rewind to beginning
+;
+@REW	CALL	CKOPEN@
+	LD	B,A		;Zero NRN
+	LD	C,A
+	JR	POSN1		;Will also zero offset
+;
+;	Entry to Position to end-of-file
+;
+@PEOF	CALL	CKOPEN@
+	LD	C,(IX+12)	;ERN to BC
+	LD	B,(IX+13)
+	OR	(IX+8)		;P/u EOF byte
+	JR	Z,POSN1		;Go if full sector
+	DEC	BC		;Point to last rec
+	JR	POSN1		;Use POSN to get end
+;
+;	Entry to Locate current record number
+;
+@LOC	CALL	CKOPEN@
+	CALL	GETNRN		;P/u NRN
+	CALL	ADJUST		;Get offset and adj NRN
+LOC1	LD	E,(IX+9)	;P/u LRL
+	LD	A,E		;Test LRL for zero
+	OR	A		;If zero, then give NRN
+	JR	Z,LOC3		;LRL=0, NRN is correct
+	INC	C		;If offset is zero,
+	DEC	C		;  then it's at 256,
+	JR	Z,LOC2		;  and we don't dec NRN
+	DEC	HL
+;
+;	Divide the three byte pointer (HLC) by the LRL
+;
+LOC2	CALL	@DIV16		;Divide (NRN-1)/LRL
+	LD	B,L		;Save high order result
+	LD	D,H		;Save possible overflow
+	LD	H,A		;Prepare 2nd dividend
+	LD	L,C		;P/u low order dividend
+	LD	A,E		;P/u LRL divisor again
+	CALL	@DIV16
+	LD	H,B		;Xfer high order result
+	OR	A		;If remainder, we have a
+	JR	Z,$+3		;  partial record to round
+	INC	HL		;  up to next record #
+	LD	A,D		;Xfer possible overflow
+LOC3	POP	BC		;Pop RESTREG return adr
+	EX	(SP),HL		;Exchange value with BC
+	PUSH	BC		;Restore RESTREG
+;
+	IF	@MOD4
+ORARET@	EQU	$
+	ENDIF
+	OR	A
+	RET
+;
+;	Entry to Locate the end-of-file record
+;
+@LOF	CALL	CKOPEN@
+	LD	L,(IX+12)	;P/u ERN
+	LD	H,(IX+13)
+	LD	C,(IX+8)	;EOF byte
+	JR	LOC1		;Handle all LRLs
+	IF	@BLD631
+;<631>	@WEOF has been relocated above @SKIP in 6.3.1
+	ELSE
+;
+;	Entry to Write an end-of-file mark
+;
+@WEOF	CALL	CKOPEN@
+	CALL	RWRIT@		;Write buffer if needed
+WEOF1	LD	B,(IX+7)	;P/u DEC of FPDE
+	LD	C,(IX+6)	;P/u drive #
+	CALL	@DIRRD		;Read file's dir record
+	RET	NZ		;Back if read error
+	INC	L		;Pt to ERN offset
+	INC	L
+	INC	L
+	LD	A,(IX+8)	;P/u EOF offset
+	LD	(HL),A		;Put in direc
+	LD	DE,17		;Pt to EOF in dir
+	ADD	HL,DE
+	LD	A,(IX+12)	;P/u lo EOF
+	LD	(HL),A		;Put EOF in direc
+	INC	HL
+	LD	A,(IX+13)	;P/u hi EOF
+	LD	(HL),A
+	JP	@DIRWR		;Write direc and return
+	ENDIF
+;
+;	Entry to Read a record
+;
+@READ	CALL	CKOPEN@
+	PUSH	HL
+	CALL	RWRIT@		;Write buffer if needed
+	POP	HL
+	RET	NZ		;Back on write error
+	LD	B,(IX+9)	;P/u LRL
+	LD	A,B		;If LRL=256, just
+	OR	A
+	JP	Z,NXTSECT	;  get the next sector
+RDREC	PUSH	HL		;Save buffer posn
+	PUSH	BC		;Save LRL
+	CALL	RDCHAR		;Read next byte
+	POP	BC
+	POP	HL
+	RET	NZ		;Back on read error
+	LD	(HL),A		;Put char into buffer
+	INC	HL		;Bump buffer ptr
+	DJNZ	RDREC		;Loop for entire record
+	RET
+;
+;	Entry to Write a record
+;
+@WRITE	CALL	CKOPEN@
+WRIT1	LD	(VEROP+1),A	;Turn on/off verify
+	LD	B,(IX+9)	;P/u LRL
+	LD	A,B		;Bypass if LRL=256
+	OR	A
+	JP	Z,RWRIT2
+	PUSH	HL		;Save some FCB values
+	LD	H,(IX+5)	;P/u buffer offset loc
+	LD	L,(IX+8)	;P/U EOF offset byte
+	EX	(SP),HL		;Put values on stack
+				;  and recover HL
+WRREC	LD	A,(HL)		;Pass the logical record
+	INC	HL		;  to the writing routine
+	PUSH	HL		;  byte by byte
+	PUSH	BC
+	CALL	WRCHAR
+	POP	BC
+	POP	HL
+	JR	NZ,WRERROR	;Exit and fix FCB
+	DJNZ	WRREC		;Loop for entire record
+	EX	(SP),HL		;Remove stored FCB info
+	POP	HL		;Recover HL
+	RET
+WRERROR	EX	(SP),HL		;Get FCB Values
+	LD	(IX+5),H	;  and put them back
+	LD	(IX+8),L
+	POP	HL		;Restore HL
+	RET			;Go back with error
+;
+;	Entry to Verify after write of a record
+;
+@VER	CALL	CKOPEN@
+	INC	A		;Set verify byte
+	JR	WRIT1
+LNKFCB@	SCF			;Init to force file open
+	DB	0D2H		;  test by JP NC,aaaa
+CKOPEN@	LD	A,(DE)		;Ignore if from LNKFCB
+	RLCA			;Test hi bit of FCB
+	EX	(SP),HL
+	LD	(JRET$),HL	;Save ret
+	LD	(JDCB$),DE	;Save DCB
+	EX	(SP),HL
+	JR	NC,NOTOPEN	;Go if not an open FCB
+	POP	AF		;Get return
+	PUSH	DE		;Dcb addr to IX
+	EX	(SP),IX
+	PUSH	HL		;Save regs
+	PUSH	DE
+	PUSH	BC
+	PUSH	HL		;Estab ret
+	LD	HL,RESTREG	;  to restore registers
+	EX	(SP),HL
+	PUSH	AF		;Put back ret
+	XOR	A
+	RET			;Go back
+;
+NOTOPEN	POP	AF
+	LD	A,26H		;File not open
+	OR	A
+	RET
+;
+RESTREG	POP	BC		;Pop back registers save
+	POP	DE		;  in CKOPEN@
+	POP	HL
+	POP	IX
+	RET
+;
+;	Entry to Check if at end-of-file
+;
+@CKEOF	CALL	CKOPEN@
+CKEOF1	CALL	GETNRN		;P/U NRN into HL
+	PUSH	HL		;Save un-adjusted NRN
+	CALL	ADJUST		;Adjust for special cases
+	LD	A,H		;Compare hi byte
+	CP	(IX+13)
+	JR	NZ,CKEOF2	;Go if not equal
+	LD	A,L		;Compare lo byte
+	CP	(IX+12)
+	JR	NZ,CKEOF2	;Go if not equal
+	DEC	C		;Adjust for 00=256
+	LD	A,(IX+8)	;Compare offset byte
+	DEC	A
+	SUB	C
+	CCF
+	INC	BC		;Restore old C value
+CKEOF2	POP	HL		;Restore unadjusted NRN
+	LD	A,1DH		;Rec # out of range code
+	JR	NZ,CKEOF3	;Go if not at EOF
+	DEC	A		;X'1C'=EOF encountered
+	RET			;Return with NZ flag
+CKEOF3	RET	NC		;Return with error
+	XOR	A		;No error
+	RET
+;
+;	File positioning adjustment routines
+;
+ADJUST	EQU	$		;Entry from @CKEOF & @LOC
+	LD	C,(IX+5)	;Pick up offset
+ADJ2	EQU	$		;Entry from @BKSP/@RREAD
+	BIT	7,(IX+1)	;Sector I/O only?
+	RET	Z		;No adjustment if so
+	LD	A,C		;Offset =0? (or "RREAD?")
+	OR	A
+	JR	Z,$+3		;Go if zero
+	INC	HL		;Adjust
+	BIT	5,(IX+1)	;Check magic bit
+	RET	NZ		;Go if set
+	DEC	HL		;Adjust
+	RET
+;
+;	Calculate the cylinder/sector of needed record
+;
+IOREC	CALL	GETNRN		;P/u record number
+	CALL	@DCTBYT-5	;Get # of sectors/gran
+	AND	1FH
+	INC	A
+	CALL	@DIV16		;By # of sectors/gran
+	LD	(CALS5+1),A	;Sv rmndr (sector offset)
+	PUSH	IX		;Xfer fcb to HL
+	EX	(SP),HL
+	LD	BC,14		;Pt to 1st extent info
+	ADD	HL,BC
+	POP	BC		;Pop gran ptr HL into BC
+	LD	A,5		;Init to ck 4 extents
+	LD	DE,0		;  & extended FXDE ptr
+GREC1	PUSH	AF
+	LD	A,(HL)		;P/u starting cyl byte
+	INC	HL		;  & bypass if FF
+	INC	A
+	JR	Z,GREC2
+	PUSH	HL		;Xfer the # of grans up
+	LD	H,D		;  to but not including
+	LD	L,E		;  this extent into HL
+	XOR	A		;Sub gran pointer from
+	SBC	HL,BC		;  cumulative figure & go
+	JR	C,GREC3		;  if not in previous ext
+	POP	HL
+	JR	Z,CALCSEC
+GREC2	INC	HL
+	POP	AF
+	DEC	A
+	JR	Z,GREC4		;Jump when all quads c'kd
+	LD	E,(HL)		;P/u cumulative # grans
+	INC	HL		;  up to but not
+	LD	D,(HL)		;  including this extent
+	INC	HL
+	JR	GREC1
+GREC3	INC	H		;Within 256 grans?
+	LD	A,L		;Xfer lo-order difference
+	POP	HL		;Rcvr # of contig grans
+;				;  in this extent
+	JR	NZ,GREC2	;Go if not within 256
+	PUSH	DE		;Save cumulative count 
+	LD	E,A		;Xfer gran dif (neg)
+	LD	A,(HL)		;P/u # of grans
+	AND	1FH		;  in this extent
+	ADD	A,E		;Add to negative diff
+	LD	A,E		;Put neg diff into A
+	POP	DE
+	JR	NC,GREC2	;Go if not in this extent
+	NEG			;Is in this extent, make
+	JR	CALCSEC		;  diff positive & use it
+;
+;	All current quads checked - Need directory info
+;
+GREC4
+	CALL	ALLOC		;Get # of grans
+	RET	NZ		;  into the extent
+	LD	(CALS4+1),A	;  or error RET
+	JR	NC,CALS3	;Jp if record in 1st ext
+	JR	CALS1		;  else jp if in another
+;
+;	Calc sector in gran
+;
+CALCSEC	LD	(CALS4+1),A	;Stuff # grans into
+	LD	B,(HL)		;  this extent
+	DEC	HL		;P/u # contig grans &
+	LD	C,(HL)		;  rel start & start cyl
+	INC	HL
+	POP	AF		;Rcvr # of quad
+	CPL
+	ADD	A,4
+	JR	NC,CALS2	;Jump if 1st ext or quad
+	INC	A		;If not 1st, set up to move
+	RLCA			;  matching quad to the
+	RLCA			;  first position by
+	PUSH	BC		;  shuffling the others up
+	PUSH	DE
+	LD	C,A		;Get bytes to move
+	LD	B,0
+	EX	DE,HL		;DE = top of last quad
+	LD	HL,-4
+	ADD	HL,DE		;HL = top of next lower
+	LDDR			;Do the shuffle
+	EX	DE,HL
+	POP	DE
+	POP	BC
+CALS1	LD	(HL),B		;Move info on matching quad
+	DEC	HL		;  into position
+	LD	(HL),C
+	DEC	HL
+	LD	(HL),D
+	DEC	HL
+	LD	(HL),E
+CALS2	LD	H,B		;Xfer start & contig gran
+	LD	L,C		;Xfer start cylinder
+CALS3	LD	A,H
+	RLCA			;P/u start gran on track
+	RLCA
+	RLCA
+	AND	7
+CALS4	ADD	A,0		;P/u # grans into extent
+	CALL	RELCYL		;Calc 1st relative cyl
+	ADD	A,L		;Add starting cylinder
+	LD	D,A
+	LD	A,B		;Rcvr # sectors/gran
+	AND	1FH
+	INC	A
+	PUSH	DE		;Calculate sector offset
+	CALL	@MUL8		;  into desired cylinder
+	POP	DE		;  for desired granule
+CALS5	ADD	A,0		;P/u # of excess sectors
+	LD	E,A		;  over even gran & add
+	XOR	A		;  to granule sector
+	RET
+;
+;	On entry, gran needed is in BC
+;
+ALLOC	CALL	CYL_GRN		;Find ext cntng gran
+	RET	NZ		;Ret on error
+	PUSH	HL		;Save starting cyl & gran
+	LD	H,B		;Xfer granule needed to
+	LD	L,C		;  HL then calculate how
+	XOR	A		;  many grans into this
+	SBC	HL,DE		;  extent is the desired
+	LD	A,L		;  granule
+	LD	(ALL6+1),A	;Stuff rel gran from
+	POP	HL		;  start of extent
+	PUSH	DE		;Save granule count
+	PUSH	IX		;  to extent
+	EX	(SP),HL		;FCB pointer to HL
+	LD	DE,14		;Pt to 1st alloc in FCB
+	ADD	HL,DE
+	POP	DE		;Pop starting cylinder
+	LD	B,5		;  to this extent
+ALL1	LD	A,(HL)		;P/u a cyl
+	INC	HL		;Does starting cyl of
+	CP	E		;  needed gran alloc
+	JR	NZ,ALL2		;  appear in this extent?
+	LD	A,(HL)		;Now see if needed gran is
+	XOR	D		;  in this extent field
+	AND	0E0H		;  by checking its starting gran
+	JR	Z,ALL4
+ALL2	DEC	B		;Dec the count down loop
+	JR	Z,ALL3		;Done if no match
+	INC	HL		;Go to next extent
+	INC	HL		;  info in FCB
+	INC	HL
+	JR	ALL1
+ALL3	PUSH	DE		;Save needed extent info
+	EX	DE,HL		;Set up to shuffle extent
+	LD	HL,-4		;  info
+	ADD	HL,DE
+	LD	BC,12
+	LDDR
+	EX	DE,HL
+	POP	BC
+	XOR	A		;Set Z, no error
+	SCF			;Set CF, extent not found
+	JR	ALL5
+ALL4	LD	(HL),D
+	EX	DE,HL
+	XOR	A		;Set Z no error
+ALL5	POP	DE
+ALL6	LD	A,0		;# of grans into this ext
+	RET			;Where desired gran is
+;
+;	Extent is unused - need to allocate more space
+;
+CG06	CALL	CG07		;Try to allocate more
+	POP	BC		;Get back desired gran
+	RET	NZ		;Return on error
+				;Look for gran again
+;
+;	Find extent containing desired granule
+;
+CYL_GRN	PUSH	BC		;Save desired gran #
+	LD	DE,0		;Init gran counter
+	LD	B,(IX+7)	;P/u DEC of file
+CG01	LD	A,B
+	LD	(STUFDEC+1),A	;Stuff
+	LD	C,(IX+6)	;P/u drive for file
+	CALL	@DIRRD		;Read its directory
+	LD	BC,22		;Point to 1st extent
+	ADD	HL,BC		;  of its directory
+	EX	DE,HL		;Gran count to HL
+	POP	BC		;Restore desired gran
+	RET	NZ		;Return on read error
+CG02	LD	A,(DE)		;Is this extent
+	CP	0FEH		;  allocated?
+	JR	NC,CG05		;Jump if it is not
+	INC	DE		;Point to allocation
+	LD	A,(DE)		;P/u relative gran & #
+	PUSH	HL		;  of contiguous grans
+	AND	1FH		;Keep contiguous grans
+	INC	A		;  & bump for 0 offset
+	ADD	A,L		;Add to count in HL
+	LD	L,A
+	JR	NC,CG03
+	INC	H		;Bump hi order
+CG03	PUSH	HL		;Save gran count to
+	DEC	HL		;  end of extent
+	XOR	A		;Test if EOF is in this
+	SBC	HL,BC		;  allocation
+	POP	HL
+	JR	NC,CG04		;EOF not > this alloc
+	INC	DE		;Get rid of old
+	POP	AF		;  current quantity
+	JR	CG02		;Check next extent
+;
+;	The EOF is within this allocation. Recover
+;	the allocation data and exit
+;
+CG04	POP	HL		;P/u gran count to extent
+	EX	DE,HL		;Gran count to DE
+	LD	A,(HL)		;P/u granule data
+	DEC	HL
+	LD	L,(HL)		;P/u starting cylinder
+	LD	H,A
+	XOR	A
+	RET
+;
+;	This extent is 1) unused, or 2) FXDE pointer
+;	and the needed gran has not been found yet
+;
+CG05	PUSH	BC		;Gran count to DE &
+	EX	DE,HL		;DIR ptr to HL
+	JR	NZ,CG06		;Jump if unused
+	INC	HL		;Point to DEC of FXDE
+	LD	B,(HL)		;P/u the DEC
+	JR	CG01		;  & loop
+;
+;	See if the drive has enough free space left
+;
+CG07	PUSH	BC		;Save needed gran
+	LD	C,(IX+6)	;P/u file's drive
+	CALL	@GATRD		;Get GAT
+	POP	BC		;Rcvr needed gran
+	RET	NZ		;Return if GAT error
+	PUSH	HL
+	LD	H,B		;Xfer the requested
+	LD	L,C		;  gran to HL &
+	XOR	A		;  subtract current gran
+	SBC	HL,DE		;Count to calculate how
+	LD	B,H		;  many excess grans
+	LD	C,L		;  are needed
+	INC	BC
+	POP	DE		;Rcvr dir byte ptr
+	INC	DE		;Pt to next DIR byte
+	LD	H,DIRBUF$<-8	;Start looking at TRK #1
+	LD	A,(AFLAG$)	;P/u Search start CYL
+	LD	L,A		;  and put it in L
+	PUSH	BC		;Save excess grans needed
+	LD	A,E		;Is this extent the 1st?
+	AND	1EH		;Jump if so, else we can
+	CP	16H		;  use it for allocation
+	JR	Z,CG14
+	DEC	E		;Backup to previous
+	DEC	E		;  extent
+CG12	LD	A,(DE)		;P/u # of contig grans to
+	AND	1FH		;  see if the last gran
+	INC	A		;  used can be extended
+	LD	C,A		;Is current # the max
+	CP	20H		;  an extent can hold?
+	JR	Z,CG13		;Jump if a full extent
+	LD	A,(DE)		;  (32 grans max) - else
+	AND	0E0H		;  p/u the relative
+	RLCA			;  granule offset
+	RLCA
+	RLCA
+	ADD	A,C		;Add the # of contiguous
+	PUSH	DE		;  granules
+	CALL	RELCYL		;Calc relative cyl needed
+	LD	B,A		;Save offset
+	LD	C,E
+	POP	DE
+	DEC	DE		;Backup to starting cyl
+	LD	A,(DE)
+	INC	DE		;  & repoint to alloc byte
+	ADD	A,B		;Add cyls used to
+	LD	L,A		;  starting cyl
+	LD	H,DIRBUF$<-8	;Is it less than max?
+	CP	0CBH
+	JR	NC,CG13		;Jump if too big
+	LD	A,C
+	LD	B,(HL)		;P/u the cyl's GAT
+	CALL	TSTBIT		;Test if gran is free
+	JR	Z,CG21		;Bypass if free gran
+;
+;	The next gran cannot be used - get another extent
+;
+CG13	INC	E		;Else point to next
+	INC	E		;  extent field
+	LD	A,E
+	AND	1EH		;Jump if not on the FXDE
+	CP	1EH		;  field, else we have to
+	JR	NZ,CG14		;  obtain an FXDE record
+;
+;	Last extent used up, get new dir rec for FXDE
+;
+	CALL	CG23		;Write curent GAT & HIT
+	POP	BC
+	RET	NZ		;Ret if GAT/HIT error
+	PUSH	BC
+	CALL	NEWHIT		;Get new HIT for FXDE
+	POP	BC
+	RET	NZ		;Loop to process
+	JP	CYL_GRN		;  new extent
+;
+;	Extent is vacant - use it & get new allocation
+;
+CG14	CALL	MAXCYL		;Get highest # cyl
+	LD	(CG17+1),A	;Stuff highest cyl
+	LD	B,2
+CG16	LD	A,L		;Test last cyl used
+CG17	CP	0		;P/u max cyl
+	JR	NC,CG18
+	LD	A,(HL)		;P/u a GAT byte
+	INC	A
+	JR	NZ,CG19		;Go if space in this cyl
+	INC	L		;  else bump to next one
+	JR	CG16		;  & loop
+CG18	LD	L,0		;Now start from begin
+	DJNZ	CG16		;  of disk & recheck
+	POP	BC
+	CALL	CG23		;Write out GAT & HIT
+	RET	NZ
+	LD	A,1BH		;"disk space full"
+	OR	A
+	RET
+;
+;	Found available space in cylinder
+;
+CG19	LD	A,0FFH		;Set DIR extent to FF
+	LD	(DE),A
+	LD	C,0
+	LD	B,(HL)		;P/u current GAT alloc
+CG20	LD	A,C
+	CALL	TSTBIT		;Find a free gran
+	JR	Z,CG21		;  & jump when found
+	LD	A,(DE)		;  else advance starting
+	ADD	A,20H		;  rel gran value
+	LD	(DE),A
+	INC	C		;Bump pointer to test
+	JR	CG20		;  next gran
+;
+;	Next gran in line is free - allocate it
+;
+CG21	LD	A,C
+	CALL	SETBIT		;Show it allocated
+	OR	(HL)
+	LD	(HL),A
+	DEC	E		;Backup to starting cyl
+	LD	A,(DE)		;Bump by one to see if
+	INC	A		;  this alloc is the 1st
+	JR	NZ,CG22		;  one for the extent &
+	LD	A,L		;  we have to set the
+				;  starting cylinder
+	LD	(DE),A		;Stuff starting cyl
+CG22	INC	E
+	LD	A,(DE)		;Add 1 to # of contiguous
+	INC	A		;  granules
+	LD	(DE),A
+	POP	BC		;Decrement needed gran
+	DEC	BC		;  count since we just
+	PUSH	BC		;  allocated one
+	LD	A,B		;Loop if we need more
+	OR	C		;  space allocated
+	JP	NZ,CG12
+	POP	BC
+CG23	LD	C,(IX+6)	;Else p/u the drive #
+	CALL	@GATWR		;  & write out the GAT
+	RET	NZ
+STUFDEC	LD	B,0		;P/u DEC of FPDE
+	JR	@DIRWR
+;
+;	Get new HIT for FXDE
+;
+NEWHIT	LD	C,(IX+6)	;P/u drive #
+	CALL	@HITRD		;Read the HIT
+	RET	NZ
+	LD	A,(IX+7)	;P/u FPDE DEC so 1st ck
+	AND	1FH		;  will be for next
+	CALL	@SCNHIT		;  in line
+	LD	A,1EH		;Init "full directory...
+	RET	NZ		;Ret if no space
+	LD	B,L		;Set DEC for
+	LD	A,L		;  directory read
+	LD	(NHIT3+1),A	;Stuff new DEC from HIT
+	LD	D,H
+	LD	E,(IX+7)	;P/u current DEC
+	LD	A,(DE)		;Copy filespec hash code
+	LD	(HL),A		;  to new DEC
+	CALL	@HITWR
+	CALL	Z,@DIRRD
+	RET	NZ
+	LD	(HL),90H	;Show dir rec in use as
+	INC	L		;  FXDE record
+	PUSH	BC		;P/u DEC of FPDE &
+	LD	A,(STUFDEC+1)	;  stuff it into FXDE's
+	LD	(HL),A		;  DIR+1 to link back
+	INC	L
+	LD	B,20		;Zero out 20 bytes
+NHIT1	LD	(HL),0		;  in the FXDE
+	INC	L
+	DJNZ	NHIT1
+	PUSH	HL		;Save ptr to 1st extent
+	LD	B,10		;Init to X'FF' 10 bytes
+NHIT2	LD	(HL),0FFH	;  or 5 extents
+	INC	L
+	DJNZ	NHIT2
+	POP	DE		;Rcvr ptr to 1st extent
+	INC	DE		;Pt to allocation byte
+	POP	BC
+	CALL	@DIRWR		;Write FXDE back to disk
+	RET	NZ		;Return if error
+	LD	A,(STUFDEC+1)	;  else p/u DEC of FPDE
+	LD	B,A
+	CALL	@DIRRD		;Read its directory
+	RET	NZ		;  & return if error
+	LD	A,L
+	ADD	A,1EH		;Point to FXDE posn
+	LD	L,A		;  in FPDE
+	LD	(HL),0FEH	;Show link to FXDE
+	INC	L
+NHIT3	LD	(HL),0		;Show what's the FXDE DEC
+				;  & write the DIR back
+;
+;	Routine to write a directory sector
+;	B => DEC of FPDE, C => logical drive number
+;	HL <= points to directory record in SBUFF$
+;
+@DIRWR	CALL	DIRWR		;Permit two attempts
+	RET	Z
+DIRWR	PUSH	DE		;Save the reg
+	CALL	CALCDIR		;Calc dir cyl
+	LD	L,0		;Set buffer to start
+	CALL	@WRSSC		;Write the sector
+	CALL	Z,@VRSEC	;Verify on no error
+	SUB	6
+	POP	DE
+	RET	Z		;Back on system sector
+	CP	0FH-6		;WP error?
+	LD	A,18		;Set dir write error
+	RET	NZ		;  if not WP
+	SUB	3
+	RET
+;
+;	Find a spare HIT entry
+;
+@SCNHIT	PUSH	AF
+	LD	A,7		;Get highest # sector
+	CALL	@DCTBYT		;  on a cylinder
+	PUSH	DE		;  into register E
+	LD	D,A
+	AND	1FH
+	LD	E,A
+	INC	E		;& get number of heads
+	XOR	D		;  into register A
+	RLCA
+	RLCA
+	RLCA
+	INC	A
+	CALL	@MUL8		;To calc sectors/cylinder
+	CALL	CKDBLBIT	;Double if necessary
+	POP	DE		;Total sectors per cyl
+	SUB	2		;Reduce for GAT & HIT
+	LD	(NHIT7+1),A	;# of directory sectors
+	POP	AF		;Get DEC init entry
+	LD	L,A
+	CALL	NHIT6		;Ck if HIT slot is spare
+	RET	Z		;Return if it is spare
+	LD	L,1		;Start at beginning
+NHIT5	INC	L
+	JR	NZ,NHIT6
+	OR	H
+	RET
+NHIT6	LD	A,L
+	AND	1FH
+NHIT7	CP	0
+	LD	A,L
+	JR	C,NHIT8
+	OR	1FH
+	LD	L,A
+	JR	NHIT5
+NHIT8	LD	A,(HL)
+	OR	A
+	RET	Z
+	JR	NHIT5
+;
+;	Test if gran is free in GAT
+;
+TSTBIT	AND	7		;Get 0 to 7
+	RLCA			;Shift to match BIT n,
+	RLCA			;  opcode
+	RLCA
+	OR	40H
+	LD	(TBIT1+1),A	;Modify BIT instruction
+TBIT1	BIT	0,B
+	RET
+;
+;	Set gran to allocated in GAT
+;
+SETBIT	RLCA			;Shift to create opcode
+	RLCA			;  to match current bit
+	RLCA
+	OR	0C7H
+	LD	(SBIT1+1),A	;Create SET n, opcode
+	XOR	A
+SBIT1	SET	0,A
+	RET
+;
+;	Routine reads/writes the Granule Allocation Table
+;
+@GATRD	DB	0F6H		;Set NZ for test
+@GATWR	XOR	A		;Set Z for test
+	PUSH	DE
+	PUSH	HL
+	PUSH	AF		;Save flag for test
+	CALL	@DIRCYL
+	LD	HL,DIRBUF$
+	LD	E,L		;Set E to 0
+	POP	AF		;Rcvr flag for R/W
+	JR	Z,GATRW1	;Go if @GATWR
+	CALL	@RDSSC
+	LD	A,14H		;Init "GAT read error"
+	JR	GATRW2
+GATRW1	CALL	@WRSSC		;Protected sector write
+	CALL	Z,@VRSEC	;Verify if OK
+	CP	6		;Protected sector?
+	LD	A,15H		;Init "GAT write error"
+GATRW2	POP	HL
+	POP	DE
+	RET
+;
+;	Read or write the hash index table
+;
+@HITRD	DB	0F6H		;Set NZ for test
+@HITWR	XOR	A		;Set Z for test
+	PUSH	BC
+	PUSH	DE
+	PUSH	AF		;Save flag for test
+	CALL	@DIRCYL		;D => directory cylinder
+	LD	E,1		;E => HIT sector
+	LD	HL,SBUFF$	;HL => HIT buffer area
+	POP	AF		;Rcvr flag for RD/WR
+	JR	Z,HITRW1	;Go if @HITWR
+	CALL	@RDSSC		;Read cyl D, sector E
+	LD	A,22		;Init "HIT read error"
+	JR	HITRW2
+HITRW1	CALL	@WRSSC		;Protected sector write
+	CALL	Z,@VRSEC	;Verify the write
+	CP	6		;Protected sector?
+	LD	A,23		;"HIT write error"
+HITRW2	POP	DE		;Message for other than
+	POP	BC		;  attempt protected sector
+	RET
+;
+;	Routine to read a directory sector
+;	B => DEC of FPDE, C => logical drive number
+;	HL <= points to directory record in SBUFF$
+;
+@DIRRD	PUSH	DE
+	CALL	CALCDIR		;Set HL to SBUFF$
+	PUSH	HL
+	LD	L,0		;Start of bfr
+	CALL	@RDSSC		;Read it
+	POP	HL
+	LD	A,17		;Init to dir read err
+	POP	DE
+	RET
+;
+;	Routine to get directory access data
+;	B => DEC
+;	DE <= cylinder and sector needed
+;	HL <= pointer to directory record in SBUFF$
+;
+CALCDIR	CALL	@DIRCYL		;Get directory cyl in D
+	LD	A,B		;Calculate record start
+	AND	0E0H		;  from the DEC
+	LD	L,A
+	LD	H,SBUFF$<-8	;Point to buffer start
+	XOR	B		;Calculate directory
+	ADD	A,2		;  sector needed
+	LD	E,A
+	RET
+;
+;	Read system sector, D=Track, E=Sector, HL=Buffer
+;
+@RDSSC	CALL	READIR
+	RET	Z
+	PUSH	DE
+	LD	DE,1		;Pt to tk 0, sec 1
+	CALL	@RDSEC		;Read to find dir cyl
+	POP	DE
+	RET	NZ
+	PUSH	HL
+	INC	HL		;Pt to dir tk #
+	INC	HL
+	LD	D,(HL)		;P/u dir tk fm boot
+	LD	H,9		;Update memory table
+	CALL	DCTFLD@
+	LD	L,A
+	LD	(HL),D
+	POP	HL
+READIR	CALL	@RDSEC		;Retry dir read
+	SUB	6		;Test protected
+	RET
+;
+@DIRCYL	LD	A,9
+	CALL	@DCTBYT		;Get the dir cylinder
+	LD	D,A
+	RET
+;
+MAXCYL	LD	A,6
+	PUSH	BC
+	LD	C,(IX+6)
+	CALL	@DCTBYT		;Get highest # cyl
+	INC	A		;Adjust for zero offset
+	POP	BC
+	RET
+;
+;	Multiply register E by register A
+;
+@MUL8	PUSH	BC		;Mult A x E
+	LD	D,A
+	XOR	A
+	LD	B,8
+MEA1	ADD	A,A
+	SLA	E
+	JR	NC,MEA2
+	ADD	A,D
+MEA2	DJNZ	MEA1
+	POP	BC
+	RET
+;
+;	Calculate relative cylinder for granule needed
+;
+RELCYL	LD	E,A
+	CALL	@DCTBYT-5	;Get # of grans/track
+	LD	B,A		;Hang on to this
+	RLCA
+	RLCA
+	RLCA
+	AND	7
+	INC	A		;Adj for 0 offset
+	CALL	CKDBLBIT
+;
+;	Divide register E by register A
+;
+@DIV8	PUSH	BC
+	LD	C,A
+	LD	B,8
+	XOR	A
+DEA1	SLA	E
+	RLA
+	CP	C
+	JR	C,DEA2
+	SUB	C
+	INC	E
+DEA2	DJNZ	DEA1
+	LD	C,A
+	LD	A,E
+	LD	E,C
+	POP	BC
+	RET
+;
+;	Routine to double the A register if DBL bit is set
+;
+CKDBLBIT
+	LD	D,A		;Adjust for 2-sided &
+	LD	A,4		;  calculate # of cyls
+	CALL	@DCTBYT
+	BIT	5,A		;Test if 2-sided
+	LD	A,D
+	JR	Z,$+3		;Double the grans if 2
+	ADD	A,A		;  & fall thru to DIV8
+	RET
+

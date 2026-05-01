@@ -1,0 +1,1004 @@
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 1  	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+  5200 		              2		PSECT	5200H
+ 			      3		
+  5200 		              4	BEGIN:
+  5200 	ED734D57              5		LD	(DOSSTK),SP		;Save their stack
+  5204 	314D57                6		LD	SP,DOSSTK		;Assign our own
+ 			      7	
+  5207 	225157                8		LD	(PARMS),HL		;Save command line parms
+ 			      9	
+  520A 	3A2A00               10		LD	A,(002AH)		;Pick up page containing RST28 service
+  520D 	D640	             11		SUB	40H			;If the page is in the 4000s,
+  520F 	324F57               12		LD	(DOSMODE),A		;LDOS/MIII mode is assumed
+ 			     13	
+  5212 	0604	             14		LD	B,4			;Look in four places
+ 			     15	
+  5214 	C5	             16	LOCATE:	PUSH	BC
+  5215 	CD8B53               17		CALL	RDTIME			;Read the clock
+  5218 	C1	             18		POP	BC
+  5219 	2011	             19		JR	NZ,HDWFND		;Chip found
+ 			     20		
+ 			     21	;	Here the clock was not found
+ 			     22	
+  521B 	2AB656               23		LD	HL,(BASE)		;Get old base address
+  521E 	110010               24		LD	DE,1000H		;Increment address by 4 K
+  5221 	19	             25		ADD	HL,DE
+  5222 	22B656               26		LD	(BASE),HL		;Store that
+  5225 	10ED	             27		DJNZ	LOCATE
+ 			     28	
+ 			     29	;	After four tries, still could not find the hardware
+ 			     30		
+  5227 	218455               31		LD	HL,MISSING
+  522A 	1828	             32		JR	ERROUT
+ 			     33	
+ 			     34		
+ 			     35	;	Here the hardware was found
+ 			     36	
+  522C 	4F	             37	HDWFND:	LD	C,A			;Save result from offset 4 (inverted)
+  522D 	2A5157               38		LD	HL,(PARMS)
+  5230 	7E	             39		LD	A,(HL)			;Read first parameter
+  5231 	E65F	             40		AND	5FH			;Convert to uppercase
+  5233 	77	             41		LD	(HL),A			;Put it back for later
+  5234 	23	             42		INC	HL			;Advance pointer
+ 			     43	
+  5235 	FE53	             44		CP 	'S'			;53H  Set clock hardware
+  5237 	CAB652               45		JP	Z,SETCLK
+ 			     46		
+  523A 	47	             47		LD	B,A			;Save command
+  523B 	79	             48		LD	A,C			;Get offset 4 inverted info
+  523C 	219555               49		LD	HL,NOTSET		;Preload error message
+  523F 	FEDF	             50		CP 	0DFH			;Was Bit Oscillator turned off?
+  5241 	CA5452               51		JP	Z,ERROUT		;Can't read it or turn it off
+ 			     52		
+ 			     53	;	Here we can either turn it off or read it
+ 			     54	
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 2  	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+  5244 	78	             55		LD	A,B			;Get command back
+  5245 	FE54	             56		CP 	'T'			;54H Set system time from clock
+  5247 	CA9252               57		JP	Z,LDTIME
+ 			     58		
+  524A 	FE4F	             59		CP 	'O'			;4FH Turn clock off
+  524C 	CAA652               60		JP	Z,CLKOFF
+ 			     61	
+ 			     62		
+ 			     63	;	No option was legal, so barf
+ 			     64	
+  524F 	21A255               65	SYNERR:	LD	HL,HLPTXT
+  5252 	1808	             66		JR	MSGCOM
+ 			     67		
+ 			     68	
+  5254 	E5	             69	ERROUT:	PUSH	HL			;Save their part of the message
+  5255 	215C55               70		LD	HL,MSGHDR		;Get header
+  5258 	CD2355               71		CALL	PSOUT
+  525B 	E1	             72		POP	HL
+ 			     73	
+ 			     74	
+  525C 	CD2355               75	MSGCOM:	CALL	PSOUT			;Now display remaining message
+  525F 	ED7B4D57             76		LD	SP,(DOSSTK)		;Put back their stack
+  5263 	2A5157               77		LD	HL,(PARMS)		;Put back their parms
+  5266 	7E	             78		LD	A,(HL)
+  5267 	FE54	             79		CP 	'T' 			;54H
+  5269 	2023	             80		JR	NZ,EXIT			;Normal exit
+ 			     81	
+ 			     82	;	Here we allow a subsequent parmeter on the command to be passed to DOS
+ 			     83		
+  526B 	23	             84	SKIPBL:	INC	HL			;Advance
+  526C 	7E	             85		LD	A,(HL)
+  526D 	FE20	             86		CP 	' '			;20H
+  526F 	381D	             87		JR	C,EXIT			;Hit a CR
+ 			     88		
+  5271 	28F8	             89		JR	Z,SKIPBL		;Skip blanks
+ 			     90	
+ 			     91		
+  5273 	E5	             92		PUSH	HL
+  5274 	216956               93		LD	HL,CRLF			;Print newline
+  5277 	CD2355               94		CALL	PSOUT
+  527A 	E1	             95		POP	HL
+ 			     96	
+  527B 	CD5755               97		CALL	IIIOR4
+  527E 	200B	             98		JR	NZ,IS41
+ 			     99		
+  5280 	3A2744              100		LD	A,(4427H)		;Look at Page of @CLOSE call on MIII
+  5283 	FE82	            101		CP 	82H			;Looks like O/S specific check
+  5285 	CA0544              102		JP	Z,4405H			;MIII @CMNDI call
+ 			    103		
+  5288 	C39942              104		JP	4299H			;Middle of System SBUFF
+ 			    105		
+  528B 	3E18	            106	IS41:	LD	A,18H			;@CMNDI
+  528D 	EF	            107		RST	28H
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 3  	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+ 			    108	
+ 			    109	
+ 			    110	;	This is the normal exit
+ 			    111	
+  528E 	210000              112	EXIT:	LD	HL,0
+  5291 	C9	            113		RET
+ 			    114		
+ 			    115	;	This routine accepts the time from the hardware and stuffs it into the
+ 			    116	;	operating system.
+ 			    117	
+  5292 	CD8B53              118	LDTIME:	CALL	RDTIME
+  5295 	CD1B54              119		CALL	CHGDOS
+  5298 	CD0E53              120		CALL	PRTINF
+ 			    121	
+  529B 	21B856              122		LD	HL,HITHER		;Cirius Cybernetics Corp Message
+  529E 	CD5755              123		CALL	IIIOR4
+  52A1 	20B9	            124		JR	NZ,MSGCOM
+ 			    125		
+  52A3 	23	            126		INC	HL			;Adjusting for 6.x extra LF no doubt
+  52A4 	18B6	            127		JR	MSGCOM
+ 			    128		
+ 			    129	
+ 			    130	;	Turn the clock off - like parking the heads
+ 			    131	
+  52A6 	3A5757              132	CLKOFF:	LD	A,(REG4)		;Read day and control info
+  52A9 	F630	            133		OR 	30H			;Turn off clock
+  52AB 	325757              134		LD	(REG4),A		;Store control info
+ 			    135	
+  52AE 	CDAF53              136		CALL	WRTCLK
+ 			    137	
+  52B1 	217055              138		LD	HL,NOWOFF		;Say we have turned off
+  52B4 	189E	            139		JR	ERROUT
+ 			    140	
+ 			    141	
+ 			    142	;	This function parses the new date and time and sets up the registers
+ 			    143	;	then that info will be written out to the clock chip.
+ 			    144		
+  52B6 	23	            145	SETCLK:	INC	HL			;Advance to next parameter
+ 			    146	
+  52B7 	CD5B54              147		CALL	RDBCD			;Read two BCD digits
+  52BA 	B7	            148		OR 	A
+  52BB 	CA4F52              149		JP	Z,SYNERR
+ 			    150		
+  52BE 	FE13	            151		CP 	13H			;Is month in range
+  52C0 	D24F52              152		JP	NC,SYNERR
+ 			    153		
+  52C3 	325957              154		LD	(REG6),A		;Offset +6 Month
+ 			    155	
+  52C6 	CD5B54              156		CALL	RDBCD
+  52C9 	FE32	            157		CP 	32H			;Is day in range?
+  52CB 	D24F52              158		JP	NC,SYNERR
+ 			    159		
+  52CE 	325857              160		LD	(REG5),A		;Offset +5 Day
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 4  	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+ 			    161	
+  52D1 	CD5B54              162		CALL	RDBCD
+  52D4 	FE9A	            163		CP 	9AH			;Is year in range?
+  52D6 	D24F52              164		JP	NC,SYNERR
+ 			    165		
+  52D9 	325A57              166		LD	(REG7),A		;Offset +7 Year
+ 			    167	
+  52DC 	CD5B54              168		CALL	RDBCD
+  52DF 	FE24	            169		CP 	24H			;Is hours in range
+  52E1 	D24F52              170		JP	NC,SYNERR
+ 			    171		
+  52E4 	325657              172		LD	(REG3),A		;Offset +3 hours
+ 			    173	
+  52E7 	CD5B54              174		CALL	RDBCD
+  52EA 	FE5A	            175		CP 	5AH			;Is minutes in range
+  52EC 	D24F52              176		JP	NC,SYNERR
+ 			    177		
+  52EF 	325557              178		LD	(REG2),A		;Offset +2 minutes
+ 			    179	
+  52F2 	CD5B54              180		CALL	RDBCD
+  52F5 	FE5A	            181		CP 	5AH			;How about seconds
+  52F7 	D24F52              182		JP	NC,SYNERR
+ 			    183		
+  52FA 	325457              184		LD	(REG1),A		;Offset +1  seconds
+ 			    185	
+  52FD 	CD1B54              186		CALL	CHGDOS
+ 			    187	
+  5300 	CD9754              188		CALL	L5497
+  5303 	F610	            189		OR 	10H			;Turn off RST
+  5305 	325757              190		LD	(REG4),A		;Offset +4 
+ 			    191	
+  5308 	CDAF53              192		CALL	WRTCLK
+ 			    193	
+  530B 	C39252              194		JP	LDTIME
+ 			    195	
+ 			    196		
+  530E 	11CD56              197	PRTINF:	LD	DE,L56CD
+ 			    198	
+  5311 	3A5757              199		LD	A,(REG4)		;Day & Control
+  5314 	E607	            200		AND	7			;Lose all but day of week
+ 			    201	
+  5316 	216A56              202		LD	HL,DAYOFWK		;Point at list of days
+  5319 	CD7353              203		CALL	STRFND
+  531C 	EB	            204		EX	DE,HL
+  531D 	362C	            205		LD	(HL),','		;2CH
+  531F 	23	            206		INC	HL
+  5320 	0E20	            207		LD	C,' '			;20H
+  5322 	71	            208		LD	(HL),C
+  5323 	23	            209		INC	HL
+  5324 	E5	            210		PUSH	HL
+ 			    211	
+  5325 	3A5957              212		LD	A,(REG6)		;Month
+  5328 	CD7654              213		CALL	BCD2BIN
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 5  	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+ 			    214	
+  532B 	D1	            215		POP	DE
+  532C 	218656              216		LD	HL,L5686
+  532F 	CD7353              217		CALL	STRFND
+  5332 	EB	            218		EX	DE,HL
+  5333 	71	            219		LD	(HL),C			;Space
+  5334 	23	            220		INC	HL
+ 			    221	
+  5335 	3A5857              222		LD	A,(REG5)		;Day
+  5338 	CD8454              223		CALL	BCD2ASC
+ 			    224	
+  533B 	362C	            225		LD	(HL),','		;2CH
+  533D 	23	            226		INC	HL
+ 			    227	
+  533E 	71	            228		LD	(HL),C			;Space
+  533F 	23	            229		INC	HL
+ 			    230	
+  5340 	3631	            231		LD	(HL),'1'		;31H
+  5342 	23	            232		INC	HL
+  5343 	3639	            233		LD	(HL),'9'		;39H
+  5345 	23	            234		INC	HL
+ 			    235	
+  5346 	3A5A57              236		LD	A,(REG7)		;Year
+  5349 	CD8454              237		CALL	BCD2ASC
+ 			    238	
+  534C 	71	            239		LD	(HL),C			;Space
+  534D 	23	            240		INC	HL
+ 			    241	
+  534E 	3A5657              242		LD	A,(REG3)		;Hour
+  5351 	E63F	            243		AND	3FH
+  5353 	CD8454              244		CALL	BCD2ASC
+ 			    245	
+  5356 	363A	            246		LD	(HL),':'		;3AH
+  5358 	23	            247		INC	HL
+ 			    248	
+  5359 	3A5557              249		LD	A,(REG2)		;Minute
+  535C 	CD8454              250		CALL	BCD2ASC
+ 			    251	
+  535F 	363A	            252		LD	(HL),':'		;3AH
+  5361 	23	            253		INC	HL
+ 			    254	
+  5362 	3A5457              255		LD	A,(REG1)		;Seconds
+  5365 	CD8454              256		CALL	BCD2ASC
+ 			    257	
+  5368 	71	            258		LD	(HL),C			;Space
+  5369 	23	            259		INC	HL
+ 			    260	
+  536A 	3A5657              261		LD	A,(REG3)		;Hour (must be needed by caller)
+  536D 	3603	            262		LD	(HL),3			;Terminator
+  536F 	21CD56              263		LD	HL,L56CD
+  5372 	C9	            264		RET
+ 			    265	
+ 			    266	
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 6  	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+ 			    267	;	This looks in a table of strings for the Nth entry specified by A.
+ 			    268		
+  5373 	3D	            269	STRFND:	DEC	A
+  5374 	280A	            270		JR	Z,STRCPY		;We have desired string pointer
+ 			    271		
+  5376 	F5	            272		PUSH	AF
+  5377 	7E	            273	STRLP:	LD	A,(HL)			;Get next character
+  5378 	23	            274		INC	HL
+  5379 	CB7F	            275		BIT	7,A			;Is high bit on?
+  537B 	28FA	            276		JR	Z,STRLP			;No, skip to next char
+ 			    277		
+  537D 	F1	            278		POP	AF
+  537E 	18F3	            279		JR	STRFND			;See if we are to correct char
+ 			    280	
+ 			    281	
+ 			    282	;	This copies the string at HL to DE, stopping when Bit 7 is set.
+ 			    283		
+  5380 	7E	            284	STRCPY:	LD	A,(HL)			;Read character
+  5381 	CB7F	            285		BIT	7,A			;Test bit 7
+  5383 	CBBF	            286		RES	7,A			;Clear bit 7
+  5385 	12	            287		LD	(DE),A			;Store character
+  5386 	23	            288		INC	HL			;Increment all pointers
+  5387 	13	            289		INC	DE
+  5388 	28F6	            290		JR	Z,STRCPY		;If bit 7 not set, keep going
+ 			    291		
+  538A 	C9	            292		RET				;String copied.
+ 			    293	
+ 			    294	
+ 			    295	;	This routine reads the current chip information
+ 			    296		
+  538B 	CDC453              297	RDTIME:	CALL	SELECT
+  538E 	115357              298		LD	DE,REG0
+  5391 	0608	            299		LD	B,8
+ 			    300	
+  5393 	C5	            301	RDNEXT:	PUSH	BC
+  5394 	CD0454              302		CALL	READIT
+  5397 	12	            303		LD	(DE),A
+  5398 	13	            304		INC	DE
+  5399 	C1	            305		POP	BC
+  539A 	10F7	            306		DJNZ	RDNEXT
+ 			    307		
+  539C 	CD4655              308		CALL	NORMAL
+  539F 	3A5757              309		LD	A,(REG4)		;Look at offset +4, day & ctrl
+  53A2 	215357              310		LD	HL,REG0
+  53A5 	FEFF	            311		CP 	0FFH			;Check to see if we got anything
+  53A7 	C8	            312		RET	Z			;Can't be all ones in BCD
+ 			    313		
+  53A8 	B7	            314		OR 	A			;Can't be all zeros since day field
+  53A9 	C8	            315		RET	Z			;is 01 to 07.
+ 			    316		
+  53AA 	E620	            317		AND	20H			;Lose all but oscillator control
+  53AC 	2F	            318		CPL 				;Invert it
+  53AD 	B7	            319		OR 	A
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 7  	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+  53AE 	C9	            320		RET				;If it is zero, chip is inactive
+ 			    321						;A NZ return indicates working chip.
+ 			    322	
+ 			    323	
+ 			    324	;	This routine sets up the updating operations in the chip
+ 			    325		
+  53AF 	CDC453              326	WRTCLK:	CALL	SELECT
+  53B2 	115357              327		LD	DE,REG0			;Area to write from
+  53B5 	0608	            328		LD	B,8
+  53B7 	C5	            329	WRTLP:	PUSH	BC
+  53B8 	1A	            330		LD	A,(DE)			;Byte to xfer
+  53B9 	CDEE53              331		CALL	WRITE
+  53BC 	13	            332		INC	DE
+  53BD 	C1	            333		POP	BC
+  53BE 	10F7	            334		DJNZ	WRTLP
+ 			    335		
+  53C0 	CD4655              336		CALL	NORMAL
+  53C3 	C9	            337		RET
+ 			    338	
+ 			    339	
+ 			    340	;	This piece of code apparently resets the pattern matcher in the time
+ 			    341	;	chip by repeatedly reading the A0=0 location.  There are 64 bits
+ 			    342	;	that must match or else the sequencer resets, but this implies that
+ 			    343	;	this may not always happen.
+ 			    344		
+  53C4 	CD2D55              345	SELECT:	CALL	SHADOW
+  53C7 	2AB656              346		LD	HL,(BASE)		;Get base address
+  53CA 	010400              347		LD	BC,4			;Make this a READ operation
+  53CD 	09	            348		ADD	HL,BC			;Adjust address
+  53CE 	0641	            349		LD	B,41H			;Access READ address 65 times
+  53D0 	7E	            350	RESLP	LD	A,(HL)			;Access
+  53D1 	10FD	            351		DJNZ	RESLP
+ 			    352		
+ 			    353	;	This code enables the chip by accessing the correct sequence of
+ 			    354	;	addresses
+ 			    355	
+  53D3 	0602	            356		LD	B,2			;This sequence is repeated twice
+  53D5 	C5	            357	SELLP:	PUSH	BC
+  53D6 	3EC5	            358		LD	A,0C5H			;C5
+  53D8 	CDEE53              359		CALL	WRITE
+  53DB 	3E3A	            360		LD	A,3AH			;3A
+  53DD 	CDEE53              361		CALL	WRITE
+  53E0 	3EA3	            362		LD	A,0A3H			;A3
+  53E2 	CDEE53              363		CALL	WRITE
+  53E5 	3E5C	            364		LD	A,5CH			;5C
+  53E7 	CDEE53              365		CALL	WRITE
+  53EA 	C1	            366		POP	BC
+  53EB 	10E8	            367		DJNZ	SELLP
+  53ED 	C9	            368		RET
+ 			    369	
+ 			    370	
+ 			    371	;	This routine does the actual bit-streaming communication with the
+ 			    372	;	chip.  This routine is used for output only  
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 8  	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+ 			    373		
+  53EE 	D9	            374	WRITE:	EXX				;Save callers regs except A
+  53EF 	2AB656              375		LD	HL,(BASE)		;Get base address to work at
+  53F2 	54	            376		LD	D,H			;Make a copy and increment it
+  53F3 	5D	            377		LD	E,L
+  53F4 	13	            378		INC	DE			;DE points to NOT A0 of HL
+ 			    379	
+  53F5 	0608	            380		LD	B,8
+  53F7 	4F	            381		LD	C,A			;Byte to ripple through
+  53F8 	CB09	            382	WRITLP:	RRC	C			;Shift next bit into carry
+  53FA 	3803	            383		JR	C,WRITON		;If on, use "ON" address
+ 			    384		
+  53FC 	7E	            385		LD	A,(HL)			;"OFF" access
+  53FD 	1801	            386		JR	WRITCOM
+ 			    387		
+  53FF 	1A	            388	WRITON:	LD	A,(DE)			;"ON" access
+  5400 	10F6	            389	WRITCOM:DJNZ	WRITLP			;Do next bit
+ 			    390		
+  5402 	D9	            391		EXX				;Restore regs
+  5403 	C9	            392		RET
+ 			    393	
+ 			    394	
+ 			    395	;	This reads data from the chip (after selection), one byte at a time.
+ 			    396		
+  5404 	D9	            397	READIT:	EXX				;Save callers stuff
+  5405 	2AB656              398		LD	HL,(BASE)
+  5408 	010400              399		LD	BC,4
+  540B 	09	            400		ADD	HL,BC			;Convert to READ address
+  540C 	AF	            401		XOR	A
+  540D 	0608	            402		LD	B,8
+  540F 	4E	            403	RDLP:	LD	C,(HL)			;Read from device
+  5410 	CB41	            404		BIT	0,C			;Test D0
+  5412 	2802	            405		JR	Z,RDOFF
+ 			    406		
+  5414 	CBC7	            407		SET	0,A			;Set bit in final value
+  5416 	0F	            408	RDOFF:	RRCA				;Shift it
+  5417 	10F6	            409		DJNZ	RDLP			;Repeat 8 times
+ 			    410		
+  5419 	D9	            411		EXX				;Restore callers regs
+  541A 	C9	            412		RET				;Return
+ 			    413	
+ 			    414		
+  541B 	21CD56              415	CHGDOS:	LD	HL,L56CD
+  541E 	CD0555              416		CALL	TIMPTR
+ 			    417	
+  5421 	3A5457              418		LD	A,(REG1)		;Seconds
+  5424 	CD7654              419		CALL	BCD2BIN
+  5427 	FD7700              420		LD	(IY+0),A
+ 			    421	
+  542A 	3A5557              422		LD	A,(REG2)		;Minutes
+  542D 	CD7654              423		CALL	BCD2BIN
+  5430 	FD7701              424		LD	(IY+1),A
+ 			    425	
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 9  	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+  5433 	3A5657              426		LD	A,(REG3)		;Hours
+  5436 	CD7654              427		CALL	BCD2BIN
+  5439 	FD7702              428		LD	(IY+2),A
+ 			    429	
+  543C 	CD1455              430		CALL	DATPTR
+ 			    431	
+  543F 	3A5A57              432		LD	A,(REG7)		;Year
+  5442 	CD7654              433		CALL	BCD2BIN
+  5445 	FD7700              434		LD	(IY+0),A
+ 			    435	
+  5448 	3A5857              436		LD	A,(REG5)		;Date
+  544B 	CD7654              437		CALL	BCD2BIN
+  544E 	FD7701              438		LD	(IY+1),A
+ 			    439	
+  5451 	3A5957              440		LD	A,(REG6)		;Month
+  5454 	CD7654              441		CALL	BCD2BIN
+  5457 	FD7702              442		LD	(IY+2),A
+  545A 	C9	            443		RET
+ 			    444	
+ 			    445	
+ 			    446	;	This routine accepts two bytes from command line and converts them
+ 			    447	;	to BCD.  It handles CR's arriving early
+ 			    448		
+  545B 	AF	            449	RDBCD:	XOR	A
+  545C 	CD6554              450		CALL	BCDMSD
+  545F 	07	            451		RLCA
+  5460 	07	            452		RLCA
+  5461 	07	            453		RLCA
+  5462 	07	            454		RLCA
+  5463 	E6F0	            455		AND	0F0H
+  5465 	4F	            456	BCDMSD:	LD	C,A
+  5466 	7E	            457	SKIPDL:	LD	A,(HL)
+  5467 	23	            458		INC	HL
+  5468 	FE0D	            459		CP 	0DH
+  546A 	CA4F52              460		JP	Z,SYNERR
+ 			    461		
+  546D 	D630	            462		SUB	30H
+  546F 	FE0A	            463		CP 	0AH
+  5471 	D26654              464		JP	NC,SKIPDL
+ 			    465		
+  5474 	B1	            466		OR 	C
+  5475 	C9	            467		RET
+ 			    468	
+ 			    469		
+  5476 	5F	            470	BCD2BIN:LD	E,A
+  5477 	E60F	            471		AND	0FH
+  5479 	57	            472		LD	D,A
+  547A 	7B	            473		LD	A,E
+  547B 	E6F0	            474		AND	0F0H
+  547D 	0F	            475		RRCA
+  547E 	5F	            476		LD	E,A
+  547F 	0F	            477		RRCA
+  5480 	0F	            478		RRCA
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 10 	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+  5481 	83	            479		ADD	A,E
+  5482 	82	            480		ADD	A,D
+  5483 	C9	            481		RET
+ 			    482	
+ 			    483	
+ 			    484	;	Convert BCD to two byte ASCII
+ 			    485		
+  5484 	F5	            486	BCD2ASC:PUSH	AF		
+  5485 	07	            487		RLCA
+  5486 	07	            488		RLCA
+  5487 	07	            489		RLCA
+  5488 	07	            490		RLCA
+  5489 	E60F	            491		AND	0FH
+  548B 	F630	            492		OR 	30H
+  548D 	77	            493		LD	(HL),A
+  548E 	23	            494		INC	HL
+  548F 	F1	            495		POP	AF
+  5490 	E60F	            496		AND	0FH
+  5492 	F630	            497		OR 	30H
+  5494 	77	            498		LD	(HL),A
+  5495 	23	            499		INC	HL
+  5496 	C9	            500		RET
+ 			    501	
+ 			    502		
+  5497 	FD7E00              503	L5497:	LD	A,(IY+0)
+  549A 	E603	            504		AND	3
+  549C 	21FA54              505		LD	HL,FEB			;Handle Leap
+  549F 	361C	            506		LD	(HL),28			;28 day month
+  54A1 	2001	            507		JR	NZ,L54A4
+ 			    508		
+  54A3 	34	            509		INC	(HL)
+  54A4 	FD7E02              510	L54A4:	LD	A,(IY+2)
+  54A7 	47	            511		LD	B,A
+  54A8 	FE0D	            512		CP 	0DH
+  54AA 	D24F52              513		JP	NC,SYNERR
+ 			    514		
+  54AD 	FD7E01              515		LD	A,(IY+1)
+  54B0 	6F	            516		LD	L,A
+  54B1 	2600	            517		LD	H,0
+  54B3 	11F854              518		LD	DE,DAYPER		;Point at table of days per month
+  54B6 	1A	            519	DAYLP:	LD	A,(DE)
+  54B7 	85	            520		ADD	A,L
+  54B8 	6F	            521		LD	L,A
+  54B9 	8C	            522		ADC	A,H
+  54BA 	95	            523		SUB	L
+  54BB 	67	            524		LD	H,A
+  54BC 	13	            525		INC	DE
+  54BD 	10F7	            526		DJNZ	DAYLP
+ 			    527		
+  54BF 	EB	            528		EX	DE,HL
+  54C0 	FD7E01              529		LD	A,(IY+1)
+  54C3 	3D	            530		DEC	A
+  54C4 	BE	            531		CP 	(HL)
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 11 	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+  54C5 	D24F52              532		JP	NC,SYNERR
+ 			    533		
+  54C8 	EB	            534		EX	DE,HL
+  54C9 	DD210000            535		LD	IX,0
+  54CD 	FD4600              536		LD	B,(IY+0)
+  54D0 	0E00	            537		LD	C,0
+  54D2 	79	            538	L54D2:	LD	A,C
+  54D3 	B8	            539		CP 	B
+  54D4 	280D	            540		JR	Z,L54E3
+ 			    541		
+  54D6 	116D01              542		LD	DE,16DH
+  54D9 	E603	            543		AND	3
+  54DB 	2001	            544		JR	NZ,L54DE
+ 			    545		
+  54DD 	13	            546		INC	DE
+  54DE 	DD19	            547	L54DE:	ADD	IX,DE
+  54E0 	0C	            548		INC	C
+  54E1 	18EF	            549		JR	L54D2
+ 			    550		
+  54E3 	EB	            551	L54E3:	EX	DE,HL
+  54E4 	DD19	            552		ADD	IX,DE
+  54E6 	DDE5	            553		PUSH	IX
+  54E8 	E1	            554		POP	HL
+  54E9 	010600              555		LD	BC,6
+  54EC 	09	            556		ADD	HL,BC
+  54ED 	0E07	            557		LD	C,7
+  54EF 	B7	            558		OR 	A
+  54F0 	ED42	            559	L54F0:	SBC	HL,BC
+  54F2 	30FC	            560		JR	NC,L54F0
+ 			    561		
+  54F4 	7D	            562		LD	A,L
+  54F5 	C608	            563		ADD	A,8
+  54F7 	C9	            564		RET
+ 			    565	
+ 			    566		
+  54F8 	00	            567	DAYPER:	defb	0			;No when
+  54F9 	1F	            568		defb	31			;Jan
+ 			    569	
+  54FA 	1C	            570	FEB:	defb	28			;Feb
+  54FB 	1F	            571		defb	31			;Mar
+  54FC 	1E	            572		defb	30			;Apr
+  54FD 	1F	            573		defb	31			;May
+  54FE 	1E	            574		defb	30			;Jun
+  54FF 	1F	            575		defb	31			;Jul
+  5500 	1F	            576		defb	31			;Aug
+  5501 	1E	            577		defb	30			;Sep
+  5502 	1F	            578		defb	31			;Oct
+  5503 	1E	            579		defb	30			;Nov
+  5504 	1F	            580		defb	31			;Dec
+ 			    581	
+ 			    582	
+ 			    583	;	This routine returns pointer to DOS storage area of time.
+ 			    584	
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 12 	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+  5505 	FD211742            585	TIMPTR:	LD	IY,4217H		;MIII in SBUFF
+  5509 	CD5755              586		CALL	IIIOR4
+  550C 	C8	            587		RET	Z
+ 			    588		
+  550D 	3E13	            589		LD	A,13H			;@TIME
+  550F 	EF	            590		RST	28H
+  5510 	D5	            591		PUSH	DE
+  5511 	FDE1	            592		POP	IY			;Put address in IY
+  5513 	C9	            593		RET
+ 			    594	
+ 			    595	
+ 			    596	;	This routine returns pointer to DOS storage area of date
+ 			    597	
+  5514 	FD211A42            598	DATPTR:	LD	IY,421AH		;In MIII SBUFF
+  5518 	CD5755              599		CALL	IIIOR4
+  551B 	C8	            600		RET	Z
+ 			    601		
+  551C 	3E12	            602		LD	A,12H			;@DATE
+  551E 	EF	            603		RST	28H
+  551F 	D5	            604		PUSH	DE
+  5520 	FDE1	            605		POP	IY			;Put address in IY
+  5522 	C9	            606		RET
+ 			    607	
+ 			    608	
+ 			    609	;	Displays the string at HL
+ 			    610		
+  5523 	CD5755              611	PSOUT:	CALL	IIIOR4
+  5526 	CA6744              612		JP	Z,4467H			;MIII @DSPLY call
+ 			    613		
+  5529 	3E0A	            614		LD	A,0AH
+  552B 	EF	            615		RST	28H
+  552C 	C9	            616		RET
+ 			    617		
+ 			    618	
+ 			    619	;	This routine turns off interrupts and puts the machine in Model III
+ 			    620	;	mode, except on the 4P where the machine is put in the boot state
+ 			    621	;	so the ROM socket will be selected.
+ 			    622	
+  552D 	CD5755              623	SHADOW:	CALL	IIIOR4
+  5530 	F3	            624		DI
+  5531 	280E	            625		JR	Z,NOT4			;Not a 4, so skip this
+ 			    626		
+  5533 	3E65	            627		LD	A,65H			;Read FLAGS
+  5535 	EF	            628		RST	28H
+  5536 	FD7E0E              629		LD	A,(IY+0EH)		;OPREG$
+  5539 	325057              630		LD	(OPREG),A		;Last command written to 84H by O/S
+  553C 	F3	            631		DI
+  553D 	3E84	            632		LD	A,84H			;This command Enables MIII mode on M4
+  553F 	D384	            633		OUT	(84H),A			;But leaves video 80x24.
+ 			    634						;I think Bit 7 being on is an error.
+ 			    635	
+  5541 	3E01	            636	NOT4:	LD	A,1			;Turn on shadow ROM on the 4P
+  5543 	D39C	            637		OUT	(9CH),A
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 13 	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+  5545 	C9	            638		RET
+ 			    639	
+ 			    640	
+ 			    641	;	This routine turns off shadow ROM on the Model 4P
+ 			    642		
+  5546 	AF	            643	NORMAL:	XOR	A
+  5547 	D39C	            644		OUT	(9CH),A			;Turn off shadow ROM on the 4P
+  5549 	CD5755              645		CALL	IIIOR4
+  554C 	2002	            646		JR	NZ,IN2M4
+ 			    647		
+  554E 	FB	            648		EI
+  554F 	C9	            649		RET
+ 			    650	
+ 			    651		
+  5550 	3A5057              652	IN2M4:	LD	A,(OPREG)		;This puts the machine back in M4 mode
+  5553 	D384	            653		OUT	(84H),A
+  5555 	FB	            654		EI				;Interrupts back on
+  5556 	C9	            655		RET
+ 			    656	
+ 			    657		
+  5557 	3A4F57              658	IIIOR4:	LD	A,(DOSMODE)		;Determine which mode we are in
+  555A 	B7	            659		OR 	A
+  555B 	C9	            660		RET
+ 			    661		
+ 			    662	
+  555C 	0A	            663	MSGHDR:	DEFB	0AH
+  555D 	2A2A2A20536D
+	617274576174
+	636820697320        664		DEFM	'*** SmartWatch is '
+  556F 	03	            665		INC	BC
+  5570 	6E6F77207475
+	726E6564206F
+	66662E202A2A
+	2A	            666	NOWOFF:	DEFM	'now turned off. ***'
+  5583 	0D	            667		DEFB	0DH
+  5584 	6E6F74207072
+	6573656E742E
+	202A2A2A            668	MISSING:DEFM	'not present. ***'
+  5594 	0D	            669		DEFB	0DH
+  5595 	6E6F74207365
+	742E202A2A2A        670	NOTSET:	DEFM	'not set. ***'
+  55A1 	0A	            671		DEFB	0AH
+  55A2 	0A	            672	HLPTXT:	DEFB	0AH
+  55A3 	445320313231
+	36452022536D
+	617274576174
+	63682220696E
+	206120545253
+	2D3830204D6F
+	64656C              673		DEFM	'DS 1216E "SmartWatch" in a TRS-80 Model'
+  55CA 	204949492C20
+	34206F722034
+	502E	            674		DEFM	' III, 4 or 4P.'
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 14 	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+  55D8 	0A	            675		DEFB	0AH
+  55D9 	0A	            676		DEFB	0AH
+  55DA 	434C4B205420
+	202020202020
+	202020202020
+	202020202020
+	202053657420
+	746865205379
+	737465              677		DEFM	'CLK T                     Set the Syste'
+  5601 	6D2074696D65
+	2E	            678		DEFM	'm time.'
+  5608 	0A	            679		DEFB	0AH
+  5609 	434C4B204F20
+	202020202020
+	202020202020
+	202020202020
+	20205475726E
+	207468652053
+	6D6172              680		DEFM	'CLK O                     Turn the Smar'
+  5630 	745761746368
+	206F66662E          681		DEFM	'tWatch off.'
+  563B 	0A	            682		DEFB	0AH
+  563C 	434C4B205320
+	4D4D2F44442F
+	59592068683A
+	6D6D3A737320
+	202053657420
+	74686520536D
+	617274              683		DEFM	'CLK S MM/DD/YY hh:mm:ss   Set the Smart'
+  5663 	57617463682E        684		DEFM	'Watch.'
+  5669 	0D	            685	CRLF:	DEFB	0DH
+  566A 	53756E              686	DAYOFWK:	DEFM	'Sun'
+  566D 	AE	            687		defb	0aeh
+  566E 	4D6F6E              688		defm	'Mon'
+  5671 	AE	            689		defb	0aeh
+  5672 	547565              690		defm	'Tue'
+  5675 	AE	            691		defb	0aeh
+  5676 	576564              692		defm	'Wed'
+  5679 	AE	            693		defb	0aeh
+  567A 	546875              694		defm	'Thu'
+  567D 	AE	            695		defb	0aeh
+  567E 	467269              696		defm	'Fri'
+  5681 	AE	            697		defb	0aeh
+  5682 	536174              698		defm	'Sat'
+  5685 	AE	            699		defb	0aeh
+  5686 		            700	L5686:
+  5686 	4A616E              701		defm	'Jan'
+  5689 	AE	            702		defb	0aeh
+  568A 	466562              703		defm	'Feb'
+  568D 	AE	            704		defb	0aeh
+  568E 	4D6172              705		defm	'Mar'
+  5691 	AE	            706		defb	0aeh
+  5692 	417072              707		defm	'Apr'
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 15 	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+  5695 	AE	            708		defb	0aeh
+  5696 	4D6179              709		defm	'May'
+  5699 	AE	            710		defb	0aeh
+  569A 	4A756E              711		defm	'Jun'
+  569D 	AE	            712		defb	0aeh
+  569E 	4A756C              713		defm	'Jul'
+  56A1 	AE	            714		defb	0aeh
+  56A2 	417567              715		defm	'Aug'
+  56A5 	AE	            716		defb	0aeh
+  56A6 	536570              717		defm	'Sep'
+  56A9 	AE	            718		defb	0aeh
+  56AA 	4F6374              719		defm	'Oct'
+  56AD 	AE	            720		defb	0aeh
+  56AE 	4E6F76              721		defm	'Nov'
+  56B1 	AE	            722		defb	0aeh
+  56B2 	446563              723		defm	'Dec'
+  56B5 	AE	            724		defb	0aeh
+  56B6 	00	            725	BASE:	NOP
+  56B7 	00	            726		NOP
+ 			    727	
+  56B8 	1B	            728	HITHER:	defb	1bh
+  56B9 	1B	            729		defb	1bh
+  56BA 	486176652061
+	204E69636520
+	446179212120
+	20	            730		DEFM	'Have a Nice Day!!  '
+ 			    731	
+  56CD 		            732	L56CD:
+  574D 		            733		org	574dh
+ 			    734	
+  574D 		            735	DOSSTK:	defs	2		;EQU	574DH
+ 			    736	
+  574F 		            737	DOSMODE:defs	1		;EQU	574FH
+ 			    738	
+  5750 		            739	OPREG:	defs	1		;EQU	5750H
+ 			    740	
+  5751 		            741	PARMS:	defs	2		;EQU	5751H
+ 			    742	
+  5753 		            743	REG0:	defs	1		;EQU	5753H
+  5754 		            744	REG1:	defs	1		;EQU	5754H
+  5755 		            745	REG2:	defs	1		;EQU	5755H
+  5756 		            746	REG3:	defs	1		;EQU	5756H
+  5757 		            747	REG4:	defs	1		;EQU	5757H
+  5758 		            748	REG5:	defs	1		;EQU	5758H
+  5759 		            749	REG6:	defs	1		;EQU	5759H
+  575A 		            750	REG7:	defs	1		;EQU	575AH
+ 			    751	
+  5200 		            752		end	BEGIN
+
+
+No Assembly Errors
+
+Start: 17:56:04		Stop: 17:56:11		Elapsed: 00:00:07
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 16 	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+EXTERNAL EQUATES
+E Addr	  Obj	       Fl  Ln #		Source Line
+
+
+(00:00:05 user, 00:00:01 system)
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 17 	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+Cross Reference Symbol Table
+Label		Value	Ref Line #
+
+
+Macros:	
+
+
+Symbols:
+BASE		56B6	   -725   
+BCD2ASC		5484	   -486   
+BCD2BIN		5476	   -470   
+BCDMSD		5465	   -456   
+BEGIN		5200	   752       -4     
+CHGDOS		541B	   -415   
+CLKOFF		52A6	   -132   
+CRLF		5669	   -685   
+DATPTR		5514	   -598   
+DAYLP		54B6	   526       -519   
+DAYOFWK		566A	   -686   
+DAYPER		54F8	   -567   
+DOSMODE		574F	   -737   
+DOSSTK		574D	   -735   
+ERROUT		5254	   139       -69    
+EXIT		528E	   -112   
+FEB		54FA	   -570   
+HDWFND		522C	   -37    
+HITHER		56B8	   -728   
+HLPTXT		55A2	   -672   
+IIIOR4		5557	   -658   
+IN2M4		5550	   -652   
+IS41		528B	   -106   
+L5497		5497	   -503   
+L54A4		54A4	   -510   
+L54D2		54D2	   549       -538   
+L54DE		54DE	   -547   
+L54E3		54E3	   -551   
+L54F0		54F0	   560       -559   
+L5686		5686	   -700   
+L56CD		56CD	   -732   
+LDTIME		5292	   194       -118   
+LOCATE		5214	   27        -16    
+MISSING		5584	   -668   
+MSGCOM		525C	   124       127       -75    
+MSGHDR		555C	   -663   
+NORMAL		5546	   -643   
+NOT4		5541	   -636   
+NOTSET		5595	   -670   
+NOWOFF		5570	   -666   
+OPREG		5750	   -739   
+PARMS		5751	   -741   
+PRTINF		530E	   -197   
+PSOUT		5523	   -611   
+RDBCD		545B	   -449   
+RDLP		540F	   409       -403   
+RDNEXT		5393	   306       -301   
+RDOFF		5416	   -408   
+RDTIME		538B	   -297   
+VAX/68000  ALDS Z80/Z180 Cross Assembler  Ver. 3.0	Page: 18 	Date: March 20, 1989
+(1) Assembly listing of: clk.src
+
+Cross Reference Symbol Table
+Label		Value	Ref Line #
+
+
+READIT		5404	   -397   
+REG0		5753	   -743   
+REG1		5754	   -744   
+REG2		5755	   -745   
+REG3		5756	   -746   
+REG4		5757	   -747   
+REG5		5758	   -748   
+REG6		5759	   -749   
+REG7		575A	   -750   
+RESLP		53D0	   351       -350   
+SELECT		53C4	   -345   
+SELLP		53D5	   367       -357   
+SETCLK		52B6	   -145   
+SHADOW		552D	   -623   
+SKIPBL		526B	   89        -84    
+SKIPDL		5466	   464       -457   
+STRCPY		5380	   290       -284   
+STRFND		5373	   279       -269   
+STRLP		5377	   276       -273   
+SYNERR		524F	   149       152       158       164       170       176       182       460       513       532    
+			   -65    
+TIMPTR		5505	   -585   
+WRITCOM		5400	   -389   
+WRITE		53EE	   -374   
+WRITLP		53F8	   389       -382   
+WRITON		53FF	   -388   
+WRTCLK		53AF	   -326   
+WRTLP		53B7	   334       -329   
+

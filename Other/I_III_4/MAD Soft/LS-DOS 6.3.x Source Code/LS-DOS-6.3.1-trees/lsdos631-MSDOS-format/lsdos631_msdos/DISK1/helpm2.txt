@@ -1,0 +1,652 @@
+append
+Appends fs1 or *ds to the end of fs2
+
+ APPEND fs1|*ds [TO] fs2 [(E,S)] 
+
+Parms:
+ECHO    Displays the character stream of a device to the video
+STRIP   Backspaces the destination file 1 byte before appending
+attrib
+Alters/removes protection status by changing passwords and/or degree of access. Will alter the disk name, master password, and lock or unlock all visible, non-system files.
+
+ ATTRIB fs (p,p) 
+ ATTRIB :d (p,p) 
+
+Parms for filespec attribs:
+USER=     Changes access password (e.g. USER=MYPW)
+OWNER=    Changes update password (e.g. OWNER=UPDPASS)
+PROT=     Protection level
+VIS       Make an invisible file visible
+INV       Make a visible file invisible
+
+Protection levels used with PROT= parm:
+EXEC    Execute only
+READ    Read, execute
+UPDATE  Update, read, execute
+WRITE   Write, update, read, execute
+RENAME  Rename, write, update, read, execute
+REMOVE  Kill, rename, write, update, read, execute
+FULL    Includes all above plus ATTRIB
+
+Parms for disk attribs:
+LOCK      Locks the current disk master password onto all visible non-system
+          files which are not protected
+UNLOCK    Removes the user and owner passwords from all visible non-system
+          files that have passwords matching the disk's master password
+MPW="wd"  Allows passing the disk's current master password in the ATTRIB
+          command
+NAME="wd" Changes the disk name
+PW="wd"   Changes the disk master password
+auto
+Stores a command line for automatic execution each time DOS starts up unless suspended by depressing <ENTER> during BOOT (AUTO by itself deletes the current AUTO command line)
+
+ AUTO [=|?|:d][*][command line] 
+
+*         When specified will disable ability of <ENTER> to suspend the
+          execution and also disables <BREAK> key
+:d        [command] is placed on the specified drive
+?:d       Displays the AUTO command from :d
+=:d       Executes the AUTO command on :d
+backup
+Duplicates a system/data disk. (file can use wildcard chars)
+
+ BACKUP :s :d [(p,p)] 
+ BACKUP -ps|ps:s :d [(p,p)] 
+
+Parms:
+MPW="wd"  Passes disk master password to the command line
+SYS       System files included
+INV       Includes invisible files
+MOD       Indicates modified files only
+QUERY     Ask before moving
+OLD       Duplicate only files already on the dest disk
+NEW       Duplicate only files NOT on the dest
+X         Backups with no system disk
+DATE=     "mm/dd/yy-mm/dd/yy" backup files whose dates fall between specs
+          "mm/dd/yy" BACKUP files = to spec
+          "-mm/dd/yy" BACKUP files <= to the date spec
+          "mm/dd/yy-" BACKUP files >= to the date spec
+boot
+Resets the system. Holding down one or more keys will result in:
+
+ BOOT [<HOLD>,<ENTER>,<BREAK>,<D>] 
+
+<HOLD>         No sysgened configuration will occur
+<ENTER>        Breakable AUTO will be suppressed
+<BREAK>        No configuration or AUTO will occur
+<D>            Enter debug (no config will occur)
+build
+This command allows the user to construct a file of character strings and save this file. BUILD is mainly used to create ASCII files for DO, KSM, and PATCH.
+
+ BUILD fs [(H,A)] 
+
+HEX       Allows data entry as packed hexadecimal string only
+APPEND    Appends data to end of an existing file
+click/flt
+Provides an audible output.
+
+ SET *CF CLICK{/FLT} [(C=nn)] 
+ FILTER *ds *CF  (Note: *ds will usually be *KI)
+
+Parm:
+CHAR=nn, where nn is any value 1-255. If specified, a "CLICK" will only occur when the specified character is encountered.
+com/dvr
+Prepares the Communications Line (*CL) for use
+
+ SET *CL [TO] COM/DVR [(PORT=n)] 
+
+Parm:
+PORT=n, where n is 1 or 2.
+comm
+Lets two computers communicate via a device
+Use only after COM/DVR is installed
+
+ COMM *ds [(XS=X'aabb',XR=X'aabb',XON=X'cc',XOFF=X'cc',NULL=OFF)] 
+
+Parms:
+XLATES=X'aabb'      Translates send char aa to bb
+XLATER=X'aabb'      Translates a received char from aa to bb
+XON=X'cc'           Changes the XON char
+XOFF=X'cc'          Changes the XOFF char
+NULL=               ON/OFF prevents/allows X'00' to be received
+Key Sequence  Device Called       Devspec
+<ESC><1>       Keyboard            *KI
+<ESC><2>       Video               *DO
+<ESC><3>       Printer             *PR
+<ESC><4>       Comm Line           *CL
+<ESC><5>       File Send           *FS
+<ESC><6>       File Receive        *FR
+Key Sequence  Action Performed
+<ESC><7>       Dump to Disk data obtained in *FR area
+<ESC><8>       Displays Menu
+<ESC><9>       Specifies send/receive filespec (used with 5/6)
+<ESC><0>       Closes receive/send file
+<ESC><->       Turns ON devices, reception or transmission
+<ESC><=>       Turns OFF devices, reception or transmission
+<ESC><SH><1>   Toggle duplex on (half-duplex) and off (full-duplex)
+<ESC><SH><2>   Toggle HOST retransmit of received data (echo)
+<ESC><SH><3>   Toggles insert of linefeed character after receiving a CR
+<ESC><SH><4>   Toggles selective linefeed mode
+<ESC><SH><5>   Rewinds an *FR or *FS file
+<ESC><SH><6>   Positions to end of *FR file to append more data
+<ESC><SH><7>   Displays control characters received
+<ESC><SH><8>   CLS - - Clear Local Screen (no effect on buffers)
+<ESC><SH><9>   Toggles 8-bit reception (SETCOM must be set to 8)
+<ESC><SH><0>   Allows use of DOS library command
+<ESC><SH><_>   Toggles XON/XOFF protocol
+<ESC><SH><+>   Return to DOS
+conv
+Converts files from TRSDOS 2.0x to TRSDOS 6.X. Two drives are required.
+
+ CONV [ps|-ps]:s :d [(p,p)] 
+
+Parms:
+DIR       Do a directory of the TRSDOS 2.0x disk
+VIS       Convert only visible files
+INV       Include invisible files
+SYS       Include system files
+NEW       Include files only if NOT on the dest drive
+OLD       Include files only if on the dest drive
+QUERY     Permission prior to each file
+copy
+Copies data from one file or device to another file or device
+
+ COPY fs1 to fs2|ps|:d [(L=n,C=sw)] 
+ COPY fs:d (X) 
+ COPY *ds to fs [(L=n,E)] 
+ COPY *ds1 to *ds2 [(E)] 
+ COPY fs to *ds 
+
+Parms:
+LRL=n     Parameter where n = the dest logical record length
+CLONE=sw  Indicates an exact duplicate of the directory entry
+ECHO      Will cause any char copied from a devspec to be displayed
+X         Allows a single drive copy
+create
+Creates a file and reserves space on the disk for future use
+
+ CREATE fs [(L=d{256},R=d,S=d)] 
+
+LRL=n     Sets the Logical Record Length to be used, where 1 <= n <= 256
+REC=      The number of records of length LRL to be allocated
+SIZE=     The amount of space in K to be allocated
+          This parameter MAY NOT be used if LRL/REC is used
+date
+Sets or displays the current date
+
+ DATE [mm/dd/yy] 
+debug
+Sets up the debug monitor for testing and debugging programs
+
+ DEBUG [(Y|N)][(E)] 
+
+DEBUG commands - Highlighted commands are in the extended debugger only.
+
+Ah        ASCII modify beginning at address h
+Ba,b,c    Move memory block starting at a to address b for c bytes
+C         Call instruction. Single step through code with CALLs executed fully
+Dh        Set the lower portion of the screen to display starting at address h
+Eh        Enter hex data directly into memory at address h
+Fa,b,c    Fill memory from address a to address b with byte c
+Ga,b,c    Begin execution at address a with breakpoints at b, c, etc
+Hh        HEX modify starting at address h
+I         Single step instruction pointed to by PC
+J         Increments the PC by one
+La,b      Locate the first occurrence of byte b starting from address a
+N         Positions cursor to Next load block
+O         Return to DOS Ready
+Pa,b      Print memory block from address a to address b
+Qa        Read port a
+Qa,b      Write byte b to port a
+Rrp,h     Modify register pair rp to h
+S         Display Full Screen Mode
+Ta        Type ASCII starting at address a
+U         Update display mode
+Va,b,c    Compare block of memory at a to memory at b for c bytes
+Wa,b      Search memory for word b starting at address a
+X         Display in register mode
+;         Advance memory display
+-         Decrement memory display
+Debug Disk Read/Write Utility:
+d,cc,ss,rw,ad,ns = drive,cylinder,sector,R|W|*,address,# sectors
+device
+Displays status of each drive and options in use
+
+ DEVICE [(D=sw,B=sw,S=sw,P=sw)] 
+
+D=sw{Y}   Display drive information
+B=sw{N}   Display device information
+S=sw{Y}   Display active "options"
+P=sw{N}   Output to the printer
+dir
+Display directory of one or more disks. Note that DIR<ENTER> will start at drive :0 and display all available drives. :d- will start at drive "d" and display all subsequent drives. :-d will start with drive 0 and end at the drive. :b-e will begin with drive "b" and end with drive "e".
+
+ DIR [fs|ps|-ps][:d][(p,p)] 
+
+Parms:
+ALL=sw   {Y} Display in full allocation format
+INV       Include invisible non-system files
+MOD       Display ONLY modified files
+NON       Do not stop at full screen (assumed if PRT selected)
+PRT       Output to printer
+SYS       Include system files
+DATE      Display only those files with today's date
+DATE      Same as BACKUP
+SORT=sw  {Y} Toggles sort of directory files
+do
+Compiles and executes a JCL file
+
+ DO [$|=|*] fs{/JCL} [(@label,parm=value)][;] 
+
+Prefix chars:
+$  Complies JCL file without execution
+=  Executes JCL file without compilation
+*  Runs "SYSTEM/JCL" file
+@LABEL    Start JCL execution at specified label
+parm      Optional values passed to the JCL during execution
+;         Allows execution of a command line longer than 74 characters
+dump
+Copies an area of memory to a disk file
+
+ DUMP fs (p,p) 
+
+Parms:
+START=    Address from which the dump begins, it must be > X'2FFF'
+END=      Last address to dump
+TRA=      Transfer address
+ASCII     Specifies ASCII dump
+ETX=      Optional byte appended to file as end of Text mark
+filter
+Filters data to or from a device, using a filter program
+
+ FILTER *ds1 [USING] *ds2 
+
+The second devspec will usually be established with the SET command
+format
+This command allows a disk to be organized into cylinders, sectors, and directory
+
+ FORMAT [:d] [(p,p)] 
+
+Parms:
+NAME="wd" The name that will be given to a disk
+MPW="wd"  The master password assigned to the disk
+SDEN      Single density
+DDEN      Double density
+SIDES=    1 or 2
+CYL=      Number of cylinders to format (35-96), (5" DRIVES ONLY)
+STEP=     The boot track step rate (0-3)
+QUERY     Will prompt for parms
+DIR=      Cylinder on which to place directory
+ABS       Absolute format
+Forms
+To activate the forms filter, SET it to a two letter device name
+
+ SET *ds [TO] FORMS{/FLT} 
+
+Filter the *PR device with it:
+
+ FILTER *PR [USING] *ds 
+
+This command sets up printer options. Using FORMS<ENTER> will display the current settings to the video. FORMS may be altered at anytime by typing  FORMS (p,p) 
+Parms:
+ADDLF=sw  Add linefeed after carriage return {OFF}
+CHARS=n   TOTAL characters (inc. MARGIN) per line {OFF}
+FFHARD=sw Issue X'0C' as formfeed rather than linefeeds {OFF}
+INDENT=n  Indent from left on lines longer than CHARS parm {0}
+LINES=n   Lines printed on each page {66}
+MARGIN=n  Left margin {0}
+PAGE=n    Page length in lines {66}
+QUERY=sw  Prompt for each parm {OFF}
+TAB=sw    Expand X'09' tab chars {ON}
+XLATE=    X'aabb' char translation where aa will become bb {OFF}
+DEFAULT   All functions back to defaults
+free
+Lists free space and number of files on each disk or displays a "space utilization" map
+
+ FREE [:d][(P)] 
+
+:d    Display space map of :d
+PRT   Sends output to printer as well as video
+joblog
+To establish the Joblog, simply route *JL to a filespec or devspec
+
+ ROUTE *JL [TO] fs|*ds 
+ksm/flt
+To use a /KSM file, do the following:
+
+ SET *ds [TO] KSM/FLT [USING] fs [(E=##)] 
+ FILTER *KI *ds 
+
+The ENTER parameter is used to specify which ASCII character can be used to imbed carriage returns in a KSM line
+lib
+Displays library commands
+link
+This command is used to link together two logical devices
+
+ LINK *ds1 [TO] *ds2 
+list
+Lists contents of a file to the display or printer
+
+ LIST fs [(p,p)] 
+
+Parms:
+ASCII8    Eight bit output
+NUM       Line numbering mode for ASCII text
+HEX       Hex output format
+TAB=n{8}  Number to expand tab char X'09'
+P         Output to printer
+LINE=n    Line in ASCII text where listing begins
+REC=n     Record number to begin HEX listing
+LRL=n     Logical record length used when in HEX mode
+load
+Loads a load module format (/CMD, /LMF) program file into memory
+
+ LOAD [(X)] fs 
+
+X parameter loads from a non-system disk in a single drive system
+memdisk
+Establishes a part of memory as a "pseudo" disk drive
+
+ SYSTEM (DRIVE=d,DRIVER="MEMDISK") 
+
+A menu appears asking which memory bank to establish or whether to disable MemDISK. After making the choice, the system will prompt for density and ask for a format.  IT IS MANDATORY  to format if MemDISK has not been established since power-up, BOOT, or a RESET.
+memory
+Reserves a portion of memory, sets/displays current HIGH$ and LOW$, modifies a memory address, or jumps to a memory location. When typed with no parms, MEMORY displays the current HIGH$ and LOW$.
+
+ MEMORY [(p,p)] 
+
+Parms:
+CLEAR=h{X'00'}      Fill memory with value (X'xx' or decimal < 256)
+HIGH=n              Sets HIGH$ to n where n is less than current HIGH$
+LOW=n               Sets LOW$ to n
+ADD=n               Displays hex word at address n or specifies which
+                    address is to be used in conjunction with WORD or BYTE.
+                    n may also be used to display the flags A-Z by specifying
+                    the flag name as in ADD="A" or ADD="F"
+WORD=n              Changes the contents of ADD and ADD+1 to n (n<>0)
+BYTE=n              Changes the contents of ADD to n (n<>255)
+GO=n                Tranfers control to address n
+patch
+This utility alters the contents of a disk file. There are two methods of using it, the "command line" method:
+
+ PATCH fs (patch commands) 
+
+or the "file" method:
+
+ PATCH fs1 [USING] fs2{/FIX} [(YANK,REMOVE)] 
+
+The patch commands are:
+X'hhhh'=aa bb ...   Appends a load block to the end of the file. The load
+                    address is hhhh. The bytes to be loaded are aa, bb, etc
+Dr,b=aa bb ...      Changes bytes starting at record r byte b to aa, bb, etc
+Fr,b=aa bb ...      "Find" string for a "D" patch
+Lnn                 Used to PATCH a library command
+
+Parms:
+YANK      Eliminates the results of an X patch
+REMOVE    Reverses a D PATCH by using the contents of the "Find" string
+purge
+Allows contolled multiple KILLs of disk files
+
+ PURGE [ps|-ps]:d [(p,p)] 
+
+Parms:
+QUERY=sw{ON}        Asks permission to delete each file
+MPW="wd"            Passes master password to command line
+INV                 Includes INVisible files
+SYS                 Includes SYStem files
+DATE=               Same as BACKUP
+remove
+Deletes files from the directory or devices from the system
+
+ REMOVE fs|*ds [fs|*ds] ...  
+rename
+Changes the name of a file or device
+
+ RENAME fs1 [TO] fs2|ps 
+ RENAME *ds1 [TO] *ds2 
+reset
+Returns a device to its original start-up condition or closes a file inadvertantly left open
+
+ RESET *ds|fs 
+route
+Routes a device to another device, to a disk file, or to nothing (NIL)
+
+ ROUTE *ds1 [TO] *ds2 
+ ROUTE *ds [TO] fs [(REWIND)] 
+ ROUTE *ds [TO] (NIL) 
+run
+Loads and executes a /CMD or load module format program
+
+ [RUN] [(X)] fs [(p,p)] 
+
+The X parameter allows the single drive load and execute.
+Other parameters are values that the program may require.
+set
+SET assigns a driver/filter program to a device. Parameters are optional values the driver/filter program may require. The SET command creates a system device which can then be used with ROUTE, LINK, or FILTER.
+
+ SET *ds [TO] fs [(p,p)] 
+setcom
+Sets up RS-232C communications or displays the current status of it.
+Establish the COM/DVR first with the SET command. Typing SETCOM with no parameters displays the current status of the RS-232 interface.
+
+ SETCOM [(p,p)] 
+
+Parms:
+QUERY=sw{N}         Asks for other parameters one at a time
+BAUD=n{300}         BAUD rate
+WORD=n{7}           Word length where n must be 5-8
+STOP=n{1}           Stop bits where n is 1 or 2
+PARITY=sw{Y}        Enables/disables PARITY
+EVEN{E}             EVEN parity
+ODD                 ODD parity
+BREAK=n{3}          Selects char for the system BREAK bit
+PORT=n{1}           Selects port to modify, either 1 or 2
+DEFAULT             Sets all parms/conditions back to defaults
+ RS-232 Line conditions all default to IGNORE except DTR & RTS 
+DTR=sw{Y} Data Terminal Ready
+RTS=sw{N} Request To Send
+DSR=sw    Data Set Ready
+CD=sw     Carrier Detect
+CTS=sw    Clear To Send
+RI=sw     Ring Indicator
+setki
+Not valid for Model 2/12. Included only for compatibility with other versions of the operating system.
+spool
+This command establishes a FIFO buffer for a device (usually the printer)
+
+ SPOOL *ds{*PR} [TO] [fs] [(p,p)] 
+
+Parms:
+NO        Cancels spooler and resets device
+MEM=n     Specifies the size of the RAM buffer where 1 <= n <= 32
+BANK=n    Selects one of three RAM banks where 0 <= n <= 2
+DISK=n    Disk space dedicated to spooler, n cannot exceed available space
+PAUSE     Suspends output
+RESUME    Resumes output after PAUSE
+CLEAR     Resets spooler buffer
+sysgen
+This command stores current user selected system options in a file (CONFIG/SYS:0) if the drive parm is not used, otherwise to drivespec. If the switch is OFF, the config file is removed.
+
+ SYSGEN [(sw{ON})] [(DRIVE=d)] 
+system
+This command selects certain user options
+
+ SYSTEM (p,p) 
+
+Parms:
+ALIVE               BLINK               BREAK
+BSTEP               DATE                DRIVE
+FAST                GRAPHIC             RESTORE
+SLOW                SMOOTH              SYSRES
+SYSTEM              TIME                TRACE
+TYPE
+For parameter details use  SYS parameter  as in "SYS ALIVE"
+time
+Displays/sets time or enables/disables the video clock display
+
+ TIME [hh:mm:ss] [(CLOCK=sw)] 
+verify
+Sets VERIFY function which performs a "read after write" verify
+
+ VERIFY [(sw)] 
+error codes
+00   No error
+01   Parity error during header read
+02   Seek error during read
+03   Lost data during read
+04   Parity error during read
+05   Data record not found during read
+06   Attempt to read system data record
+07   Attempt to read locked/deleted data record
+08   Device not available
+09   Parity error during header write
+10   Seek error during write
+11   Lost data during write
+12   Parity error during write
+13   Data record not found during write
+14   Write fault on disk drive
+15   Write protected disk
+16   Illegal logical file number
+17   Directory read error
+18   Directory write error
+19   Illegal file name
+20   GAT read error
+21   GAT write error
+22   HIT read error
+23   HIT write error
+24   File not in directory
+25   File access denied
+26   No directory space available
+27   Disk space full
+28   End of file encountered
+29   Record number out of range
+30   Directory full -- can't extend file
+31   Program not found
+32   Illegal drive number
+33   No device space available
+34   Load file format error
+37   Illegal access attempted to protected file
+38   File not open
+39   Device in use
+40   Protected system device
+41   File already open
+42   LRL open fault
+43   SVC parameter error
+44   Parameter error
+63   Extended error
+--   Unknown error code
+cls
+Clears screen and homes cursor
+tof
+Sends top-of-form to printer.  Note:  Some printers will require the FORMS filter to be active with the FFHARD parm set to OFF.
+cat
+Same as DIR but the "A" parameter defaults off
+sys smooth
+Unused with Model 2/12.
+sys fast
+sys slow
+Sets a indicator that may be used by application software. On the Model 2/12, does NOT affect the processing speed.
+
+ SYSTEM (FAST) or SYSTEM (SLOW) 
+sys alive
+Displays a char in the upper right corner of the screen. If the alive bug is moving, the task processor is running.
+
+ SYSTEM (ALIVE=sw) 
+sys blink
+Controls cursor char. The parm aaa can be represented as ON/OFF or as a decimal value.
+
+ SYSTEM (BLINK=n) 
+
+ON  Turns blinking on, using "power up" character
+OFF Turns off blinking
+n   A value between 2 and 7
+
+ SYSTEM (BLINK,LARGE|SMALL) 
+
+Turns on LARGE or small blinking cursor
+sys break
+Enable/disable <BREAK> key. Once <BREAK> is disabled by a SYSTEM (BREAK=OFF) command, pressing it will have no effect.
+
+ SYSTEM (BREAK=sw) 
+sys bstep
+Establish default bootstrap step rate used by FORMAT. BSTEP value can be 0-3. Values correspond to step rates as described in SYSTEM (DRIVE=,STEP=).
+
+ SYSTEM (BSTEP=n) 
+sys date
+Enable/disable date prompt on power up
+
+ SYSTEM (DATE=sw) 
+sys drive
+Sets parameters for disk drives
+
+ SYSTEM (DRIVE=d,p,p,...) 
+
+DRIVE=d   Represents any valid drive number. One DRIVE=d can be used/line
+CYL=nn    Default number of cylinders (35-96), (5" DRIVES ONLY)
+DELAY=sw  DELAY is the time between drive motor ON and a read/write
+DISABLE   Remove drive from the Drive Code Table
+ENABLE    Enable drive and place it in Drive Code Table
+STEP=n    Stepping rate where n is a number 0 to 3
+          n=0     8" step rate = 3  ms      5 1/4" step rate = 6  ms
+          n=1     8" step rate = 6  ms      5 1/4" step rate = 12 ms
+          n=2     8" step rate = 10 ms      5 1/4" step rate = 20 ms
+          n=3     8" step rate = 15/20 ms   5 1/4" step rate = 30/40 ms
+
+ SYSTEM ([DRIVE=d,]WP=sw) 
+
+Software write protect any/all drives currently enabled
+sys graphic
+Informs system that printer has capability to reproduce TRS-80 graphics during screen print
+
+ SYSTEM (GRAPHIC=sw) 
+sys sysres
+Reside system overlays in memory. SYS files 1-5, and 9-12 may be used. This command does NOT allow multiple entries on the same command line.
+
+ SYSTEM (SYSRES=n) 
+sys system
+Assign a drive other than 0 to be the system drive
+
+ SYSTEM (SYSTEM=n) 
+sys time
+Enable/disable prompt for time on boot
+
+ SYSTEM (TIME=sw) 
+sys type
+Enable/disable type ahead
+
+ SYSTEM (TYPE=sw) 
+sys restore
+Enable/disable the restoring of all drives on boot
+
+ SYSTEM (RESTORE=sw) 
+floppy/dct
+floppy
+FLOPPY/DCT is used with the SYSTEM command to re-assign drives to different "logical" drive slots
+
+ SYSTEM (DRIVE=d,[DISABLE,]DRIVER="FLOPPY") 
+
+DISABLE is used only if the requested slot is already assigned
+log
+Used to log in a double sided disk in drive 0
+
+ LOG :d 
+sys trace
+Displays the Z80 program counter as a real time task
+
+ SYSTEM (TRACE=sw) 
+help
+The following conventions will be used in all HELP displays
+
+fs    - Filespec
+*ds   - Device spec
+[ ]   - Optional information/parameters
+"wd"  - Word contained in quotes (e.g. a password)
+|     - Implies "OR" condition (e.g. fs|*ds reads "filespec or device spec")
+ps    - Partial filespec
+-ps   - "NOT" partial filespec
+(p,p) - Indicates parameters may be entered with command
+< >   - Denotes designated key (e.g. <ENTER>)
+{ }   - Contains default information
+sw    - Switch (ON/Y, OFF/N)
+ 

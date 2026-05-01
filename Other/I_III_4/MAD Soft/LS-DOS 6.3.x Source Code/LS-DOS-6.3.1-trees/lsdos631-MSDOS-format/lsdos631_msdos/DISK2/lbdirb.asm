@@ -1,0 +1,712 @@
+;LBDIRB/ASM - Display Filespec & attributes
+	SUBTTL	'<LBDIRB - File Attribute Output>'
+	PAGE
+;
+;	MATCH - Display a File's Name and Extension
+;
+MATCH	PUSH	HL		;Save HIT posn
+	LD	HL,COUNT+1	;Bump file count
+	INC	(HL)
+;
+;	Was the Drive Header Displayed ?
+;
+	LD	HL,FILFLAG	;HL => File Header flag
+	XOR	A		;If (HL) is Non-Zero
+	CP	(HL)		;  then the header has not
+	LD	(HL),A		;  printed.
+	CALL	NZ,CKTITL	;Display title if NZ
+;
+;	Position HL to Directory Entry Filename
+;
+ALRPRT	POP	HL		;Recover DEC
+	LD	A,L		;P/u DEC
+	AND	0E0H		;Posn to entry
+	ADD	A,5		;Pt to start of filename
+	LD	L,A		;HL => Filename field
+;
+;	Init B=8 chars for filename, C=19 to col
+;
+	LD	C,19		;Chars to next column
+	LD	B,8		;Filename
+;
+;	Loop to Output the Filename
+;
+DONAM1	LD	A,(HL)		;P/u character
+	INC	HL		;Bump DIR ptr
+	CP	' '		;Space ?
+	JR	Z,DONAM2	;Yes - done with filename
+	CALL	BYTOUT2		;No - output char
+	DJNZ	DONAM1		;Field loop
+	JR	DONAM3		;Bypass ext calculation
+;
+;	Filename has < 8 chars, Pt to extension
+;
+DONAM2	LD	A,L		;P/u low byte
+	ADD	A,B		;Add # of chars left
+	DEC	A		;Back one
+	LD	L,A		;HL => Extension
+;
+;	Does this file have an extension ?
+;
+DONAM3	LD	A,(HL)		;P/u first char
+	CP	' '		;Blank
+	JR	Z,DONAM5	;Yes - no extension
+;
+;	Output a "/" & Set up for Extension loop
+;
+	LD	A,'/'		;Display slash
+	CALL	BYTOUT2
+	LD	B,3		;3 chars max for EXT
+;
+;	Loop to output the extension
+;
+DONAM4	LD	A,(HL)		;P/u char
+	INC	HL		;Bump ptr
+	CP	' '		;Space ?
+	JR	Z,DONAM5	;Exit on 1st blank
+	CALL	BYTOUT2		;Else display the char
+	DJNZ	DONAM4		;Loop 3 chars
+;
+;	Was the (A) parameter specified ?
+;
+DONAM5	LD	A,(APARM+1)	;A parm specified ?
+	OR	A
+	JR	Z,DONAM5A	;No - continue
+;
+;	(A) parameter specified - Tab to column 14
+;
+	LD	A,C		;P/u chars left to col 20
+	SUB	6		;Adjust to column 14
+	LD	B,A		;Stuff into B for DJNZ
+	CALL	OUTSPC		;Output B spaces
+;
+;	Output mod flag (if modified) & tab to 19
+;
+	LD	A,L		;Pt HL => DIR+0
+	AND	0E0H
+	LD	L,A
+	CALL	OUTMOD		;Output "+" if mod
+	LD	B,1		;Output 3 spaces
+	CALL	OUTSPC		;Output B spaces
+;
+;	Display the File's Attributes
+;
+DONAM5A	LD	B,1		;Set B=1 space
+	CALL	OUTSPC		;After filespec.
+;
+;	Point HL => DIR+0 (Attributes)
+;
+	LD	A,L		;Pt to 1st byte of
+	AND	0E0H		;Directory record
+	LD	L,A
+;
+;	Display "?" if File OPEN bit set
+;
+	LD	A,'?'		;"?" character
+	INC	HL		;HL => DIR + 1
+	BIT	5,(HL)		;File Open ?
+	DEC	HL		;HL => DIR + 0
+	CALL	NZ,BYTOUT2	;Yes - output byte
+;
+;	Display an "*" if this is a PDS file
+;
+	LD	B,(HL)		;P/u attributes byte
+	LD	A,'*'		;Init for PDS display
+	BIT	5,B
+	CALL	NZ,BYTOUT2	;Display if PDS
+;
+;	Display an "S" if file is a SYS file
+;
+	BIT	6,B		;Is it a SYS file?
+	LD	A,'S'
+	CALL	NZ,BYTOUT2	;Display S if so
+;
+;	Display an "I" if file is invisible
+;
+	BIT	3,B		;Is it an INV file?
+	LD	A,'I'
+	CALL	NZ,BYTOUT2	;Display I if so
+;
+;	Point HL => Password Hash (DIR+16)
+;
+	PUSH	HL		;Save ptr to 1st dir byte
+	LD	A,L		;Pt to owner password
+	ADD	A,16
+	LD	L,A		;HL => DIR+16
+;
+;	Pick up Password in DE
+;
+	LD	E,(HL)		;P/u in password in DE
+	INC	L
+	LD	D,(HL)
+;
+;	Is this a password protected File ?
+;
+	PUSH	HL		;Save ptr to user psw
+	LD	HL,BLKHASH	;Init to blanks hash
+	SBC	HL,DE		;Is password blanks?
+	POP	HL
+	JR	Z,DONAM6	;Blanks - no "P"assword
+;
+;	Password - Display "P" if access <> ALL
+;
+	LD	A,B		;P/u attributes byte
+	AND	7		;Get protection level
+	LD	A,'P'		;Init for protected
+	JR	NZ,DONAM7	;Stuff the 'P' if prot
+DONAM6	LD	A,' '		;  else stuff a blank
+;
+;	Set Password flag if protected & display "P"
+;
+DONAM7	LD	(ALL02+1),A	;Stuff 'P' or blank
+	CP	' '		;Space ?
+	CALL	NZ,BYTOUT2	;Display char if needed
+	POP	HL		;HL => DIR+0
+;
+;	Display a "C" if the file was Created
+;
+	INC	HL		;HL => DIR+1
+	LD	A,(HL)		;P/u attributes
+	DEC	HL		;HL => DIR+0
+	RLCA			;Created ?
+	LD	A,'C'		;"C"reate character
+	CALL	C,BYTOUT2	;Yes - output byte
+;
+;	Display Mod flag here if (A) not specified
+;
+	LD	A,(APARM+1)	;P/u A-parm
+	OR	A
+	PUSH	AF		;Save condition
+	CALL	Z,OUTMOD	;Output mod flag if -A
+	POP	AF		;NZ - (A) parm
+;
+;	If (A) parameter given - then tab to col 26
+;
+	JR	Z,DONAM8	;Not A - go to 20
+	LD	A,4		;Add 6 to column #
+	ADD	A,C
+	LD	C,A		;C = # of spaces
+;
+;	Position to Next designated column
+;
+DONAM8	LD	A,' '		;Write a space
+	CALL	BYTOUT		;Output byte
+	DEC	C		;Dec column counter
+	JR	NZ,DONAM8	;Display trailing spaces
+;
+;	Display other things if (A) parm set
+;
+APARM	LD	DE,-1		;P/u (A) parm
+	LD	A,D		;Specified ?
+	OR	E
+	CALL	NZ,ALL01	;Full info if A-parm
+;
+;	Check for end of line
+;
+DONAM9	LD	A,0		;Count down 4-across
+	DEC	A
+	LD	(DONAM9+1),A	;Update count
+	RET	NZ		;Loop if more to go
+	LD	A,4		;  else re-init to 4/line
+	LD	(DONAM9+1),A
+;
+;	Finished with one line - end with C/R
+;
+	IF	@BLD631
+ENDLINE	CALL	CKPAGE1		;<631>Check for page pause
+	JP	CKPAWS		;<631>Scan pause or break loop
+	ELSE
+ENDLINE	LD	A,CR		;End line
+	CALL	BYTOUT
+	CALL	CKPAGE		;Check for page pause
+	CALL	CKPAWS		;Scan pause or break
+	RET			;Loop
+	ENDIF
+;
+;	ALL01 - Display Full Allocation of a file
+;
+ALL01	PUSH	HL		;Save pointer to 1st byte
+ALL02	LD	A,0		;Bypass if not
+	SUB	20H		;  password protected
+	JR	Z,ALL03
+	LD	A,(HL)		;Get prot level &
+	AND	7		;  multiply by 4
+ALL03	RLCA			;  to index string array
+	RLCA
+	LD	C,A
+	LD	B,0
+	LD	HL,PROTS$	;Pt to 4-char abbrevs
+	ADD	HL,BC		;Pt to proper one
+	LD	DE,PLEVEL	;Move into output line
+	LD	C,4
+	LDIR
+	POP	HL		;Recover pointer to
+	PUSH	HL		;  1st byte of dir record
+	INC	L
+	INC	L
+	INC	L
+;
+;	Pick up EOF offset byte & Stuff for later
+;
+	LD	A,(HL)		;P/u EOF offset byte
+	LD	(EOFBYTE+1),A	;Stuff into LD DE,$-$
+;
+;	calculate EOF record according to the formula:
+;	EOFREC= ((ERN-1)*256+EOF+LRL-1)/LRL if ERN<>0
+;	EOFREC= 0 if ERN=0
+;
+	LD	A,(HL)		;P/u EOF offset byte
+	PUSH	AF		;  & save it
+	INC	L		;Pt to LRL
+	LD	A,(HL)		;P/u LRL
+	LD	(ALL04+1),A	;  & stuff it
+;
+;	get LRL into message
+;
+	PUSH	HL		;Save ptr
+	LD	L,A		;Transfer LRL to HL
+	LD	H,0
+	OR	A		;Test for <> 256
+	JR	NZ,$+3
+	INC	H		;Show 256
+	LD	DE,LRL-1		;DE => LRL destination
+	IF	@BLD631
+	ELSE
+	LD	A,' '		;Init the ASCII byte
+	ENDIF
+	@@HEXDEC
+	POP	HL
+;
+;	continue to calculate EOF
+;
+	LD	A,L		;Pt to ERN
+	ADD	A,16
+	LD	L,A
+	LD	E,(HL)		;P/u into reg DE
+	INC	L
+	LD	D,(HL)
+	POP	BC		;Rcvr EOF byte in reg B
+	EX	DE,HL		;Xfer EOFREC -> reg HL
+ALL04	LD	A,0		;P/u LRL
+	OR	A
+	JR	Z,TSTSIZ	;Go use ERN if LRL=0
+	LD	E,A		;Xfer LRL to reg E
+	INC	B		;Test EOF
+	DEC	B
+	JR	Z,DONTDEC	;Don't dec ERN if EOF=0
+	DEC	HL		;Reduce ERN for 0 offset
+DONTDEC	CALL	DIVIDE
+	LD	C,L
+	LD	D,H
+	LD	H,A
+	LD	L,B		;P/u EOF
+	LD	A,E
+	CALL	DIVIDE
+	LD	H,C
+	OR	A
+	JR	Z,DONTINC
+	INC	HL		;Round up partial record
+DONTINC	LD	A,D		;Ck if overflow
+	OR	A
+TSTSIZ	JR	Z,EOFBYTE	;Use calc'd ERN if not
+;
+;	Overflow in # of Records - use "*****"
+;
+	LD	HL,RECORDS	;Dsply field
+	LD	B,10		;Display in record and
+DOSTAR	LD	(HL),'*'	;  eof offset fields
+	INC	HL
+	DJNZ	DOSTAR
+	JR	DIR_0
+;
+;	If # Records = 0 then set EOF = 0
+;
+EOFBYTE	LD	DE,00		;P/u EOF offset byte
+	LD	A,H		;# Records = 0 ?
+	OR	L
+	JR	NZ,KEEPEOF	;No - keep EOF
+	LD	E,1		;Set EOF=1 (gets DECed)
+KEEPEOF	PUSH	HL		;Save # Records
+	LD	HL,OFFSET-2	;HL => Destination
+	DEC	E		;DE = EOF byte
+	EX	DE,HL		;Swap for conversion
+	IF	@BLD631
+	ELSE
+	LD	A,' '		;Init
+	ENDIF
+	@@HEXDEC
+;
+;	Stuff # of Records used into string
+;
+	POP	HL		;Recover # of Records
+	LD	DE,RECORDS	;DE => Destination
+	@@HEXDEC
+;
+;	Get # of extents & Granules used
+;
+DIR_0	POP	HL		;Rcvr ptr to 1st byte
+	PUSH	HL
+	CALL	ALL09		;Get total grans in use
+	PUSH	DE
+	LD	A,C		;Extents
+	LD	DE,EXTENTS
+	CALL	ATO2D
+	POP	DE
+;
+;	DE = # Grans used - Add to Grans Counter
+;
+	LD	HL,(TOTGRNS+1)	;P/u total grans
+	ADD	HL,DE		;Add this file's count
+	LD	(TOTGRNS+1),HL	;  & stuff into counter.
+;
+	LD	HL,KSIZE	;Pt to where to stuff
+	CALL	CALCK		;Cvrt to K
+	LD	HL,DATEFLD-1	;Blank out day-mo-yr
+	LD	DE,DATEFLD
+	LD	BC,17
+	LDIR
+	POP	HL		;Rcvr ptr to DIR+0
+	LD	DE,DATEFLD
+	INC	HL
+	INC	HL		;Advance to date field
+	LD	A,(HL)
+	OR	A
+	JP	Z,ALL08		;Ignore if no date saved
+	RRCA			;Has date, get day
+	RRCA
+	RRCA
+	AND	1FH
+	CALL	ATO2D		;Make ascii
+	INC	DE
+	PUSH	HL
+	DEC	HL		;Pt to month
+	LD	A,(HL)
+	AND	0FH
+	DEC	A
+	LD	C,A
+	RLCA
+	ADD	A,C
+	LD	C,A
+	LD	B,0
+	LD	HL,MONTBL
+	ADD	HL,BC
+	LD	C,3
+	LDIR
+	INC	DE
+	IF	@BLD631
+	LD	A,2DH		;<631>
+	LD	(GETPRM-1),A	;<631>
+	LD	(GETPRM+3),A	;<631>
+	ENDIF
+	POP	HL
+	PUSH	HL
+	LD	A,($-$)		;Drive year type
+YFLAG2	EQU	$-2
+	DB	0CBH
+DVTEST1	DB	47H
+	PUSH	AF		;Save for time ck
+	JR	NZ,NEWDT2
+	LD	A,(HL)		;Get old date
+	AND	7
+	JR	NEWDT3
+NEWDT2	LD	A,L
+	ADD	A,17		;Get new year
+	LD	L,A
+	LD	A,(HL)
+	AND	1FH
+NEWDT3	ADD	A,80
+	CP	100		;Bad year?
+	JR	C,NEWD3A	;Go ifok
+	IF	@BLD631
+	SUB	100		;<631>This is the max year
+	ELSE
+	LD	A,99		;This is max year
+	ENDIF
+NEWD3A	CALL	ATO2D
+	INC	DE
+	INC	DE
+	POP	AF		;New style dating?
+	JR	Z,OLDCODE	;Go if not
+NEWDT4:
+	IF	@BLD631
+	IF	@BLD631D
+	PUSH	IY		;<631D>
+	CALL	P631D1		;<631D>Level-1D Patch
+	ELSE			;<631D>
+	DEC	HL		;Pt to hours
+	@@FLAGS			;<631>
+	LD	A,(HL)
+	ENDIF			;<631D>
+	ELSE			;<631>
+	DEC	HL		;Pt to hours
+	LD	A,(HL)
+	ENDIF			;<631>
+	AND	0F8H		;Mask mins
+	RRCA
+	RRCA
+	RRCA			;Hours into posn
+	PUSH	AF		;Save for a,p test
+	IF	@BLD631
+	BIT	4,(IY+8)	;<631>
+	JR	NZ,NEWDT8	;<631>
+	ENDIF
+	OR	A		;If hour zero, then 12
+	JR	NZ,NEWDT7
+	LD	A,12
+NEWDT7	CP	13
+	JR	C,NEWDT8
+	SUB	12
+NEWDT8	CALL	ATO2D
+	LD	A,':'
+	LD	(DE),A
+	INC	DE
+	LD	A,(HL)		;MSbits, min
+	INC	HL
+	LD	L,(HL)		;LS bits
+	AND	7		;Mask off hour
+	LD	B,3
+NEWDT5	SLA	L		;Shift out a LSbit
+	RLA			; into A
+	DJNZ	NEWDT5
+	CALL	ATO2D
+	POP	AF		;Get hour
+	IF	@BLD631
+	IF	@BLD631D
+	JP	P631D2		;<631D>Level 1D patch
+	NOP			;<631D>
+P631D3:				;<631D>Back from the patch
+	ELSE
+	BIT	4,(IY+8)	;<631>
+	ENDIF
+	JR	NZ,OLDCODE	;<631>
+	ENDIF
+	CP	12
+	LD	A,'a'
+	JR	C,NEWDT6
+	LD	A,'p'
+NEWDT6	LD	(DE),A
+OLDCODE	POP	HL		;Rcvr DIR+2
+	IF	@BLD631
+	ELSE
+	DEC	HL		;B/u to DIR+1
+	LD	A,'-'		;Else change to not cur
+	LD	(DATEFLD+2),A	;Stuff indicator
+	LD	(DATEFLD+6),A	;  between mo&day, day&yr
+	ENDIF
+ALL08	LD	HL,PLEVEL	;Pt to start of message
+	CALL	LINOUT		;  & output entire string
+	LD	A,1		;Show only one entry
+	LD	(DONAM9+1),A	;  per line if A-parm
+	RET
+;
+;	A=> value, DE=> buffer for ascii
+;
+	IF	@BLD631
+ATO2D	LD	BC,'0'		;<631>Init to 0
+	ELSE
+ATO2D	LD	B,0		;Init to 0
+	ENDIF
+ATD1	SUB	10		;Find 10's count
+	JR	C,ATD2		;Go if got it
+	INC	B		;  else inc 10's counter
+	JR	ATD1		;Try again
+ATD2	PUSH	AF		;Save 1's count
+	LD	A,B		;Get 10's count
+	IF	@BLD631
+	ADD	A,C		;<631>Make ascii
+	ELSE
+	ADD	A,'0'		;Make ascii
+	ENDIF
+	LD	(DE),A		;Stuff in buffer
+	IF	@BLD631
+	CP	C		;<631>Leading zero?
+	ELSE
+	CP	'0'		;Leading zero?
+	ENDIF
+	JR	NZ,ATD3		;Go if not
+	DEC	DE
+	LD	A,(DE)		;Was prev a space?
+	INC	DE
+	CP	' '
+	JR	NZ,ATD3		;Go if not
+	LD	(DE),A		;  else lead 0 = space
+ATD3	INC	DE
+	POP	AF
+	ADD	A,'0'+10
+	LD	(DE),A
+	INC	DE
+	RET
+;
+;	DIVIDE - Divide HL by A
+;
+DIVIDE	PUSH	BC		;Save BC
+	LD	C,A		;Xfer Divisor in C
+	@@DIV16			;Divide HL / C
+	POP	BC		;Restore BC
+	RET
+;
+;	OUTMOD - Output a "+" if file has been modified
+;
+OUTMOD	INC	HL		;HL => DIR+1
+	LD	A,' '		;Default to no mod
+	BIT	6,(HL)		;Test MOD flag
+	JR	Z,OUTCHR	;Output space
+	LD	A,'+'		;Mod flag char
+OUTCHR	CALL	BYTOUT2		;Display '+' if MOD
+	DEC	HL		;Repoint to 1st byte
+	RET			;Done
+;
+;
+;	 routine calculates total # of grans in use
+;
+ALL09	LD	A,(SORTPRM+1)	;If sorted, then data
+	OR	A		;  already calculated
+	JR	Z,ALL09A	;Go if not sorted
+	PUSH	HL
+	POP	IX		;P/u the saved data
+	LD	E,(IX+22)
+	LD	D,(IX+23)	;P/u Space used
+	LD	C,(IX+24)
+	LD	B,(IX+25)	;P/u # of extents
+	RET
+;
+;	ALL09A - Calculate space allocated to a file
+;	HL => DIR+0 of an FPDE
+;	BC <= # of Extents in the file
+;	DE <= # of Grans allocated to the file
+;
+ALL09A	LD	DE,0		;Init gran counter to 0
+	LD	B,E		;Init extent ctr to 0
+	LD	C,E
+;
+;	Point to First Extent of a directory entry
+;
+ALL10	LD	A,L		;P/u low byte
+ALL11	ADD	A,22
+	LD	L,A		;HL => DIR + 22
+;
+;	Is the Extent Field in Use ?
+;
+ALL14	LD	A,(HL)		;P/u cylinder
+	INC	L		;Bump to alloc info
+	CP	0FEH		;Another extent or done ?
+	JR	NC,ALL15	;Either X'FE' or X'FF'
+;
+;	Extent Field is in use - Get allocation info
+;
+	INC	BC		;Bump extent counter
+	LD	A,(HL)		;P/u alloc info
+	INC	L		;Bump ptr to next extent
+	AND	1FH		;Keep # of grans
+	INC	A		;Adj for zero offset
+;
+;	A = # of contig grans, add to gran counter
+;
+	ADD	A,E		;Accumulate # of grans
+	LD	E,A
+	JR	NC,ALL14	;Forget hi if no carry
+	INC	D		;Bump hi
+	JR	ALL14		;Get next extent field
+;
+;	P/u DEC if (X'FE') or RET if done (X'FF')
+;
+ALL15	RET	NZ		;Ret if not extended
+	LD	A,(HL)		;P/u DEC of FXDE
+;
+;	Point HL => Extended Directory Entry posn
+;
+	AND	1FH		;Get dir sector of DEC
+	PUSH	AF		;Save it
+	XOR	(HL)		;Get dir record of FXDE
+	LD	L,A		;Save dir record position
+	POP	AF		;Recover DEC of FXDE
+;
+;	Is the Dir Sector with FXDE already in mem ?
+;
+	PUSH	HL		;Save ptr to 1st extent
+	LD	HL,CKHIT6+1	;Do we have this dir
+	CP	(HL)		;  sector in core?
+	POP	HL		;Restore ptr
+SBUFFER	LD	H,00		;Buffer hi order
+	JR	Z,ALL10		;Jump if we have it
+;
+;	Dir Sector not res - Is Ext buf resident ?
+;
+ALL16	CP	0FFH		;Same as extended area?
+	LD	H,BUF2<-8	;Pt to extended buf area
+	JR	Z,ALL10		;Jump if we have it there
+	LD	(ALL16+1),A	;  else upd the test byte
+;
+;	Set B = Directory Entry Code of FXDE
+;
+	PUSH	BC		;Save Gran counter
+	PUSH	DE		;  & Extent counter
+	OR	L		;Combine sector & record
+	LD	B,A		;  pointers to retrieve DEC
+;
+;	Set C = Logical Drive #, D = Directory Cyl
+;
+	LD	A,(DRIVE)	;P/u ASCII drive #
+	SUB	'0'		;Adjust to binary
+	LD	C,A		;Save in C
+	LD	D,(IY+9)	;P/u Directory cyl in D
+;
+;	Set E = FXDE's Dir Sector, HL => I/O buffer
+;
+	LD	A,B		;P/u DEC
+	AND	1FH		;Get sector #
+	ADD	A,2		;Adj for GAT & HIT
+	LD	E,A		;Stuff in E
+	LD	HL,BUF2		;HL => I/O Buffer
+;
+;	Read in the FXDE's Directory Sector
+;
+	@@RDSEC			;Read a sector
+	CP	6		;Expecting Error #6
+	LD	A,11H		;Read error?
+	JP	NZ,IOERR	;Jump if got error
+;
+;	Set A = offset into Sector of entry
+;
+	LD	A,B		;P/u FXDE DEC
+	AND	0E0H		;Pt to dir record
+	POP	DE		;Restore counters
+	POP	BC
+	JR	ALL11		;Loop through extents
+;
+;	LINOUT - Output line to *DO/*PR
+;	HL => Buffer to output
+;
+LINOUT	@@DSPLY			;Output line to *DO
+	JR	NZ,IOER1	;NZ - Abort
+	LD	A,(PPARM+1)	;Ck P-parm
+	OR	A
+	RET	Z		;Not spec'd - don't print
+	@@PRINT			;Output line to *PR
+IOER1	JP	NZ,IOERR	;NZ - Abort
+	RET
+;
+;	BYTOUT - Output a byte to *DO/*PR
+;	A = Character to output
+;
+BYTOUT2	DEC	C		;Decrement col #
+BYTOUT	PUSH	BC		;Save BC
+	LD	C,A		;Save char in C
+	@@DSP			;Display char
+	JR	NZ,IOER1	;NZ - Abort
+PPARM	LD	DE,0		;P/u P-parm
+	INC	E		;Specified ?
+	JR	NZ,NOPRT	;No - don't print
+	@@PRT			;Output byte
+	JR	NZ,IOER1	;NZ - Abort
+	LD	A,C		;Get back char
+NOPRT	POP	BC		;Restore BC
+	RET			;And return
+;
+;	OUTSPC - Output B spaces
+;
+OUTSPC	LD	A,' '		;Space char
+	CALL	BYTOUT2		;Output space
+	DJNZ	OUTSPC
+	RET			;RETurn
+

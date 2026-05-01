@@ -1,0 +1,6 @@
+. SETKI1/FIX - Adds missing code to SETKI
+. Use with FIX631B/JCL
+LB3
+X'2583'=96
+X'258E'=3E 60 EF 50 59 79 B7 C9
+. Eop

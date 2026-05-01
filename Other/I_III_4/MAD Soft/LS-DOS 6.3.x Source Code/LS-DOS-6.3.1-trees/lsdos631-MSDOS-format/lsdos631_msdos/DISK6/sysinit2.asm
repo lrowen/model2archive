@@ -1,0 +1,741 @@
+;SYSINIT2/ASM - SYS0 initialization - LDOS - 12/28/83
+;
+;	revised 09/28/83 for Mod II	- kjw
+;
+;*=*=*=*=*= CHANGE LOG =*=*=*=*=*
+;
+; 06/18/83 - eliminate use of space compression codes
+; 06/18/83 - use two LF on display before showing AUTO
+; 08/30/83 - allow any seperator below '0' for DATE
+;
+;*****
+;	This is the initialization part of SYSRES
+;*****
+;
+;
+*MOD
+	ORG	1E00H+START$
+;
+;	initialize all hardware devices
+;
+$ENTRY	LD	SP,STACK$	;init system stack
+	IN	A,($BSEL)	;read interrupt latch
+	RLCA			;bit 7 = char avail
+	IN	A,($RDKBD)	;scan keyboard
+	JR	C,$+4		;go if have key
+	OR	-1		;else clear input key
+	AND	7FH		;remove high bit
+	CALL	UCASE		;make char upper case
+	LD	(INTKEY),A	;save init key
+	CALL	CHIP_INIT	;init hardware
+	CALL	VIDEO_INIT	;init CRTC controller
+;
+;	directory cylinder and step rate @ 2302/2303
+;
+	LD	HL,(2302H)	;get both bytes
+DSSAV	EQU	$-2
+DIRCYL	EQU	$-2
+STPRAT	EQU	$-1
+	LD	(DSSAV),HL	;save both bytes
+	LD	HL,(2304H)	;get passed dct data
+DDSAV	EQU	$-2
+CYLCNT	EQU	$-2
+CFFLAG	EQU	$-1
+	LD	(DDSAV),HL	;save both bytes
+;
+;	video is clear, display pack name
+;
+	CALL	VIDON		;enable video memory
+	LD	HL,PAKNAM$	;pt to pack name
+	LD	DE,2*80+CRTBGN$+30
+	LD	BC,8		;name length
+	LDIR			;move pack name to crt
+	LD	C,8		;B contains 0 already
+	INC	DE		;leave 2 spaces
+	INC	DE
+	LDIR			;move pack date to crt
+	CALL	VIDOFF		;de-select video
+;*=*=*
+;	Initialization routines
+;*=*=*
+;
+;	clear stack area
+;
+	XOR	A		; Clear out stack area
+	LD	HL,STACK$	; point to area
+CLRLOOP	LD	(HL),A		; clear this spot
+	DEC	L		; move down one
+	JR	NZ,CLRLOOP	;do it again
+	LD	(LBANK$),A	;Set logical bank #
+;
+;	clear spare DCB area
+;
+	LD	HL,S1DCB$	;spare DCB area
+ZERDCB	LD	(HL),A		;zero spare dcb area
+	INC	L
+	JR	NZ,ZERDCB
+;
+;	determine number of memory banks available
+;
+	LD	BC,8<8+0	;B=bank, C=bit mask
+DETMEM	CALL	TBANK		;test bank D
+	RL	C		;move bit into C
+	DJNZ	DETMEM		;contine for 8 banks
+;
+;	determine high memory in bank 1 (bank 0)
+;
+	LD	HL,-1		;highest address
+DETHI	CALL	TMEM		;test this byte
+	JR	Z,HAVHI		;have it, go!
+	LD	A,H		;get msb memory
+	SUB	20H		;back 8k
+	LD	H,A		;udpate pointer
+	JR	DETHI		;continue till good found
+;
+;	store high memory and bank image table
+;
+HAVHI	LD	(HIGH$),HL	;load high memory
+	LD	(PHIGH$),HL	;load physical memory
+	LD	A,C		;get bank available mask
+	LD	(BAR$),A	;Load Bank Avail RAM
+	LD	(BUR$),A	;Load Bank Used RAM
+	XOR	A		;init current bank
+	LD	(LBANK$),A	;as bank 0
+;*=*=*
+;	Update DCT$ info for SYSTEM drive
+;*=*=*
+	LD	A,(STPRAT)	;P/u Boot Step rate
+	AND	3		;strip all but it
+	LD	B,A		;Save temp
+	LD	HL,DCT$+3	;Pt to DCT step
+	LD	A,(HL)		;P/u DCT Step
+	AND	0FCH		;Strip step rate
+	OR	B		;Merge in Boot step
+	LD	(HL),A		;Update DCT
+	IN	A,($FDCTRK)	;Update DCT with current
+	LD	(DCT$+5),A	; track posn of head
+	LD	A,(DIRCYL)	;get directory cylinder
+	LD	(DCT$+9),A	;save dir cyl
+	LD	HL,DCT$+4	;flags +4
+	LD	A,(CFFLAG)	;get config data
+	BIT	5,A		;2 sides?
+	JR	Z,$+4		;go if not
+	SET	5,(HL)		;set 2 sided disk
+	DEC	HL		;flags +3
+	AND	40H		;double density?
+	LD	BC,270FH	;set single
+	JR	Z,$+5		;go if yes
+	LD	BC,491DH	;double density
+	LD	(DCT$+7),BC	;update dct flags
+	OR	(HL)		;merge density flags
+	LD	(HL),A		;update
+	LD	A,(CYLCNT)	;get cyl count
+	ADD	A,35		;correct to actual
+	DEC	A		;highest cylinder
+	LD	(DCT$+6),A	;update dct
+;*=*=*
+;	P/u CONFIG status & set ZERO byte
+;*=*=*
+	LD	HL,ZERO$
+	LD	A,(HL)		;set to NOP if SYSGEN'd
+	LD	(HL),0		;Make always zero byte
+	PUSH	AF		;save SYSGEN flag
+;*=*=*
+;	Check if date prompt is to be suppressed
+;*=*=*
+	LD	A,(DTPMT$)	;No prompt for date?
+	OR	A
+;*=*=*
+;	Check on currency of date
+;*=*=*
+	LD	HL,DATE$	;Point to Year
+	LD	C,(HL)		;  & save in reg C
+	LD	(HL),0		;while resetting to zero
+	INC	HL		;Bump to day
+	LD	B,(HL)		;  & save in reg B
+	LD	(HL),0		;while resetting to zero
+	INC	HL		;Bump to Month
+	LD	A,(HL)		;  & save in Reg A
+	LD	(HL),0		;while resetting to zero
+	JP	NZ,TIMIN	;Ck time if DATE=OFF
+	LD	L,CFGFCB$+31&0FFH	;Reset pointer
+;
+	IF	@INTL
+	LD	(HL),B		;Stuff day
+	DEC	HL
+	LD	(HL),A		;Stuff month
+	ELSE
+	LD	(HL),A		;Stuff month
+	DEC	HL
+	LD	(HL),B		;Stuff day
+	ENDIF
+;
+	DEC	HL
+	LD	(HL),C		;Stuff Year
+	EX	DE,HL		;& point DE to CFGFCB$+29
+	DEC	A		;Check for month range
+	CP	12		;OK if 0-11 now!
+	JR	C,DATIN1
+;
+;	prompt user for date
+;
+DATIN	LD	HL,21<8!27
+	LD	DE,DATEPR	;DATE? question
+	LD	BC,8<+8!'0'	;Set buf len & char
+	CALL	GETPARM		;Get response
+	JR	NC,DATIN	;jump on format error
+;
+;	evaluate response
+;
+DATIN1	LD	A,(DE)		;is year a leap year?
+	LD	C,A		;Save year for later
+	SUB	80		;Reduce for range test
+	CP	8
+	JR	NC,DATIN
+	AND	3
+	LD	A,28		;Init February
+	JR	NZ,NOTLEAP
+	LD	HL,DATE$+3+1	;Set leap flag
+	SET	7,(HL)
+	INC	A		;Feb to 29 days
+NOTLEAP	LD	HL,MAXDAY$+2	;Set Feb max day #
+	LD	(HL),A
+;
+	IF	@INTL
+	NOP			;Keep same length
+	ELSE
+	INC	DE		;Bump to DAY
+	ENDIF
+	INC	DE		;Bump to month & get it
+	LD	A,(DE)
+	LD	B,A		;Save month in reg B
+	DEC	A		;Range check
+	CP	12
+	JR	NC,DATIN	;Go if 0 or >12
+	DEC	HL		;Point to Jan entry
+	ADD	A,L		;index the month
+	LD	L,A
+;
+	IF	@INTL
+	INC	DE		;Point to day
+	ELSE
+	DEC	DE		;Point to day
+	ENDIF
+;
+	LD	A,(DE)		;p/u day entry
+	DEC	A		;reduce for test (0->FF)
+	CP	(HL)
+	JR	NC,DATIN	;Go if too large (or 0)
+;*=*=*
+;	Range checks OK - move into DATE$
+;*=*=*
+	LD	HL,DATE$+2
+	INC	A		;Compensate for DEC A
+	LD	(HL),B		;Stuff month
+	DEC	L
+	LD	(HL),A		;Stuff day
+	DEC	L
+	LD	(HL),C		;Stuff year
+;*=*=*
+;	Date is in DATE$ - display it
+;*=*=*
+	LD	A,C
+	PUSH	AF		;  & save it for later
+	AND	3		;Check on leap year
+	LD	HL,MAXDAY$+2	;Init and adjust Feb
+	LD	(HL),28		;  as required
+	JR	NZ,$+3
+	INC	(HL)		;Bump to 29
+	LD	A,(DATE$+2)	;P/u month & xfer to B
+	LD	B,A
+	LD	A,(DATE$+1)	;P/u day of month
+;*=*=*
+;	Compute day of year and Day of week
+;*=*=*
+	LD	L,A		;Start off with days
+	LD	H,0		; in this month
+	LD	DE,MAXDAY$
+DAYLP	LD	A,(DE)
+	ADD	A,L		;8 bit add to 16 bit
+	LD	L,A
+	ADC	A,H		;Add in hi order & carry
+	SUB	L		;Subtract off lo order
+	LD	H,A		;Update hi order
+	INC	DE
+	DJNZ	DAYLP
+	EX	DE,HL		;Move day of year to DE
+	LD	HL,DATE$+3	;And store
+	LD	(HL),E
+	INC	HL
+	LD	A,D		;get bit "8"
+	OR	(HL)		; and OR it in
+	LD	(HL),A		;Then put it back
+	EX	DE,HL		;And get DOY back to HL
+	POP	AF		;Pop the year & mask
+	AND	7		;Compute day of week
+	LD	E,A		;  offset
+	ADD	A,3
+	RRCA
+	RRCA
+	AND	3
+	ADD	A,E
+	LD	E,A		;And add it in
+	LD	D,0		;Add into HL
+	ADD	HL,DE
+	INC	HL		;To start in right place
+	LD	C,7		;Now divide by 7 (B=0)
+DIV7	SBC	HL,BC		;subtract weeks (7-days)
+	JR	NC,DIV7		;until under flow
+	LD	A,L
+	ADD	A,8		;add back to get 1-7
+	LD	B,A		;Save in reg B
+	RLCA			;shift to bits 1-3
+	LD	C,A		;save tempy
+	LD	HL,DATE$+3+1
+	LD	A,(HL)		;Pack into field
+	AND	0F1H
+	OR	C
+	LD	(HL),A
+	PUSH	BC
+	LD	HL,21<8!27
+	LD	B,3		;Set function code 3
+	CALL	@VDCTL
+	POP	BC
+	LD	HL,DAYTBL$
+	CALL	SPACE4		;Write out the DAY
+	LD	A,','
+	CALL	@DSP
+	LD	A,' '
+	CALL	@DSP
+	LD	A,(DATE$+2)	;P/u month number
+	LD	B,A
+	LD	L,MONTBL$&0FFH	;Reset HL for month table
+	CALL	DSPMDY		;Write out the month name
+	LD	A,' '
+	CALL	@DSP
+	LD	A,(DATE$+1)	;p/u day
+	DEC	B		;From 0 to X'FF'
+DIV10	INC	B		;Divide by 10
+	SUB	10		; with quotient in B
+	JR	NC,DIV10
+	PUSH	AF		;Save remainder (-10)
+	LD	A,B		;P/u quotient
+	ADD	A,'0'		;Change to ASCII
+	CP	'0'		;Zero?
+	CALL	NZ,@DSP		;Display if not
+	POP	AF		;Get back remainder
+	ADD	A,3AH		;Change to ASCII
+	CALL	@DSP
+	LD	HL,PARTYR	;Part of year
+	CALL	@DSPLY
+	LD	A,(DATE$)	;Form last year digit
+	AND	7
+	ADD	A,'0'
+	CALL	@DSP		;and display it
+;*=*=*
+;	Prompt for time
+;*=*=*
+TIMIN	LD	A,(TMPMT$)
+	OR	A
+	JR	NZ,SELDCT
+TIMIN0	LD	HL,22<8!27
+	LD	DE,TIMEPR	;Set prompt message
+	LD	BC,8<+8!'0'	;Set len & separ char
+	CALL	GETPARM
+	JR	NC,TIMIN0	;Loop on format error
+	LD	HL,CFGFCB$+31
+	LD	A,23
+	CP	(HL)		;Test hour range
+	JR	C,TIMIN0
+	DEC	HL
+	LD	A,59
+	CP	(HL)		;Test minute range
+	JR	C,TIMIN0
+	DEC	HL
+	CP	(HL)		;Test the second range
+	JR	C,TIMIN0
+	LD	DE,TIME$	;Move the time value
+	LD	BC,3		;  into the TIME$ field
+	LDIR
+;*****
+;	Select R/S Drive Code Tables
+;*****
+SELDCT	LD	HL,INBUF$
+	LD	A,(HL)		;pt to 1st byte of AUTO
+	CP	'*'		;BREAK disable?
+	JR	NZ,CKDCR
+	INC	HL
+	LD	A,0E6H		;set BREAK bit in flag by
+	LD	(STUB1+1),A	; changing RES 4,(SFLAG$)
+;				; to SET 4,(SFLAG$)	*
+	JR	AUTO?
+CKDCR	LD	A,(INTKEY)	;get immediate key
+	CP	'D'		;debug?
+	PUSH	HL		;save auto pointer
+	LD	HL,@ABORT	;debug exit
+	EX	(SP),HL		;get HL, leave vector
+	JP	Z,@DEBUG	;go debug on <D>
+	POP	DE		;remove return vector
+	CP	CR		;ENTER?
+	JR	Z,NOAUT1	;no AUTO on <ENTER>
+	CP	03H		;BREAK?
+	JR	Z,NOAUT1	;no AUTO on <BREAK>
+AUTO?	LD	A,(HL)		;Any AUTO command?
+	CP	CR		;None if equal (Z-flag)
+NOAUT1	POP	DE		;Get back SYSGEN flag
+	LD	A,D		; & move into reg A
+	LD	DE,@EXIT	;where to go after boot
+	LD	BC,0		;Init BC(HL)=0 for @EXIT
+	JR	Z,NOAUT		;Go if no AUTO
+	PUSH	HL		;save it
+	LD	HL,CURSET	;Point to cusor setting
+	INC	(HL)		;bump it up one
+	POP	HL		;Recover it
+	LD	DE,@CMNDI	;Lo order of @CMNDI
+	PUSH	DE		;Put on stack for RET
+	LD	B,H		;Put INBUF$ pointer on
+	LD	C,L		;  stack for @CMNDI
+	LD	DE,@DSPLY	;But do this first
+NOAUT	PUSH	DE		;Put on stack for RET
+	PUSH	BC		;Either INBUF$ or 0
+	LD	HL,STUB
+	LD	DE,MOD3BUF+80	;move code down & set ret
+	PUSH	DE		;add ret vector to stack
+	LD	BC,STUBEND-STUB	;Code length
+	LDIR
+	LD	DE,DCT$		;Set up to move DCT's
+	LD	HL,MOD3BUF	;  from configed area
+	LD	C,80
+	EXX			;Keep in alternate set
+	OR	A		;sysgen flag
+	JR	NZ,NOCONF	;go if none here
+	LD	A,0		;get input key
+INTKEY	EQU	$-1
+	CP	3		;break?
+	JR	Z,NOCONF	;go on break override
+	CP	8		;08=BACKSPACE override
+	JR	Z,NOCONF	;go if none
+	LD	HL,21<8+0	;row/col
+	LD	B,3		;command
+	CALL	@VDCTL		;setup cursor posit
+	LD	HL,CONFIG$	;text
+	CALL	@DSPLY		;display to video
+	LD	DE,CFGFCB$	;Set up to load config
+	JP	@LOAD		;Go to load config
+NOCONF	OR	-1		;set NZ for no config
+	RET			;return NZ
+;
+CONFIG$	DB	1DH,'** SYSGEN **',03H
+;
+;*=*=*
+;*	Code moved to debug register save area
+;*=*=*
+STUB	LD	HL,SFLAG$
+STUB1	RES	4,(HL)		;Test or SET Break bit
+;				; without changing Z/NZ
+	JR	NZ,NOTSG	;Go if no SYSGEN found
+	EXX			;Set to move DCT's
+	LDIR			;Move 'em
+;
+;	set new cursor character and video size
+;
+	LD	A,(CRTD1)	;get video size (cols)
+	CP	80		;80 cols?
+	JR	Z,INITV2	;continue if yes
+;
+;	setup display for 40 cols
+;
+INITV1	LD	C,23		;init command
+	OR	A		;clear carry for data
+	CALL	DODVR		;set 40 cols
+	LD	C,28		;HOME command
+	OR	A		;clear carry for data
+	CALL	DODVR		;home cursor
+	LD	C,31		;EOF command
+	CALL	DODVR		;clear video
+INITV2	CALL	$CRSON		;setup cursor character
+	LD	HL,(CURSET)	;get cursor address
+	LD	B,3		;init command
+	CALL	@VDCTL		;reset cursor address
+	CALL	@ICNFG		;Init config
+NOTSG	LD	A,3		;init @CTL call
+	OR	A		;set NZ/NC
+	CALL	TYPAHD		;flush all type chars
+	LD	C,7
+SETCYL0
+	CALL	@GTDCT
+	BIT	3,(IY+3)	;If hard drive, dont stuf
+	JR	NZ,NOFF		;  & don't restore
+	LD	(IY+5),04CH	;Set in case no restore
+	LD	A,(RSTOR$)	;Do we restore the drives
+	OR	A
+	CALL	Z,@RSTOR	;Restore drives 1-7
+NOFF	DEC	C
+	JR	NZ,SETCYL0
+	LD	HL,21<8		;Set cursor
+CURSET	EQU	$-1
+	LD	B,3
+	CALL	@VDCTL
+	POP	HL		;Pop INBUF$
+	RET			;To @CMD or @DSPLY,@CMNDI
+	DW	00		;hook for more INIT code
+STUBEND	EQU	$
+;*=*=*
+;	Date & Time prompting
+;*=*=*
+GETPARM	PUSH	BC		;Save separator char
+	PUSH	DE		;Save message pointer
+	LD	B,3
+	CALL	@VDCTL		;Position the cursor
+	POP	HL		;Recover message pointer
+	CALL	@DSPLY		;  & display the message
+	LD	HL,OVERLAY	;Buffer for reply
+	POP	BC
+	PUSH	BC
+	CALL	@KEYIN		;Get reply & wait a bit
+	XOR	A		;  disable test
+	OR	B
+	POP	BC		;  of key prior to AUTO
+	RET	Z		;Ret with NC if no entry
+	PUSH	BC
+	LD	B,40H
+	CALL	@PAUSE		;  to let finger off
+	POP	BC
+;*****
+;	routine to parse DATE entry
+;*****
+PARSDAT	LD	DE,CFGFCB$+31	;point to buf end
+	LD	B,3		;process 3 fields
+PRSD1	PUSH	DE		;save pointer
+;*****
+;	routine to parse a digit pair
+;*****
+	CALL	PRSD3		;get a digit
+	JR	NC,PRSD2	;jump if bad digit
+	LD	E,A		;multiply by ten
+	RLCA
+	RLCA
+	ADD	A,E
+	RLCA
+	LD	E,A
+	CALL	PRSD3		;get another digit
+	JR	NC,PRSD2	;jump on bad digit
+	ADD	A,E		;accumulate new digit
+	LD	E,A		;save 2-digit value
+	SCF			;show valid
+	LD	A,E		;xfer field value
+PRSD2	POP	DE		;recover pointer
+	RET	NC		;ret if bad digit pair
+	LD	(DE),A		;else stuff the value
+	DEC	B		;loop countdown
+	SCF
+	RET	Z		;ret when through
+	DEC	DOE		;backup the pointer
+	LD	A,(HL)		;ck for valid separator
+	INC	HL		;bump pointer
+	CP	':'		;Check for colon ':'
+	JR	Z,PRSD1		; loop if match
+	CP	C		;separator char required
+	JR	NC,PRSD4	;Exit if bad char
+	JR	PRSD1		; else loop now
+PRSD3	LD	A,(HL)		;p/u a digit &
+	INC	HL		;convert to binary
+	SUB	30H
+PRSD4	CP	10
+	RET
+;*=*=*
+;	routine to display month or day of week
+;*=*=*
+SPACE4	PUSH	HL		;Print 4 SPACES
+	LD	HL,SPACE4$	; point to string
+	CALL	@DSPLY
+	POP	HL
+DSPMDY	DEC	B		;Point to Bth entry
+	LD	A,L		; in table
+	ADD	A,B
+	ADD	A,B
+	ADD	A,B
+	LD	L,A
+	LD	B,3		;Print 3 characters
+DSPM1	LD	A,(HL)
+	INC	HL
+	CALL	@DSP
+	DJNZ	DSPM1
+	RET
+PARTYR	DB	', 198',30,3
+;
+	IF	@INTL
+DATEPR	DB	30,'Date DD/MM/YY ? ',ETX
+	ELSE
+DATEPR	DB	30,'Date MM/DD/YY ? ',ETX
+	ENDIF
+;
+TIMEPR	DB	30,'Time HH:MM:SS ? ',ETX
+SPACE4$	DB	'   ',03,03	;4 space string
+	DC	32,00		;Space for message, or??
+;
+;	sel mem bank at B and return Cy if not avail
+;
+TBANK	LD	A,(MODOUT$)	;get flag
+	AND	0F0H		;drop low 4 bits
+	OR	B		;combine with bank
+	CALL	SET_MOD		;update mask/port
+	LD	HL,8000H	;start of bank memory
+	CALL	TMEM		;test memory here
+	SCF			;carry = not avail
+	RET	NZ		;go if no memory
+	LD	H,0C0H		;next 16k
+	CALL	TMEM		;test memory
+	SCF			;carry = not avail
+	RET	NZ		;go if no memory
+	OR	A		;else clear carry
+	RET			;done
+;
+TMEM	LD	A,(HL)		;read data
+	CPL			;reverse bits
+	LD	(HL),A		;load data
+	CP	(HL)		;still there?
+	CPL			;reverse back
+	LD	(HL),A		;restore data
+	RET			;Z=yes, NZ=no memory
+;
+;*=*=*
+;       Initialize all devices
+;*=*=*
+CHIP_INIT
+	DI			;disable mode 2 interrupt
+	IM	2		;set interrupt mode 2
+	LD	A,$M2VECS<-8	;get msb interrupt table
+	LD	I,A		;init interrupt register
+;
+	LD	HL,IDATA	;init data
+	LD	E,(HL)		;get device count
+	INC	HL		;bump to data
+$?1	LD	B,(HL)		;get data count
+	INC	HL		;bump
+	LD	C,(HL)		;get data port
+	INC	HL		;bump
+	OTIR			;init device
+	DEC	E		;less device count
+	JR	NZ,$?1		;go for count
+;
+	LD	A,(MODOUT$)	;get flag
+	OUT	($BSEL),A	;enable RTC
+	IN	A,($RDKBD)	;clear key interrupt
+	EI			;can enable M2 interrupts
+	RET			;done
+;
+;	init video CRTC controller
+;
+VIDEO_INIT
+	LD	HL,VDATA	;video data table
+	LD	BC,16<8+$CRTDAT	;count + CRTC data reg.
+	XOR	A		;init register 0
+VIDINIT	OUT	($CRTADD),A	;select CRTC register
+	INC	A		;bump for next pass
+	OUTI			;send single data byte
+	JR	NZ,VIDINIT	;go for count
+	RET			;done!
+;
+;	video init data
+;
+VDATA	DB	80+19		;H. total
+	DB	80		;H. displayed
+	DB	80+5		;H. sync posit
+	DB	8		;H. sync width
+;
+	DB	24+1		;V. total
+	DB	0		;V. total adjust
+	DB	24		;V. displayed
+	DB	24		;V. sync posit
+	DB	0		;interlace mode
+	DB	9		;max scan line add
+	DB	7+60H		;cursor start + control
+	DB	7		;cursor end
+	DW	0		;start address
+	DW	0		;cursor position
+;
+;	device initialization data table
+;
+IDATA	DB	8		;device count
+;
+;	init data for Z80 PIO
+;
+	DB	5		;data count
+	DB	$PIOAC		;PIOA config
+	DB	000H		;int vector
+	DB	0CFH		;bit mode
+	DB	0F7H		;I/O mask
+	DB	037H		;int off
+	DB	0FEH		;int mask
+;
+	DB	3		;data count
+	DB	$PIOBC		;PIOB config
+	DB	000H		;int vector
+	DB	00FH		;output mode
+	DB	007H		;no int
+;
+;	init data for Z80 SIO
+;
+	DB	9		;data count
+	DB	$SIOAC		;SIOA config
+	DB	018H		;channel reset
+	DB	004H		;WR4
+	DB	044H		;X16, S=1
+	DB	003H		;WR3
+	DB	0E1H		;W=8,auto,RX
+	DB	005H		;WR5
+	DB	0EAH		;DTR,W=8,TX,RTS
+	DB	011H		;res int, WR1
+	DB	018H		;int on all RX chars
+;
+	DB	11		;data count
+	DB	$SIOBC		;SIOB config
+	DB	018H		;channel reset
+	DB	004H		;WR4
+	DB	044H		;X16,S=1
+	DB	003H		;WR3
+	DB	0E1H		;W=8,auto,RX
+	DB	005H		;WR5
+	DB	0EAH		;DTR,W=7,TX,RTS
+	DB	002H		;WR2
+	DB	$M2VECS&0FFH+0	;mode 2 vector table
+	DB	011H		;res int, WR1
+	DB	01CH		;int on all RX chars
+;
+;	init data for Z80 CTC
+;
+	DB	4		;data count
+	DB	$CTC0		;CTC0 address
+	DB	007H		;reset, TC follows
+	DB	034H		;time constant 300 baud
+	DB	$M2VECS&0FFH+16	;mode 2 vector table
+	DB	003H		;disable ints, reset
+;
+	DB	3		;data count
+	DB	$CTC1		;CTC1 address
+	DB	007H		;reset, TC follows
+	DB	034H		;time constant 300 baud
+	DB	003H		;disable ints, reset
+;
+	DB	3		;data count
+	DB	$CTC2		;CTC2 address
+	DB	007H		;reset, TC follows
+	DB	034H		;time constant 300 baud
+	DB	003H		;disable ints, reset
+;
+	DB	2		;data count
+	DB	$CTC3		;CTC3 address
+	DB	0C7H		;reset, TC follows
+	DB	001H		;time constant
+;
+;	init data for hard disk I/O
+;
+	DB	3		;data count
+	DB	$HDIO		;device address
+	DB	000H
+	DB	010H
+	DB	00CH
+;
+*GET	SOUND2:3
+;

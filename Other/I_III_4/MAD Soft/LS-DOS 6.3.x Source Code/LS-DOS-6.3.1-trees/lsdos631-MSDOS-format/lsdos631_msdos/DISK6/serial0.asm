@@ -1,0 +1,83 @@
+;DUPE6H/ASM     08/31/83
+; Header to convert 5.1 type pgms to 6.0
+@RST38	EQU	38H		;Interrupt vector
+SFLAG$	EQU	0		;Find from flagtable
+*GET	SVCMAC
+*LIST OFF
+;
+BEGIN:	DI
+	LD	(SPSAV),SP
+	PUSH	HL		;Save ptr to CMD buffer
+	LD	HL,0
+	@@BREAK			;Disable break vectoring
+	EI
+	@@FLAGS			;Set up IY
+	PUSH	IY
+	POP	DE
+	LD	HL,'S'-'A'	;Offset to SFLAG$
+	ADD	HL,DE
+	LD	(SFLAG),HL
+	LD	HL,'R'-'A'	;RFLAG$
+	LD	(RFLAG),HL
+	LD	HL,0
+	LD	B,L
+	BIT	1,(IY+'C'-'A')	;OK if not CMDR
+	JR	Z,NOTCMDR
+	INC	B		;Use LOW$ otherwise
+NOTCMDR	@@HIGH$			;P/u HIGH$
+	DEC	H
+	LD	(MYHIGH),HL	;Store away
+	LD	C,0		;Drv # 0
+	@@GTDCT
+	LD	(DCTPTR),IY	;Save start of table
+;
+	POP	HL		;Restore cmd line ptr
+	CALL	START		;DO IT!
+; prepare to exit.....
+@EXIT:	LD	HL,0
+	XOR	A
+QUIT$:	LD	SP,$-$
+SPSAV	EQU	$-2
+	RET
+@ABORT:	LD	HL,-1
+	JR	QUIT$
+;
+@PARAM:	@@PARAM
+	RET
+@KEYIN	LD	C,0
+	@@KEYIN
+	RET
+@KBD	@@KBD
+	RET
+@KEY	@@KEY
+	RET
+@PAUSE	@@PAUSE
+	RET
+@ERROR	PUSH	BC
+	LD	C,A
+	@@ERROR
+	POP	BC
+	RET
+@DSPLY	@@DSPLY
+	RET	Z
+	JR	IOERR
+@LOGOT	@@LOGOT
+	RET
+@MULT:	PUSH	BC
+	LD	C,A
+	@@MUL16
+	POP	BC
+	RET
+@DSP:	PUSH	BC
+	LD	C,A
+	@@DSP
+	POP	BC
+	RET	Z
+IOERR:	LD	H,0
+	LD	L,A
+	OR	0C0H
+	CALL	@ERROR
+	JP	QUIT$
+RFLAG:	DW	0
+;
+

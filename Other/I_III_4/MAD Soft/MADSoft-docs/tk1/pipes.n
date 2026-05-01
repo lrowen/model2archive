@@ -1,0 +1,350 @@
+.if t  .po 1.0i
+.ds ]W May 15th, 1993\"
+.TH PIPES U1 "" "LS-DOS 6 - Utilities 1"
+.ig
+PIPES troff documentation \- Version 1(1) 17\-Jul\-93
+Copyright 1993 M. A. D. Software, All Rights Reserved.
+..
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+.de IN
+.if t  .in +0.5i
+.if n  .in +0.6i
+..
+.de OU
+.if t  .in -0.5i
+.if n  .in -0.6i
+..
+.de TI
+.if t  .ti -0.5i
+.if n  .ti -0.6i
+..
+.de IX
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 1.0i 1.5i 2.5i 3.5i 4.5i 5.5i
+.if t  .in +0.5i
+.if n  .in +1.0i
+..
+.de OX
+.if t  .in -0.5i
+.if n  .in -1.0i
+.if t  .ta 0.5i 1.0i 1.5i 2.0i 2.5i 3.0i 3.5i 4.0i 4.5i 5.0i 5.5i 6.0i
+.if n  .ta 0.6i 1.2i 1.8i 2.4i 3.0i 3.6i 4.2i 4.8i 5.4i 6.0i
+..
+.de TX
+.if t  .ti -0.5i
+.if n  .ti -1.0i
+..
+.SH \fBName\fR
+.br
+PIPES \- Connects two or more programs together.
+.SH \fBSyntax\fR
+.br
+.B pipes
+[
+.BI \-snre?h
+] [
+.BI \-d\ \fIn\fR
+]
+.I program\ #1
+[
+.I \fB|\fI\ program\ #2
+] ...
+.if n  .br
+[ 
+.I \fB|\fI\ program\ #n
+] [< \fIfile\fR\ |\ \fIdevice\fR ]
+.br
+[>[>]
+.I file\ |\ device
+] [
+.I ;\ next\ command\ group
+]
+.SH Description
+.br
+
+.I Pipes 
+executes one or more commands from a single command line.  Each command
+is separated by a semicolon ('\fB;\fR') or a pipe ('\fB|\fR').
+Separating commands with semicolons allows you to specify several
+LS-DOS commands or program names using a single command line.
+
+When the \fBpipe\fR operator ('\fB|\fR') is used
+instead of a semicolon, the text from one program that would
+normally be displayed is stored on disk and is provided as input to the next
+program that is specified.  The output of the second program can then
+be "piped" to a third program, and so on.  For example, if you would like
+to search through a directory display using the standard LS-DOS \fIdir\fR(L)
+command, you can use a command like:
+\fB\ pipes dir :0 (n) | more\fR
+.br
+In this example, the output of the LS-DOS library command \fIdir(L)\fR
+is intercepted
+and written to a file instead of the display as originally programmed.
+Then the second program, the \fImore\fR(U1) program, is run and when
+it reads from what it thinks is the keyboard, it is actually reading the
+data from \fIdir\fR(L) that has been stored in a file.
+Because \fImore\fR(U1) is the last program is this "pipeline", its output
+goes to the display.
+
+Pipes are a powerful technique that allows compound programs to be created.
+This is done by connecting smaller programs together.  These programs are
+unaware of the programs they are passing data to and from, and this means
+that existing programs and commands can be used without having to modify them.
+
+The idea for \fIpipes\fR comes from the *NIX operating system,
+and is a standard feature in all
+versions.  In the *NIX implementation, each program specified on
+the command line is run simultaneously, so as soon as the first program
+produces data, the second program can read it.  Since LS-DOS is
+not a multi-tasking operating system, each program must run entirely
+before the next program can be started and allowed to see the data from
+the first program.  This creates a few restrictions in how \fIpipes\fR
+can be used, but these are minor.
+
+.I Pipes
+accepts several options.  Options are usually specified by single characters,
+and they may be entered in upper or lowercase.  Options are always
+preceded by a hyphen (a "-").  If you are specifying multiple options, you
+can specify the options in any of these formats:
+.br
+	-a -b -c   or   -abc   or   -a -bc   or  -ab -c
+.if n  .bp
+The options are:
+.IP \fB\-d\ \fIdrivenumber\fR 5
+Specifies what logical drive \fIpipes\fR should use for the temporary
+files it creates.  
+.IP \fB\-s\fR 5
+When the first program attempts to read from the
+keyboard (*KI), \fBpipes\fR will provide a <SPACE> (ASCII 0x20) character to
+the program instead of actually reading the keyboard.
+No matter how many times the program reads the keyboard, it will always
+receive a <SPACE> character.  This is useful if the program being
+executed pauses the display and is simply looking for a character to allow
+it continue.  By default, the LS-DOS command \fIdir\fR(L) does this.
+.IP \fB\-n\fR 5
+Same as \fB-s\fR, except a <NULL> (ASCII 0x00) is supplied to the program.
+.IP \fB\-r\fR 5
+Same as \fB-s\fR, except a <ENTER> (ASCII 0x0D) is supplied to the program.
+.IP \fB\-e\fR 5
+Similar to \fB-s\fR, except that when the program tries to read the keyboard,
+it will always receive an end-of-file error (ASCII 0x1C).  Some programs
+will exit when they see an EOF, and this may be desirable.
+.IP \fB\-\?\fR\ or\ \fB\-h\fR 5
+Displays the help message.
+.if t  .bp
+.IP \fB<\ \fIfile\ |\ device\fR 5
+If a file or device is specified, when the first program specified
+reads data from the keyboard, \fIpipes\fR will read the data from the
+file or device until the end-of-file is detected or an error occurs.  This is
+known as \fIredirected input\fR.  
+\fIFilespecs\fR for redirection may not specify a password.
+.IP \fB>\fR[\fB>\fR]\ \fIfile\ |\ device\fR 5
+By specifying a file or device, the
+output of the last program before the end of the line or before
+a semicolon ('\fB;\fR') is sent to the
+specified file or device instead of the display.  This is known as
+\fIredirected output\fR.  
+For example, the command \fBpipes lib > libtext:0\fR places the text
+from the \fIlib\fR(L) command in the file
+.br
+\fBLIBTEXT:0\fR.  If >> is used,
+the output will be appended to any existing contents of the file.
+\fIFilespecs\fR for redirection may not specify a password.
+.if n  .bp
+.IP \fB|\fI\ program\fR
+The pipe symbol ('\fB|\fR') indicates the end of one program
+specification, and the start of the next.  Unlike the semicolon symbol
+('\fB;\fR'), the pipe symbol ('\fB|\fR') instructs \fIpipes\fR to store all
+of the output of the program on the left of the pipe symbol, and 
+provide that data to the program on the right of the pipe symbol.
+On the Model 4, 4D or 4P keyboard, the pipe symbol is produced by holding
+down the <CLEAR> key, then hold down the <SHIFT> key, then press the </> key.
+.IP \fB;\fI\ next\ command\ group\fR
+When \fIpipes\fR encounters a semicolon ('\fB;\fR'), all options and
+redirection resets.  Then the remaining command line is examined for
+new options, program names, pipes, and any new redirection specifications.
+A single command line for \fIpipes\fR can have as many semicolon-separated
+commands as desired.
+
+.SH \fBNotes\fR
+Pipes works by loading a driver into high memory that intercepts I/O to
+the *DO, *SI, and in certain cases, the *KI devices.  \fIPipes\fR also
+intercepts the @EXIT and @ABORT supervisor calls.  When \fIpipes\fR
+is invoked, it examines the command line up to the first semicolon
+it finds, looking for any redirection specifications.  Then it goes back
+to the start of the command line looking for any options.  When a program
+specification is found, that program is executed with the input and output
+routed as specified.  
+Here are some examples of how \fIpipes\fR
+interprets different command lines:
+
+.IN
+\fBpipes program1 < filea > fileb\fR
+.OU
+
+\fBPROGRAM1\fR is executed.  If \fBPROGRAM1\fR tries to read data from the
+keyboard, the data is actually read from \fBFILEA\fR.  Anything that
+\fBPROGRAM1\fR wants to display is stored in \fBFILEB\fR.  Note that the
+\fB<\fR and \fB>\fR specifications, plus any other parameters that
+\fIpipes\fR are not passed to the programs being executed.
+
+.IN
+\fBpipes -s program1 > filea\fR
+.OU
+
+\fBPROGRAM1\fR is executed.  If \fBPROGRAM1\fR tries to read a character
+from the keyboard, it will always get a <SPACE> character.  Any output
+from \fBPROGRAM1\fR is stored in \fBFILEA\fR.
+
+.IN
+\fBpipes date ; time 12:34:56 > filea ; lib\fR
+.OU
+
+The programs \fIdate\fR(L), \fItime\fR(L) and \fIlib\fR(L) are executed in that
+order.  The output of \fIdate\fR(L) and \fIlib\fR(L) goes to the display
+since they are not redirected.
+The output of \fItime\fR(L) is stored in \fBFILEA\fR.  The parameter to the
+\fItime\fR(L) program is passed just as it was present on a normal
+LS-DOS command line.
+
+.IN
+\fBpipes date > filea ; time >> filea\fR
+.OU
+
+The programs \fIdate\fR(L) and \fBtime\fR(L) are executed in that order.
+The output of \fBdate\fR(L) is stored in the file \fBFILEA\fR, and the
+output of \fBtime\fR(L) is appended to the contents of \fBFILEA\fR.
+.bp
+.IN
+\fBpipes lib | wc\fR
+.OU
+
+The library command \fLlib\fR(L) is executed and the display output is
+stored on disk.  Then the program \fIwc\fR(U1) is executed and reads the
+data from \fIlib\fR(L) that was stored.  Since \fBwc\fR is the end
+of the pipeline, its output
+is sent to the display.  
+.br
+Note that the spaces around the \fB|\fR and \fB;\fR in
+these examples are optional.  The command \fBpipes lib|wc\fR is accepted.
+
+.IN
+\fBpipes time ; wc | more +/1024 < filea > fileb ; date\fR
+.OU
+
+The library command \fItime\fR(L) is executed and its output is sent to
+the display.  Then the program \fIwc\fR(U1) is executed and it reads
+data from \fBFILEA\fR.  The output of \fIwc\fR(U1) is stored on disk.
+Then the program \fImore\fR(U1) is executed and it reads the data from
+\fIwc\fR(U1) that was stored on disk.  The output of \fImore\fR(U1) is
+stored in
+\fBFILEB\fR.  Finally, the \fIdate\fR(L) command is executed and its
+output is displayed.
+
+.IN
+\fBpipes -r dir :0 | more ; dir :1\fR
+.OU
+
+The library command \fIdir\fR(L) will be executed and it will
+produce a list of files on drive 0.  This data will be stored on disk.
+Because the \fB-r\fR option is specified, each time \fIdir\fR(L) pauses
+the display, it will immediately think the <ENTER> key has been pressed
+and will display the next page of files.  Once \fIdir\fR(L) is
+finished, \fImore\fR(U1) will be executed and it will display the
+list of files that \fIdir\fR(L) created.  If the \fB-r\fR (or one of the
+other options) was not used, \fIdir\fR(L) would pause and wait for a key
+to be pressed, but since nothing is being displayed, you would not
+know when or how many times a key needed to be pressed.  Finally,
+the \fIdir\fR(L) command is executed a second time and will produce a
+list of files on drive 1.  Because options reset when a semicolon ('\fB;\fR')
+is encountered, the \fB-r\fR option from earlier no longer applies and
+the user must press a key to cause the display from the \fBdir :1\fR command
+to advance from one page to the next.
+
+Note that no matter how many programs are connected together with pipes,
+any redirection must be specified after the last program.  The redirected
+input only affects the program at the start of the pipeline, and the
+redirected output only affects the last program on the pipeline.
+
+When the entire command line has been processed, or if an error occurs,
+\fIpipes\fR resets all the devices to their normal states, and then
+will attempt to remove itself from high memory.  If another
+high memory module (driver, filter, etc) is loaded from within \fIpipes\fR,
+the memory that \fIpipes\fR was using cannot be released.  \fIPipes\fR
+will reuse the unreleasable memory in later invocations.
+
+.if n  .bp
+To keep the size of \fIpipes\fR to a minimum, it only
+has a limited number of error messages.  When \fIpipes\fR encounters
+an error, it aborts immediately, and will display a message
+containing the phrase "broken pipe".  Normally, the actual cause of
+the error will be displayed by the operating system or the program that
+aborted.  However, if the output of that program was being sent to a
+pipe, the message will not be displayed.  Instead it was stored on disk.
+In these cases, any specific error message has been stored in one of the
+\fBPIPE\fR files.
+
+\fIPipes\fR will abort if logical drive 0 (or the specified drive)
+runs out of disk space, or is write protected.  In these cases, the
+error message will indicate which file \fIpipes\fR is having trouble with.
+
+\fIPipes\fR cannot be invoked from within \fIpipes\fR.  
+
+Ideally, all
+applications would read data from *SI and write to *SO, which are normally
+routed to *KI and *DO, respectively.  But unfortunately, hardly any
+programs do this, making it difficult for a program to accept data from
+a pipe and prompt the user at the keyboard.  Programs that need to do
+this must read data that might be redirected from *SI, and read
+the responses to any user prompts from *KI.
+All the programs in the
+\fIUtilities Disk 1\fR do this.  This is how \fBmore\fR(U1) can be reading
+data from standard input (either redirected or from a pipe), and still
+prompt the user to fine out what it should do next.
+
+.if t  .bp
+When you specify \fB-n\fR, \fB-s\fR, \fB-r\fR or  \fB-e\fR in \fIpipes\fR,
+the generated characters (or errors) are provided to the first program on the
+command line (or after a semicolon) if it tries to read from *KI.  Unless
+redirected by a \fB<\fR specification or a pipe, reading from *SI is the
+same as reading from *KI.  When redirection does occur, programs that read
+from *SI will be reading data from the specified file, device or pipe.
+
+To install \fIpipes\fR as the \fIImmediate Execution Program\fR (IEP), in
+LS-DOS, use the command:
+
+.IN
+COPY PIPES/CMD SYS13/SYS:0 (C=N)
+.OU
+
+Once done, \fIpipes\fR can be invoked by typing an asterisk ('*') instead
+of the word \fIpipes\fR.
+
+
+.SH \fBFiles\fR
+\fIPipes\fR creates \fBPIPES0\fR and \fBPIPES1\fR on logical drive 0 unless
+you specify another drive.  These files are intentionally left after
+\fIpipes\fR finishes executing.  Because the space is already allocated,
+\fIpipes\fR can run faster the next time it is invoked.  Also, if a
+lengthy pipeline aborts without displaying anything, the files can be
+examined for error messages that may help you determine which program had
+problems.
+
+.if n  .bp
+.SH \fBCredit\fR
+\fIPipes\fR for LS-DOS is based on the program \fBMCM\fR written by
+Frank Durda IV, which appeared in \fIThe Misosys Quarterly\fR (Vol IV, No IV),
+and is used with permission.  The syntax of pipes and redirection is based
+on the Berkeley CSH ("C" shell, a command interpreter) for *NIX systems.
+
+
+If you need more information on \fIpipes\fR(U1), 
+please write to M.A.D. Software, P.O. Box 331323, Ft. Worth Texas,
+76163.  Please include a Self\-Addressed\-Stamped\-Envelope when requesting
+information.
+.br
+\-\-\-\-\-\-
+.br
+307172
+

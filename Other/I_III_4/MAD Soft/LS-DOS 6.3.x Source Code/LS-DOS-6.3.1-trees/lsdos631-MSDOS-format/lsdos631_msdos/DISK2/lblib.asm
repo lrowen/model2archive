@@ -1,0 +1,213 @@
+;LBLIB/ASM - LIB/CLS/TOF Commands
+	TITLE	<LIB - LS-DOS 6.2>
+*GET	BUILDVER:3
+*GET	SVCMAC:3		;SVC Macro equivalents
+;
+CR	EQU	13
+LF	EQU	10
+OVLAY$	EQU	1E00H
+IDBYT	EQU	101FH		;Ptr to serial #
+;
+	ORG	2400H
+;
+;
+;	LIB command entry point
+;
+LIB	JP	JPLIB		;Skip around to 'LIB'
+;
+;	CLS command entry point
+;
+	JP	CLS		;Skip around to 'CLS'
+	JP	DOID		;ID entry pt
+;
+;	TOF command entry point
+;
+TOF
+	LD	C,12		;Load TOF character
+	@@PRT			;Do @PRT SVC
+	IF	@BLD631
+L240E:
+	ENDIF
+	LD	HL,0		;Init to no error
+	RET	Z		;  and back if ok
+TOFERR	LD	L,A		;Error code to HL
+	LD	H,0
+	OR	0C0H		;Abbrev, return
+	LD	C,A
+	@@ERROR
+	RET
+;
+CLS	LD	A,105		;@CLS svc
+	RST	40		;  and do it
+	XOR	A		;Ret without error
+	IF	@BLD631
+	JR	L240E		;<631>
+	ELSE
+	LD	L,A
+	LD	H,A
+	RET
+	ENDIF
+;
+JPLIB	LD	B,3		;Init for 3 libraries
+LIB0	PUSH	BC
+	@@DSPLY	LIBMSG
+	LD	(HL),LF		;Put LF at start of
+				;  string for next time
+	LD	HL,(OVLAY$+2)	;PU table pointer
+LIB1	LD	B,2		;Dsply 1st command
+	CALL	TAB		;  tabbed in 2 spaces
+	LD	C,7		;Init for 7-across
+LIB2	LD	A,(HL)
+	OR	A
+	JR	Z,LIB4		;Jump on end
+	PUSH	HL
+	LD	DE,7		;Index to lib #
+	ADD	HL,DE
+LIBX	LD	A,80H		;Init for LIB-A
+	CP	(HL)		;Is this command in
+	JR	Z,LIB2A		;  the current library?
+	POP	AF		;Is not, skip past it
+	INC	HL
+	JR	LIB2
+;
+LIB2A	POP	HL		;Get 1st char of command
+	PUSH	BC		;Save reg C
+	LD	C,(HL)		;  and display in upper
+	@@DSP
+	LD	B,5		;Write 6-char LIB word
+LIB3	INC	HL		;Point to next char
+	LD	A,(HL)
+	CP	' '		;If space, don't lower
+	JR	Z,$+4		;  case the char
+	XOR	20H
+	LD	C,A		;Xfer to C & display it
+	@@DSP
+	DJNZ	LIB3
+;
+	LD	B,5		;Move over 5 spaces
+	CALL	TAB		;  for start of next command
+	INC	HL		;Bypass LIB parm vector
+	INC	HL
+	INC	HL
+	POP	BC		;Get across counter
+	DEC	C		;  & decrement
+	JR	NZ,LIB2		;Loop on < 7
+	LD	C,CR		;Write a new line
+	@@DSP
+	JR	LIB1		;Loop
+;
+LIB4	LD	C,CR		;End with new line
+	@@DSP
+	LD	HL,LIBMSG+10
+	INC	(HL)		;Bump to next lib
+	LD	A,(LIBX+1)	;Advance RST code also
+	ADD	A,20H
+	LD	(LIBX+1),A
+	POP	BC		;Recover Lib count
+	DJNZ	LIB0		;Loop until all done
+	LD	HL,0		;Set no error
+	RET
+;
+TAB	LD	C,' '		;Display spaces,
+	@@DSP
+	DJNZ	TAB		;  reg B has count
+	RET
+;
+LIBMSG	DB	0,'Library <A>',CR
+;
+;	Generate ID code
+;
+	IFLT	$,2500H
+	ORG	2500H
+	ENDIF
+;
+	IF	@BLD631
+DOID	LD	HL,NOID$		;<631>
+	@@DSPLY				;<631>
+	LD	HL,0			;<631>
+	RET				;<631>
+NOID$	DB	'No service contract!',CR	;<631>
+	ELSE
+NOID	LD	HL,NOID$
+	DB	0DDH
+BADID	LD	HL,BADID$
+	@@LOGOT
+	LD	HL,-1
+	JR	EXIT1
+EXIT	LD	HL,0
+EXIT1	LD	SP,$-$
+SAVSTK	EQU	$-2
+	@@CKBRKC
+	RET
+;
+NOID$	DB	'Error reading ID file',CR
+BADID$	DB	'Invalid customer service ID found',CR
+;
+DOID
+	LD	(SAVSTK),SP
+	LD	HL,FCB0		;Make usable name
+	PUSH	HL
+	LD	B,15
+IDLP1	LD	A,(HL)
+	XOR	1BH
+	LD	(HL),A
+	INC	HL
+	DJNZ	IDLP1
+	POP	DE
+	LD	HL,1400H
+	LD	B,0
+	@@FLAGS			;Get the flag table
+	SET	0,(IY+'S'-'A')	;No open bit
+	LD	A,24H
+	ADD	A,B
+	LD	H,A
+	@@OPEN
+	JP	NZ,NOID
+	LD	C,IDBYT<-8
+	@@POSN			;Get the sector
+	@@READ
+	JP	NZ,NOID		;Quit on error
+	LD	L,IDBYT&0FFH	;This should be '#'
+	LD	A,(HL)
+	CP	'#'
+	JP	NZ,BADID	;Bad if not
+	LD	A,L		;Now add offset to
+	ADD	A,12
+	LD	E,A
+	LD	D,H
+	PUSH	DE
+	LD	HL,IDRET	;Continue pt
+	EX	(SP),HL
+	PUSH	HL		;Push junk
+	CALL	IDBYT&0FFH+12+2400H
+IDRET	AND	98H		;See if we came back
+	XOR	80H
+	CP	18H
+	JP	NZ,BADID
+	POP	HL		;Get back buffer ptr
+	POP	DE		;Pop address junk
+	LD	B,10		;Count of digits
+	LD	E,D		;25h
+	LD	D,22H		;Pt to sysbuf
+	LD	A,E
+	DEC	L
+	XOR	11011010B
+	LD	E,A		;Must be 22ffh
+IDLP2	LD	A,(HL)
+	DEC	L
+	SUB	30H
+	LD	(DE),A
+	DEC	DE
+	DJNZ	IDLP2
+;
+	CALL	DOSYS3
+	JP	EXIT
+;
+DOSYS3	LD	A,80H!30H!5	;SYS3,entry 30h
+	RST	40		;Execute overlay
+;
+FCB0	DB	'HBH+4HBH5WHR_TH',3
+	DS	20		;FCB FOR SYS0
+	ENDIF
+	END	LIB
+
